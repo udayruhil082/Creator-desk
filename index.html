@@ -218,6 +218,8 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
 #gbtn{min-height:44px}
 .login-err{background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
 body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
+.g-btn{gap:10px;padding:10px 18px;font-size:15px;border-radius:99px;background:#fff;color:#1f1f1f;border-color:#dadce0}
+.g-btn:hover{border-color:#a8c7fa;background:#f8fafd}
 .user-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:3px 4px 3px 4px;background:var(--surface);max-width:100%}
 .user-chip img,.user-chip .av{width:26px;height:26px;border-radius:50%;flex:none;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
 .user-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
@@ -737,23 +739,38 @@ function dayInfo(){
 }
 
 /* ---------------- state + UI plumbing ---------------- */
-var gisReady=false, afterLogin=null;
-function loadGis(cb){ if(window.google&&google.accounts&&google.accounts.id){ cb(); return; }
-  var sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=cb;
-  sc.onerror=function(){ $('gbtn').innerHTML='<span class="small">Could not load Google sign-in. Check your internet and reload the page.</span>'; };
-  document.head.appendChild(sc); }
-function initGis(){ if(gisReady) return; gisReady=true;
-  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID, auto_select:true, cancel_on_tap_outside:false, callback:function(r){
-    if(!r||!r.credential){ return; } setTok(r.credential); hideLogin(); loadState(); }}); }
+var LOGIN_URI=location.origin+location.pathname;
+function signIn(silent){
+  var n=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{ sessionStorage.setItem('cd-nonce',n); sessionStorage.setItem('cd-view',view); }catch(e){}
+  var q={client_id:GOOGLE_CLIENT_ID, redirect_uri:LOGIN_URI, response_type:'id_token', scope:'openid email profile', nonce:n,
+    prompt:silent?'none':'select_account'};
+  var hint=''; try{ hint=localStorage.getItem('cd-email')||''; }catch(e){} if(hint) q.login_hint=hint;
+  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
+}
+// Reads the sign-in answer Google sends back in the address (#id_token=…), then cleans the address.
+function readLoginReturn(){
+  var h=location.hash||''; if(!/id_token=|error=/.test(h)) return '';
+  var p={}; h.slice(1).split('&').forEach(function(kv){ var a=kv.split('='); p[decodeURIComponent(a[0])]=decodeURIComponent((a[1]||'').replace(/\+/g,' ')); });
+  var v='lookup', n=''; try{ v=sessionStorage.getItem('cd-view')||'lookup'; n=sessionStorage.getItem('cd-nonce')||''; sessionStorage.removeItem('cd-nonce'); }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+(v&&v!=='lookup'?'#'+v:'')); }catch(e){}
+  if(p.id_token){
+    var pl={}; try{ pl=JSON.parse(decodeURIComponent(escape(atob(p.id_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){}
+    if(!n||pl.nonce!==n) return 'Sign-in could not be confirmed. Please try again.';
+    setTok(p.id_token); try{ if(pl.email) localStorage.setItem('cd-email',pl.email); }catch(e){}
+    if(['lookup','shortlist','campaign','summary','team'].indexOf(v)>=0) view=v;
+    return 'ok';
+  }
+  return p.error==='interaction_required'||p.error==='login_required'||p.error==='consent_required'?'':'Google sign-in was cancelled. Try again.';
+}
 function showLogin(msg){
   document.body.classList.add('locked'); $('login').hidden=false;
   var e=$('login-err'); e.hidden=!msg; e.textContent=msg||'';
-  loadGis(function(){ initGis(); $('gbtn').innerHTML='';
-    google.accounts.id.renderButton($('gbtn'),{theme:'outline',size:'large',text:'signin_with',shape:'pill',width:280});
-    if(!msg||/expired/.test(msg)) google.accounts.id.prompt(); });
+  $('gbtn').innerHTML='<button class="btn g-btn" type="button" id="g-signin"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Sign in with Google</button>';
+  $('g-signin').onclick=function(){ signIn(false); };
 }
 function hideLogin(){ document.body.classList.remove('locked'); $('login').hidden=true; }
-function signOut(){ setTok(''); try{ google.accounts.id.disableAutoSelect(); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
+function signOut(){ setTok(''); try{ localStorage.removeItem('cd-email'); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
 function loadState(){ return call('api_getState').then(function(s){ setState(s); if(view==='team') loadTeam(); }).catch(function(e){ if(!/sign in|Access turned off/i.test(e.message)) toast('Could not load data: '+e.message,true); }); }
 function renderUser(){ var u=S.user, el=$('user-chip');
   if(!REMOTE||!u){ el.hidden=true; $('tab-team').hidden=true; return; }
@@ -1294,7 +1311,14 @@ $('team-reload').addEventListener('click',loadTeam);
 var h=(location.hash||'').replace('#',''); if(['lookup','shortlist','campaign','summary'].indexOf(h)>=0) showView(h);
 if(!LIVE&&!REMOTE){ demoLoad(); current='demo.skin.pune'; }
 renderAll();
-if(REMOTE&&!getTok()) showLogin(''); else loadState();
+var lr=REMOTE?readLoginReturn():'';
+if(lr==='ok') showView(view);
+if(REMOTE&&!getTok()){
+  var hadEmail=''; try{ hadEmail=localStorage.getItem('cd-email')||''; }catch(e){}
+  var tried=''; try{ tried=sessionStorage.getItem('cd-silent')||''; }catch(e){}
+  if(hadEmail&&!tried&&!lr){ try{ sessionStorage.setItem('cd-silent','1'); }catch(e){} signIn(true); } // signs straight back in if Google still remembers you
+  else showLogin(lr&&lr!=='ok'?lr:'');
+} else { try{ sessionStorage.removeItem('cd-silent'); }catch(e){} loadState(); }
 })();
 </script>
 
