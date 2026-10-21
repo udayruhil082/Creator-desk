@@ -386,20 +386,25 @@ function isApiRow_(sh, row) {
 
 function api_refreshCreators() {
   const token = requireToken_();
+  const list = getCompetitors_();
   const sh = sheet_(SHEET_NAME);
   const last = sh.getLastRow();
   const errors = [];
-  for (let row = 2; row <= last; row++) {
-    const handle = cleanHandle_(sh.getRange(row, C.name).getValue());
-    if (!handle || !isApiRow_(sh, row)) continue;
-    try {
-      writeCreatorStats_(sh, row, analyse_(fetchCreator_(handle, token)));
-    } catch (e) {
-      sh.getRange(row, C.status).setValue('✗ ' + e.message);
-      errors.push(handle + ': ' + e.message);
-    }
-    Utilities.sleep(300);
-  }
+  if (last < 2) return { state: buildState_(), errors: errors };
+  const data = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  const todo = [];
+  data.forEach(function (r, i) {
+    const handle = cleanHandle_(r[C.name - 1]);
+    const plat = String(r[C.platform - 1] || 'Instagram');
+    if (handle && plat === 'Instagram' && String(r[C.source - 1]) !== 'Manual') todo.push({ row: i + 2, handle: handle, cur: r });
+  });
+  const got = fetchMany_(todo.map(function (t) { return t.handle; }), token);
+  todo.forEach(function (t, k) {
+    if (got[k].error) { sh.getRange(t.row, C.status).setValue('✗ ' + got[k].error); errors.push(t.handle + ': ' + got[k].error); return; }
+    const a = analyse_(got[k].bd, list);
+    writeCreatorStats_(sh, t.row, a, t.cur);
+    setCells_(sh, t.row, { competitors: a.competitors, collabs: a.collabs });
+  });
   recomputeAll(sh);
   return { state: buildState_(), errors: errors };
 }
@@ -410,34 +415,46 @@ function setCells_(sh, row, obj) {
 }
 
 // Upload flow: fetch Instagram data for these creators but only fill cells that are empty.
-// Called in small batches by the website so it can show progress.
+// All handles in a batch are fetched from Instagram at the same time, then written in one go.
 function api_fillCreators(names) {
   const token = requireToken_();
   const list = getCompetitors_();
   const results = [];
-  (names || []).forEach(function (raw) {
-    const name = String(raw || '').trim();
-    const handle = cleanHandle_(name);
-    if (!/^[a-z0-9._]{1,30}$/.test(handle)) {
-      withLock_(function () { const sh = sheet_(SHEET_NAME); const row = findRow_(sh, C.name, name); if (row) sh.getRange(row, C.status).setValue('Add the Instagram handle or profile link to fetch data'); });
-      results.push({ name: name, ok: false, msg: 'Needs an Instagram handle, not a display name' }); return;
-    }
-    let a;
-    try { a = analyse_(fetchCreator_(handle, token), list); }
-    catch (e) {
-      withLock_(function () { const sh = sheet_(SHEET_NAME); const row = findRow_(sh, C.name, name) || findRow_(sh, C.name, handle); if (row) sh.getRange(row, C.status).setValue('✗ ' + e.message); });
-      results.push({ name: name, ok: false, msg: e.message }); return;
-    }
-    withLock_(function () {
-      const sh = sheet_(SHEET_NAME);
-      let row = findRow_(sh, C.name, name) || findRow_(sh, C.name, handle);
-      if (!row) { row = Math.max(sh.getLastRow(), 1) + 1; sh.getRange(row, C.name).setValue(handle); }
-      const cur = sh.getRange(row, 1, 1, HEADERS.length).getValues()[0];
+  const items = (names || []).map(function (raw) { const name = String(raw || '').trim(); return { name: name, handle: cleanHandle_(name) }; });
+  const valid = items.filter(function (it) { return /^[a-z0-9._]{1,30}$/.test(it.handle); });
+  const got = valid.length ? fetchMany_(valid.map(function (it) { return it.handle; }), token) : [];
+  valid.forEach(function (it, k) { it.res = got[k]; });
+  withLock_(function () {
+    const sh = sheet_(SHEET_NAME);
+    const last = sh.getLastRow();
+    const data = last >= 2 ? sh.getRange(2, 1, last - 1, HEADERS.length).getValues() : [];
+    const index = {};
+    data.forEach(function (r, i) { const k = String(r[C.name - 1]).replace(/^'/, '').trim().toLowerCase(); if (k && !index[k]) index[k] = i + 2; });
+    let next = Math.max(last, 1) + 1;
+    items.forEach(function (it) {
+      let row = index[it.name.toLowerCase()] || index[it.handle];
+      if (!it.res) {
+        if (row) sh.getRange(row, C.status).setValue('Add the Instagram handle or profile link to fetch data');
+        results.push({ name: it.name, ok: false, msg: 'Needs an Instagram handle, not a display name' }); return;
+      }
+      if (it.res.error) {
+        if (row) sh.getRange(row, C.status).setValue('✗ ' + it.res.error);
+        results.push({ name: it.name, ok: false, msg: it.res.error }); return;
+      }
+      const a = analyse_(it.res.bd, list);
+      let cur;
+      if (row && row - 2 < data.length) cur = data[row - 2];
+      else {
+        if (!row) { row = next++; index[it.handle] = row; sh.getRange(row, C.name).setValue(it.handle); }
+        cur = HEADERS.map(function () { return ''; });
+      }
       const blank = function (k) { const v = cur[C[k] - 1]; return v === '' || v === null; };
       const fill = {
-        link: 'https://www.instagram.com/' + handle + '/', followers: a.followers, posts: a.posts,
+        link: 'https://www.instagram.com/' + it.handle + '/', followers: a.followers, posts: a.posts,
         views: round_(a.avgViews, 0), comments: round_(a.avgComments, 0), likes: round_(a.avgLikes, 0)
       };
+      const auto = autoDetails_(a);
+      Object.keys(auto).forEach(function (k) { fill[k] = auto[k]; });
       const out = {};
       Object.keys(fill).forEach(function (k) { if (blank(k) && fill[k] !== '' && fill[k] != null) out[k] = fill[k]; });
       if (blank('platform')) out.platform = 'Instagram';
@@ -445,11 +462,10 @@ function api_fillCreators(names) {
       out.competitors = a.competitors; out.collabs = a.collabs; out.updated = new Date();
       out.status = '✓ Filled from Instagram (last ' + a.sampled + ' posts)' + (a.hiddenLikes ? '. Some posts hide likes.' : '');
       setCells_(sh, row, out);
+      results.push({ name: it.name, ok: true, msg: 'Filled' });
     });
-    results.push({ name: name, ok: true, msg: 'Filled' });
-    Utilities.sleep(250);
+    recomputeAll(sh);
   });
-  withLock_(function () { recomputeAll(sheet_(SHEET_NAME)); });
   return { results: results };
 }
 
@@ -820,12 +836,40 @@ function discovery_(handle, token, limit) {
   return res.business_discovery;
 }
 
-function callApi_(handle, mediaFields, token, limit) {
-  const fields = 'business_discovery.username(' + handle + '){username,name,profile_picture_url,followers_count,media_count,media.limit(' +
+const MEDIA_FULL = 'like_count,comments_count,view_count,media_type,media_product_type,timestamp,permalink,caption';
+const MEDIA_BASIC = 'like_count,comments_count,media_type,timestamp,permalink,caption';
+
+function apiUrl_(handle, mediaFields, token, limit) {
+  const fields = 'business_discovery.username(' + handle + '){username,name,biography,website,profile_picture_url,followers_count,media_count,media.limit(' +
     limit + '){' + mediaFields + '}}';
-  const url = 'https://graph.facebook.com/' + API_VERSION + '/' + getIgId() +
+  return 'https://graph.facebook.com/' + API_VERSION + '/' + getIgId() +
     '?fields=' + encodeURIComponent(fields) + '&access_token=' + encodeURIComponent(token);
-  const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+}
+
+// Fetches many creators at the same time (much faster than one by one).
+// Returns one {bd} or {error} per handle, in the same order.
+function fetchMany_(handles, token) {
+  const out = [];
+  for (let i = 0; i < handles.length; i += 10) {
+    const part = handles.slice(i, i + 10);
+    const resps = UrlFetchApp.fetchAll(part.map(function (h) {
+      return { url: apiUrl_(h, MEDIA_FULL, token, POSTS_FOR_BRANDS), muteHttpExceptions: true };
+    }));
+    part.forEach(function (h, k) {
+      let res;
+      try { res = JSON.parse(resps[k].getContentText()); }
+      catch (e) { res = { error: { message: 'Unexpected response from Instagram (HTTP ' + resps[k].getResponseCode() + ').' } }; }
+      if (res.error && /view_count|media_product_type/i.test(res.error.message || '')) res = callApi_(h, MEDIA_BASIC, token, POSTS_FOR_BRANDS);
+      if (res.error) out.push({ error: friendlyError_(res.error) });
+      else if (!res.business_discovery) out.push({ error: 'No data returned for this account.' });
+      else out.push({ bd: res.business_discovery });
+    });
+  }
+  return out;
+}
+
+function callApi_(handle, mediaFields, token, limit) {
+  const r = UrlFetchApp.fetch(apiUrl_(handle, mediaFields, token, limit), { muteHttpExceptions: true });
   try { return JSON.parse(r.getContentText()); }
   catch (e) { return { error: { message: 'Unexpected response from Instagram (HTTP ' + r.getResponseCode() + ').' } }; }
 }
@@ -958,11 +1002,119 @@ function analyse_(bd, competitorList) {
     avgLikes: avg_(withLikes.map(function (p) { return p.like_count; })),
     avgComments: avg_(withComments.map(function (p) { return p.comments_count; })),
     avgViews: avg_(withViews.map(function (p) { return p.view_count; })),
-    competitors: brands.competitors, collabs: brands.collabs, captionsChecked: brands.checked
+    competitors: brands.competitors, collabs: brands.collabs, captionsChecked: brands.checked,
+    category: detectCategory_(bd, all), language: detectLanguage_(bd, all)
   };
 }
 
-function writeCreatorStats_(sh, row, a) {
+/* =========================================================
+ * Auto-filled details: category, language, reach and credibility
+ * (worked out from the public bio, captions and numbers)
+ * ======================================================= */
+
+const CATEGORY_WORDS = {
+  'Beauty': ['beauty', 'makeup', 'make up', 'mua', 'lipstick', 'foundation', 'cosmetic', 'glam', 'nykaa', 'blush', 'eyeliner', 'kajal', 'beautyblogger', 'makeupartist', 'swatch'],
+  'Skincare': ['skincare', 'skin care', 'serum', 'moisturi', 'sunscreen', 'spf', 'acne', 'glowing skin', 'cleanser', 'toner', 'niacinamide', 'retinol', 'dermat', 'skin routine', 'body wash', 'bodywash', 'soap'],
+  'Haircare': ['haircare', 'hair care', 'hair oil', 'shampoo', 'conditioner', 'hairstyle', 'hair growth', 'hair fall', 'curly hair'],
+  'Fashion': ['fashion', 'outfit', 'ootd', 'styling', 'style', 'saree', 'kurti', 'lehenga', 'wardrobe', 'streetwear', 'lookbook', 'fashionblogger', 'myntra', 'zara', 'h&m'],
+  'Lifestyle': ['lifestyle', 'daily vlog', 'vlog', 'day in my life', 'routine', 'aesthetic', 'life update', 'diml'],
+  'Travel': ['travel', 'trip', 'wanderlust', 'explore', 'vacation', 'mountains', 'beach', 'travelgram', 'backpack', 'itinerary', 'hotel', 'resort', 'goa', 'manali', 'ladakh', 'kashmir', 'himachal', 'kerala', 'bali', 'dubai'],
+  'Food': ['food', 'recipe', 'foodie', 'cooking', 'cook', 'chef', 'restaurant', 'cafe', 'street food', 'tasty', 'delicious', 'baking', 'dessert', 'biryani', 'foodblogger', 'zomato', 'swiggy'],
+  'Fitness': ['fitness', 'workout', 'gym', 'yoga', 'exercise', 'abs', 'fit', 'weight loss', 'fatloss', 'protein', 'bodybuilding', 'running', 'pilates'],
+  'Health & Wellness': ['wellness', 'health', 'healthy', 'nutrition', 'diet', 'mental health', 'self care', 'selfcare', 'ayurveda', 'holistic', 'mindful'],
+  'Parenting': ['mom', 'mommy', 'mother', 'parenting', 'baby', 'toddler', 'kids', 'momlife', 'motherhood', 'newborn', 'pregnancy', 'dad'],
+  'Tech': ['tech', 'gadget', 'smartphone', 'iphone', 'android', 'laptop', 'unboxing', 'review', 'ai ', 'coding', 'software', 'apps'],
+  'Gaming': ['gaming', 'gamer', 'bgmi', 'pubg', 'free fire', 'valorant', 'esports', 'stream', 'minecraft', 'gta'],
+  'Comedy': ['comedy', 'funny', 'meme', 'memes', 'humor', 'humour', 'skit', 'relatable', 'standup', 'stand up', 'prank', 'lol'],
+  'Entertainment': ['entertainment', 'actor', 'actress', 'film', 'movie', 'bollywood', 'web series', 'celebrity', 'acting'],
+  'Music': ['music', 'singer', 'song', 'cover', 'musician', 'guitar', 'rapper', 'singing', 'producer'],
+  'Dance': ['dance', 'dancer', 'choreograph', 'kathak', 'bharatanatyam', 'hip hop'],
+  'Education': ['education', 'learn', 'tips', 'study', 'exam', 'upsc', 'teacher', 'students', 'career', 'english speaking', 'knowledge', 'facts'],
+  'Finance': ['finance', 'money', 'invest', 'stock', 'trading', 'mutual fund', 'crypto', 'personal finance', 'savings', 'tax', 'sip'],
+  'Business': ['business', 'entrepreneur', 'startup', 'marketing', 'founder', 'brand building', 'linkedin', 'sales'],
+  'Home & Decor': ['home decor', 'homedecor', 'interior', 'decor', 'diy home', 'organisation', 'organization', 'cleaning', 'kitchen', 'home tour'],
+  'Pets': ['pet', 'dog', 'puppy', 'cat', 'kitten', 'petsofinstagram', 'dogsofinstagram'],
+  'Automotive': ['car', 'cars', 'bike', 'motorcycle', 'automobile', 'supercar', 'ride', 'biker'],
+  'Photography': ['photography', 'photographer', 'photo', 'portrait', 'lightroom', 'canon', 'nikon', 'sony alpha'],
+  'Art & DIY': ['art', 'artist', 'drawing', 'painting', 'sketch', 'craft', 'diy', 'handmade', 'illustration'],
+  'Sports': ['cricket', 'football', 'sports', 'athlete', 'badminton', 'tennis', 'kabaddi'],
+  'Spirituality': ['spiritual', 'astrology', 'tarot', 'meditation', 'mahadev', 'krishna', 'bhakti', 'manifest'],
+  'Books': ['book', 'books', 'reading', 'bookstagram', 'author', 'novel', 'poetry', 'poet', 'shayari'],
+  'Motivation': ['motivation', 'motivational', 'inspiration', 'mindset', 'success', 'self improvement', 'growth', 'discipline']
+};
+const CATEGORY_LIST = Object.keys(CATEGORY_WORDS).concat(['Other']);
+
+function countHits_(text, word) {
+  const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const tail = word.length <= 4 ? '(?![a-z])' : '';
+  const m = text.match(new RegExp('(^|[^a-z])#?' + esc + tail, 'g'));
+  return m ? m.length : 0;
+}
+
+// Picks the best one or two categories. The bio counts more than captions.
+function detectCategory_(bd, media) {
+  const bio = (String(bd.biography || '') + ' ' + String(bd.name || '') + ' ' + String(bd.username || '').replace(/[._]/g, ' ')).toLowerCase();
+  const caps = (media || []).map(function (p) { return String(p.caption || ''); }).join(' \n ').toLowerCase();
+  const scores = Object.keys(CATEGORY_WORDS).map(function (cat) {
+    let sc = 0;
+    CATEGORY_WORDS[cat].forEach(function (w) { sc += countHits_(bio, w) * 4 + Math.min(countHits_(caps, w), 6); });
+    return [cat, sc];
+  }).sort(function (a, b) { return b[1] - a[1]; });
+  if (!scores[0][1]) return 'Lifestyle';
+  if (scores[1][1] >= scores[0][1] * 0.6 && scores[1][1] >= 3) return scores[0][0] + ', ' + scores[1][0];
+  return scores[0][0];
+}
+
+const HINGLISH = /\b(hai|hain|nahi|nhi|kya|kyu|kaise|mera|meri|tera|teri|aur|bhi|kar|karo|karna|ke|ki|ko|se|yaar|bhai|accha|acha|hum|tum|aap|apna|apni|wala|wali|bahut|bohot|sab|toh|jab|kuch|matlab|dekho|zindagi|pyaar|dil)\b/g;
+// Works out the main language from the scripts and words used in captions and bio.
+function detectLanguage_(bd, media) {
+  const text = String(bd.biography || '') + ' ' + (media || []).map(function (p) { return String(p.caption || ''); }).join(' ');
+  const scripts = [['Hindi', /[\u0900-\u097F]/g], ['Bengali', /[\u0980-\u09FF]/g], ['Punjabi', /[\u0A00-\u0A7F]/g], ['Gujarati', /[\u0A80-\u0AFF]/g],
+    ['Odia', /[\u0B00-\u0B7F]/g], ['Tamil', /[\u0B80-\u0BFF]/g], ['Telugu', /[\u0C00-\u0C7F]/g], ['Kannada', /[\u0C80-\u0CFF]/g],
+    ['Malayalam', /[\u0D00-\u0D7F]/g], ['Urdu', /[\u0600-\u06FF]/g]];
+  const latin = (text.match(/[a-z]/gi) || []).length;
+  let best = null, bestN = 0;
+  scripts.forEach(function (s) { const n = (text.match(s[1]) || []).length; if (n > bestN) { best = s[0]; bestN = n; } });
+  const hing = (text.toLowerCase().match(HINGLISH) || []).length;
+  const words = (text.match(/[a-z]+/gi) || []).length || 1;
+  if (best && bestN >= 20 && bestN >= latin * 0.3) return latin > bestN * 0.5 ? best + ', English' : best;
+  if (hing >= 5 && hing / words > 0.04) return 'Hindi, English';
+  if (latin < 15) return best || '';
+  return 'English';
+}
+
+// Average reach is not public. Estimate it from average views (Reels) or a typical reach rate for the tier.
+function estimateReach_(a) {
+  if (a.avgViews) return Math.round(a.avgViews * 0.8);
+  const rate = { Nano: 0.3, Micro: 0.2, Macro: 0.15, Mega: 0.1 }[tierFor_(a.followers)] || 0.2;
+  return a.followers ? Math.round(a.followers * rate) : '';
+}
+
+// A quick audience-quality signal from engagement rate, comment share and views vs followers.
+function estimateCredibility_(a) {
+  if (!a.followers) return '';
+  const eng = (a.avgLikes || 0) + (a.avgComments || 0);
+  const er = eng / a.followers * 100;
+  const st = erStatus_(tierFor_(a.followers), er);
+  let score = st === 'good' ? 2 : st === 'ok' ? 1 : 0;
+  const cr = a.avgLikes ? (a.avgComments || 0) / a.avgLikes * 100 : null;
+  if (cr != null && cr >= 0.5 && cr <= 15) score += 1;
+  if (a.avgViews && a.avgViews >= a.followers * 0.25) score += 1;
+  const label = score >= 3 ? 'High' : score >= 2 ? 'Medium' : 'Low';
+  return label + ' (est.): ER ' + er.toFixed(2) + '%' + (cr != null ? ', comments ' + cr.toFixed(1) + '% of likes' : '') +
+    (a.avgViews ? ', views ' + Math.round(a.avgViews / a.followers * 100) + '% of followers' : '');
+}
+
+// Details that are only filled when the cell is empty, so the team's own entries stay.
+function autoDetails_(a) {
+  return { category: a.category, language: a.language, reach: estimateReach_(a), credibility: estimateCredibility_(a) };
+}
+
+function writeCreatorStats_(sh, row, a, cur) {
+  cur = cur || sh.getRange(row, 1, 1, HEADERS.length).getValues()[0];
+  const extra = {}, auto = autoDetails_(a);
+  Object.keys(auto).forEach(function (k) { const v = cur[C[k] - 1]; if ((v === '' || v === null) && auto[k] !== '' && auto[k] != null) extra[k] = auto[k]; });
+  setCells_(sh, row, extra);
   setCells_(sh, row, {
     followers: a.followers, posts: a.posts,
     likes: round_(a.avgLikes, 0), comments: round_(a.avgComments, 0), views: round_(a.avgViews, 0),

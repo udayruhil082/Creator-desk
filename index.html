@@ -205,6 +205,7 @@ a.btn{text-decoration:none}
 .brand-box{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .brand-box.hit{background:var(--warn-bg)}
 .brand-box.clear{background:var(--sunk)}
+.form.post input::placeholder{font-size:13px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.18)}
 .toast.err{background:var(--bad);color:#fff}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite}
@@ -369,8 +370,8 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
           </div>
           <form class="form manual" id="manual-form">
             <label class="field" style="grid-column:1/-1">Creator name or handle<input id="mf-name" type="text" autocomplete="off" placeholder="Beauty with Riya"></label>
-            <label class="field">Category<input id="mf-category" type="text" placeholder="Beauty"></label>
-            <label class="field">Language<input id="mf-language" type="text" placeholder="Hindi"></label>
+            <label class="field">Category<input id="mf-category" type="text" list="cat-list" placeholder="Beauty"></label>
+            <label class="field">Language<input id="mf-language" type="text" list="lang-list" placeholder="Hindi"></label>
             <label class="field">Platform<select id="mf-platform"></select></label>
             <label class="field">Followers<input id="mf-fol" type="number" min="0" step="any"></label>
             <label class="field">Fee (₹)<input id="mf-fee" type="number" min="0" step="any"></label>
@@ -431,9 +432,9 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
           <label class="field">Platform<select id="pf-platform"></select></label>
           <label class="field" style="grid-column:span 2">Post link<input id="pf-link" type="url" spellcheck="false" placeholder="https://www.instagram.com/reel/…"></label>
           <label class="field">Fee paid (₹)<input id="pf-fee" type="number" min="0" step="any"></label>
-          <label class="field">Views<input id="pf-views" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
-          <label class="field">Likes<input id="pf-likes" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
-          <label class="field">Comments<input id="pf-comments" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
+          <label class="field">Views<input id="pf-views" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
+          <label class="field">Likes<input id="pf-likes" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
+          <label class="field">Comments<input id="pf-comments" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
           <button class="btn primary" id="pf-btn" type="submit">Add post and fetch numbers</button>
         </form>
         <datalist id="handles"></datalist>
@@ -469,6 +470,10 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
           <textarea id="copy-fallback" hidden readonly aria-label="Text to copy"></textarea>
           <p class="small muted">Paste it into WhatsApp, Slack or email. It updates whenever the numbers change.</p>
         </div>
+        <div class="panel" style="grid-column:1/-1;order:1">
+          <div class="stack"><h3>All metrics</h3><p class="small muted">Shortlist values use creators with a fee. Campaign values use every tracked post.</p></div>
+          <div class="tbl-wrap"><table id="metrics-table"></table></div>
+        </div>
         <div class="panel">
           <h3>How the numbers are worked out</h3>
           <dl class="formulas">
@@ -478,7 +483,16 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
             <dt>CPV</dt><dd>fee ÷ views</dd>
             <dt>CPE</dt><dd>fee ÷ engagements</dd>
             <dt>CPM</dt><dd>fee ÷ views × 1,000</dd>
+            <dt>CPR</dt><dd>fee ÷ average reach</dd>
+            <dt>Avg CPV / CPE / CPR</dt><dd>average of each creator’s value</dd>
+            <dt>Blended CPV / CPR</dt><dd>total fees ÷ total views (or reach)</dd>
+            <dt>Cost per 1K followers</dt><dd>fee ÷ followers × 1,000</dd>
+            <dt>ER (reach)</dt><dd>engagements ÷ reach × 100</dd>
+            <dt>Reach rate</dt><dd>reach ÷ followers × 100</dd>
+            <dt>View rate</dt><dd>avg views ÷ followers × 100</dd>
+            <dt>Budget used</dt><dd>spend ÷ budget × 100</dd>
           </dl>
+          <p class="small muted">Average Reach is not public on Instagram. When the team hasn’t entered it from the creator’s insights, it is estimated as 80% of average views (or a typical reach rate for the tier), so CPR is an estimate too.</p>
           <div class="tbl-wrap"><table>
             <thead><tr><th>Tier</th><th>Followers</th><th class="n">Strong ER</th><th class="n">Okay ER</th></tr></thead>
             <tbody id="bench-body"></tbody>
@@ -507,6 +521,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
 </main>
 
 <div class="toast" id="toast" hidden role="status"></div>
+<datalist id="cat-list"></datalist><datalist id="lang-list"></datalist>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -693,8 +708,13 @@ function erStatus(tier,er){ if(!ok(er)) return null; var b=BENCH[tier]||BENCH.Mi
 function creatorRows(){
   var list=(S.creators||[]).map(function(c){
     var eng=(c.avgLikes||c.avgComments)?(c.avgLikes||0)+(c.avgComments||0):(c.engagement||0); var tier=tierFor(c.followers)||c.tier||'';
+    var reach=+c.reach||null;
     return {c:c, tier:tier, eng:eng, er:c.followers&&eng?eng/c.followers*100:null,
-      cpv:c.fee&&c.avgViews?c.fee/c.avgViews:null, cpe:c.fee&&eng?c.fee/eng:null};
+      cpv:c.fee&&c.avgViews?c.fee/c.avgViews:null, cpe:c.fee&&eng?c.fee/eng:null,
+      cpm:c.fee&&c.avgViews?c.fee/c.avgViews*1000:null, cpr:c.fee&&reach?c.fee/reach:null,
+      cpf:c.fee&&c.followers?c.fee/c.followers*1000:null, erR:reach&&eng?eng/reach*100:null,
+      erV:c.avgViews&&eng?eng/c.avgViews*100:null, reachRate:reach&&c.followers?reach/c.followers*100:null,
+      viewRate:c.avgViews&&c.followers?c.avgViews/c.followers*100:null};
   });
   var cpvs=list.map(function(x){return x.cpv}).filter(ok); var med=median(cpvs);
   list.forEach(function(x){
@@ -832,6 +852,9 @@ var DETAILS=[['category','Category','text'],['language','Language','text'],['pla
   ['collab','Collab Reel + Story w link + Autodm (₹)','num'],['adRights','1 Month Ad Rights (₹)','num'],['link','Link','text'],['ytLink','YT Link','text'],
   ['reach','Average Reach','num'],['age','Age Split 18-24','text'],['gender','Gender Split','text'],['credibility','Audience Credibility','text'],
   ['sales','Sales Data','text'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
+var CATEGORIES=['Beauty','Skincare','Haircare','Fashion','Lifestyle','Travel','Food','Fitness','Health & Wellness','Parenting','Tech','Gaming','Comedy','Entertainment','Music','Dance','Education','Finance','Business','Home & Decor','Pets','Automotive','Photography','Art & DIY','Sports','Spirituality','Books','Motivation','Other'];
+var LANGUAGES=['Hindi','English','Hindi, English','Marathi','Bengali','Punjabi','Gujarati','Tamil','Telugu','Kannada','Malayalam','Odia','Urdu','Assamese','Bhojpuri'];
+var DETAIL_HINT={age:'From creator’s insights',gender:'From creator’s insights',sales:'From past campaigns',reach:'Auto estimate, or from insights',credibility:'Auto estimate',ytLink:'YouTube channel link',collab:'Quoted price',adRights:'Quoted price'};
 var MANUAL_DETAILS=[['followers','Followers','num'],['views','Average Views','num'],['likes','Average Likes','num'],['comments','Average Comments','num'],['posts','Posts','num']];
 function renderLookup(){
   var R=creatorRows(); var box=$('lookup-result');
@@ -847,7 +870,8 @@ function renderLookup(){
   var form=fields.map(function(f){ var v=c[f[0]]; var id='cd-'+f[0];
     if(f[2]==='platform') return '<label class="field">'+f[1]+'<select id="'+id+'" data-d="'+f[0]+'">'+PLATFORMS.map(function(p){return '<option'+(p===(c.platform||'Instagram')?' selected':'')+'>'+p+'</option>'}).join('')+'</select></label>';
     if(f[2]==='long') return '<label class="field wide">'+f[1]+'<textarea id="'+id+'" data-d="'+f[0]+'" rows="2">'+esc(v||'')+'</textarea></label>';
-    return '<label class="field">'+f[1]+'<input id="'+id+'" data-d="'+f[0]+'" type="'+(f[2]==='num'?'number" min="0" step="any':'text')+'" value="'+esc(v==null?'':v)+'"></label>';
+    var extra=f[0]==='category'?' list="cat-list" placeholder="Auto from Instagram"':f[0]==='language'?' list="lang-list" placeholder="Auto from Instagram"':DETAIL_HINT[f[0]]?' placeholder="'+DETAIL_HINT[f[0]]+'"':'';
+    return '<label class="field">'+f[1]+'<input id="'+id+'" data-d="'+f[0]+'" type="'+(f[2]==='num'?'number" min="0" step="any':'text')+'"'+extra+' value="'+esc(v==null?'':v)+'"></label>';
   }).join('');
   box.innerHTML=
    '<div class="panel">'+
@@ -902,7 +926,7 @@ var sKey='cpv', sDir=1;
 var VORD={'Good value':0,'Good engagement':1,'Negotiate':2,'Average engagement':3,'Add more creators':4,'Not fetched':5,'Low engagement':6,'Avoid or renegotiate':7};
 var NUMSORT={followers:1,views:1,reach:1,comments:1,collab:1,adRights:1,fee:1};
 function sval(x,k){ if(k==='name') return x.c.handle.toLowerCase(); if(k==='competitors') return hasComp(x.c)?0:(x.c.competitors?1:null); if(k==='verdict') return VORD[x.v.label]; if(k==='engagement') return x.eng;
-  if(k==='er'||k==='cpv'||k==='cpe') return x[k]; if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
+  if(k==='er'||k==='cpv'||k==='cpe'||k==='cpm'||k==='cpr') return x[k]; if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
 function sortList(list,key,dir,fn){
   return list.slice().sort(function(a,b){ var va=fn(a,key), vb=fn(b,key); var na=va==null||va===''||(typeof va==='number'&&!isFinite(va)), nb=vb==null||vb===''||(typeof vb==='number'&&!isFinite(vb));
     if(na&&nb) return 0; if(na) return 1; if(nb) return -1; return (va<vb?-1:va>vb?1:0)*dir; });
@@ -910,7 +934,7 @@ function sortList(list,key,dir,fn){
 function urlCell(u){ if(!u) return '<span class="muted">—</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
 function renderShortlist(){
   var R=creatorRows(); var list=sortList(R.list,sKey,sDir,sval);
-  var cols=TEAM_COLS.concat([['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
+  var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
   var allSel=list.length&&list.every(function(x){return SEL[x.c.handle]});
   var head='<thead><tr><th><input type="checkbox" id="sel-all" aria-label="Select all creators"'+(allSel?' checked':'')+'></th>'+cols.map(function(c){ var n=['int','er','eng','rs2','rs','fee'].indexOf(c[2])>=0;
     return '<th class="'+(n?'n':'')+(c[0]==='name'?' stick':'')+'"><button class="sort '+(sKey===c[0]?'on':'')+'" data-k="'+c[0]+'">'+esc(c[1])+'<span class="arr">'+(sKey===c[0]&&sDir<0?'▼':'▲')+'</span></button></th>'; }).join('')+'<th><span class="small">Remove</span></th></tr></thead>';
@@ -1051,6 +1075,10 @@ function summaryText(){
   var neg=R.list.filter(function(x){return x.v.label==='Negotiate'});
   var avoid=R.list.filter(function(x){return x.v.label==='Avoid or renegotiate'});
   if(R.list.length){
+    var withFee=R.list.filter(function(x){return x.c.fee});
+    if(withFee.length){ L.push(''); L.push('Shortlist averages ('+withFee.length+' creators with fee):');
+      L.push('Avg CPV '+rs(avgOf(withFee,'cpv'),2)+' | Avg CPE '+rs(avgOf(withFee,'cpe'),2)+' | Avg CPM '+rs(avgOf(withFee,'cpm'),0)+' | Avg CPR '+rs(avgOf(withFee,'cpr'),2)+' (est.)');
+      L.push('Avg ER '+pct(avgOf(withFee,'er'),2)+' | Total fees '+rs(withFee.reduce(function(a,x){return a+(+x.c.fee||0)},0))); }
     L.push(''); L.push('Shortlist for next booking ('+R.list.length+' creators checked):');
     good.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): good value, ER '+pct(x.er,2)+', est. CPV '+rs(x.cpv,2)); });
     neg.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): negotiate ('+x.v.why.replace(/\.$/,'')+')'); });
@@ -1061,7 +1089,38 @@ function summaryText(){
   }
   return L.join('\n');
 }
-function renderSummary(){ $('summary-text').textContent=summaryText(); }
+function avgOf(list,k){ var v=list.map(function(x){return x[k]}).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
+function metricData(){
+  var R=creatorRows(), P=postRows(), L=R.list.filter(function(x){return x.c.fee}), t=P.t, s=S.settings||{};
+  var sum=function(k){ return L.reduce(function(a,x){ return a+(+x.c[k]||0); },0); };
+  var fees=sum('fee'), views=sum('avgViews'), reach=sum('reach'), fol=sum('followers'), eng=L.reduce(function(a,x){return a+(x.eng||0)},0);
+  return {n:L.length, posts:(S.posts||[]).length, rows:[
+    ['Total fees / spend','sum of fees',rs(fees),rs(t.fee)],
+    ['Budget used','spend ÷ budget × 100','—',s.budget?pct(t.fee/s.budget*100,1):'—'],
+    ['Budget left','budget − spend','—',s.budget?rs(s.budget-t.fee):'—'],
+    ['Avg ER (followers)','engagement ÷ followers × 100',pct(avgOf(L,'er'),2),'—'],
+    ['Avg ER (views)','engagement ÷ views × 100',pct(avgOf(L,'erV'),2),t.views?pct(t.eng/t.views*100,2):'—'],
+    ['Avg ER (reach)','engagement ÷ reach × 100',pct(avgOf(L,'erR'),2),'—'],
+    ['Avg CPV','average of CPV',rs(avgOf(L,'cpv'),2),rs(avgOf(P.list,'cpv'),2)],
+    ['Blended CPV','total fees ÷ total views',views?rs(fees/views,2):'—',t.views?rs(t.fee/t.views,2):'—'],
+    ['Avg CPE','average of CPE',rs(avgOf(L,'cpe'),2),rs(avgOf(P.list,'cpe'),2)],
+    ['Blended CPE','total fees ÷ total engagement',eng?rs(fees/eng,2):'—',t.eng?rs(t.fee/t.eng,2):'—'],
+    ['Avg CPM','average of fee ÷ views × 1,000',rs(avgOf(L,'cpm'),0),rs(avgOf(P.list,'cpm'),0)],
+    ['Blended CPM','total fees ÷ total views × 1,000',views?rs(fees/views*1000,0):'—',t.views?rs(t.fee/t.views*1000,0):'—'],
+    ['Avg CPR','average of fee ÷ reach',rs(avgOf(L,'cpr'),2),'—'],
+    ['Blended CPR','total fees ÷ total reach',reach?rs(fees/reach,2):'—','—'],
+    ['Cost per 1K followers','fee ÷ followers × 1,000',rs(avgOf(L,'cpf'),0),'—'],
+    ['Avg reach rate','reach ÷ followers × 100',pct(avgOf(L,'reachRate'),1),'—'],
+    ['Avg view rate','views ÷ followers × 100',pct(avgOf(L,'viewRate'),1),'—'],
+    ['Total views','sum of views',short(views),short(t.views)],
+    ['Total engagement','likes + comments',short(eng),short(t.eng)],
+    ['Total followers reached','sum of followers',short(fol),'—']
+  ]};
+}
+function renderSummary(){ $('summary-text').textContent=summaryText();
+  var M=metricData();
+  $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
+    M.rows.map(function(r){ return '<tr><td><strong>'+esc(r[0])+'</strong></td><td class="small muted" style="font-family:var(--f-mono)">'+esc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[3]+'</td></tr>'; }).join('')+'</tbody>'; }
 $('copy-summary').addEventListener('click',function(){ var b=this, text=summaryText();
   var done=function(){ var o=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=o},1600); };
   var fb=function(){ var ta=$('copy-fallback'); ta.hidden=false; ta.value=text; ta.focus(); ta.select(); toast('Select all and copy the text below'); };
@@ -1234,7 +1293,7 @@ function runUpload(){
     var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors; }).map(function(o){return o.ig});
     var skipped=list.filter(function(o){return o.ig}).length-todo.length;
     $('up-preview').hidden=true; var pr=$('up-progress'); pr.hidden=false;
-    var done=0, results=[], size=4;
+    var done=0, results=[], size=10;
     function step(){
       $('up-prog-l').textContent=todo.length?'Fetching from Instagram… '+done+' of '+todo.length:'Nothing new to fetch';
       $('up-prog-r').textContent=todo.length?Math.round(done/todo.length*100)+'%':''; $('up-fill').style.width=(todo.length?done/todo.length*100:100)+'%';
@@ -1298,6 +1357,8 @@ $('comp-save').addEventListener('click',function(){ var b=this; busy(b,true,'Sav
   .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
 
 /* ---------------- boot ---------------- */
+$('cat-list').innerHTML=CATEGORIES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
+$('lang-list').innerHTML=LANGUAGES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
 $('mf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='YouTube'?' selected':'')+'>'+p+'</option>'}).join('');
 $('pf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='Instagram'?' selected':'')+'>'+p+'</option>'}).join('');
 
