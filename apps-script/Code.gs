@@ -907,7 +907,7 @@ function friendlyError_(e) {
   if (sub === 2207013 || /cannot find|invalid user id|does not exist/i.test(msg)) {
     return 'Account not found, or it is a personal account. Only Creator and Business accounts can be read. Check the handle.';
   }
-  if (code === 10 || code === 200) return 'Permission missing. Regenerate the token with instagram_basic, instagram_manage_insights, pages_show_list, pages_read_engagement and business_management.';
+  if (code === 10 || code === 200) return 'Permission missing. Regenerate the token with instagram_basic, instagram_manage_insights, pages_show_list, pages_read_engagement and business_management. (Meta says: ' + msg + (sub ? ', subcode ' + sub : '') + ')';
   return msg;
 }
 
