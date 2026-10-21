@@ -848,21 +848,36 @@ function apiUrl_(handle, mediaFields, token, limit) {
 
 // Fetches many creators at the same time (much faster than one by one).
 // Returns one {bd} or {error} per handle, in the same order.
+// Answers are kept for 30 minutes, so uploading the same sheet again does not use up Instagram's hourly limit.
 function fetchMany_(handles, token) {
-  const out = [];
-  for (let i = 0; i < handles.length; i += 10) {
-    const part = handles.slice(i, i + 10);
-    const resps = UrlFetchApp.fetchAll(part.map(function (h) {
-      return { url: apiUrl_(h, MEDIA_FULL, token, POSTS_FOR_BRANDS), muteHttpExceptions: true };
+  const cache = CacheService.getScriptCache();
+  const out = handles.map(function () { return null; });
+  const need = [];
+  handles.forEach(function (h, i) {
+    let hit = null; try { hit = cache.get('bd_' + h); } catch (e) { }
+    if (hit) out[i] = { bd: JSON.parse(hit) }; else need.push(i);
+  });
+  let limited = false;
+  for (let s = 0; s < need.length; s += 10) {
+    const part = need.slice(s, s + 10);
+    if (limited) { part.forEach(function (i) { out[i] = { error: friendlyError_({ code: 4 }) }; }); continue; }
+    const resps = UrlFetchApp.fetchAll(part.map(function (i) {
+      return { url: apiUrl_(handles[i], MEDIA_FULL, token, POSTS_FOR_BRANDS), muteHttpExceptions: true };
     }));
-    part.forEach(function (h, k) {
+    part.forEach(function (i, k) {
+      const h = handles[i];
       let res;
       try { res = JSON.parse(resps[k].getContentText()); }
       catch (e) { res = { error: { message: 'Unexpected response from Instagram (HTTP ' + resps[k].getResponseCode() + ').' } }; }
       if (res.error && /view_count|media_product_type/i.test(res.error.message || '')) res = callApi_(h, MEDIA_BASIC, token, POSTS_FOR_BRANDS);
-      if (res.error) out.push({ error: friendlyError_(res.error) });
-      else if (!res.business_discovery) out.push({ error: 'No data returned for this account.' });
-      else out.push({ bd: res.business_discovery });
+      if (res.error) {
+        if ([4, 17, 32, 613].indexOf(res.error.code) >= 0) limited = true; // stop asking once Instagram says slow down
+        out[i] = { error: friendlyError_(res.error) };
+      } else if (!res.business_discovery) out[i] = { error: 'No data returned for this account.' };
+      else {
+        out[i] = { bd: res.business_discovery };
+        try { cache.put('bd_' + h, JSON.stringify(res.business_discovery), 1800); } catch (e) { /* too big to cache */ }
+      }
     });
   }
   return out;
@@ -888,7 +903,7 @@ function matchPost_(media, code) {
 function friendlyError_(e) {
   const code = e.code, sub = e.error_subcode, msg = e.message || 'Unknown error';
   if (code === 190) return 'Access token expired or invalid. Make a new 60-day token and use Save access token in the sheet.';
-  if (code === 4 || code === 17 || code === 32 || code === 613) return 'Instagram rate limit reached. Wait about an hour and try again.';
+  if (code === 4 || code === 17 || code === 32 || code === 613) return 'Instagram’s hourly limit is used up. Wait about an hour, then press Refresh all from Instagram.';
   if (sub === 2207013 || /cannot find|invalid user id|does not exist/i.test(msg)) {
     return 'Account not found, or it is a personal account. Only Creator and Business accounts can be read. Check the handle.';
   }
