@@ -17,7 +17,8 @@
  *      (File + → HTML) and paste the Index.html code into it. Save.
  *   2. Reload the sheet → Creator Tracker → Save access token (paste the 60-day token).
  *   3. Deploy → New deployment → type "Web app" → Execute as: Me →
- *      Who has access: Anyone → Deploy. Share that URL with the team only.
+ *      Who has access: Anyone → Deploy. The website (SITE_URL) calls this as a JSON API;
+ *      every call carries a Google sign-in token, and each person gets their own spreadsheet.
  */
 
 const API_VERSION = 'v26.0';
@@ -96,17 +97,33 @@ const BENCH = { Nano: [4, 2], Micro: [3, 1.5], Macro: [2, 1], Mega: [1.5, 0.7] }
  * Website
  * ======================================================= */
 
+// The old Apps Script page link now just points people to the website, which needs Google sign-in.
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Creator Desk')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  return ContentService.createTextOutput('Creator Desk has moved to ' + SITE_URL + ' . Open that link and sign in with Google.');
 }
 
-// JSON API for the hosted website (Netlify / any domain). The page sends
-// POST {fn, args, code} as text/plain; the answer is {ok, result} or {ok:false, error}.
-const API_FUNCS = ['api_getState', 'api_lookup', 'api_saveCreator', 'api_setFee', 'api_removeCreator',
+/* =========================================================
+ * Sign-in and per-user sheets
+ * ======================================================= */
+
+const SITE_URL = 'https://creator-desk-fiama.netlify.app';
+const GOOGLE_CLIENT_ID = '655428813505-ftd9c22rvrduhe3udiv32j2gn69njqa6.apps.googleusercontent.com'; // OAuth web client used by "Sign in with Google"
+const ADMIN_EMAIL = 'vanshikajuyal06@gmail.com'; // uses this spreadsheet; can see and block team members
+const USERS_SHEET = 'Users';
+const USER_HEADERS = ['Email', 'Name', 'Sheet URL', 'Sheet ID', 'Status', 'Joined', 'Last sign-in'];
+
+let CURRENT_SS = null;   // the signed-in person's spreadsheet for this request
+let CURRENT_USER = null;
+function ss_() { return CURRENT_SS || SpreadsheetApp.getActive(); }
+function mainSs_() { return SpreadsheetApp.getActive(); }
+
+// JSON API for the hosted website. The page sends POST {fn, args, idToken} as text/plain;
+// the answer is {ok, result} or {ok:false, error}.
+const API_FUNCS = ['api_getState', 'api_lookup', 'api_saveCreator', 'api_setFee', 'api_removeCreator', 'api_clearCreators',
   'api_addCreatorManual', 'api_bulkCreators', 'api_refreshCreators', 'api_fillCreators', 'api_exportShortlist',
-  'api_saveSettings', 'api_addPost', 'api_bulkPosts', 'api_updatePost', 'api_removePost', 'api_refreshPosts', 'api_siteHtml'];
+  'api_saveSettings', 'api_addPost', 'api_bulkPosts', 'api_updatePost', 'api_removePost', 'api_refreshPosts',
+  'api_adminUsers', 'api_adminSetStatus'];
+const ADMIN_FUNCS = ['api_adminUsers', 'api_adminSetStatus'];
 
 function doPost(e) {
   let body = {};
@@ -117,13 +134,123 @@ function doPost(e) {
 function handleApi_(body) {
   const fn = String(body.fn || '');
   if (API_FUNCS.indexOf(fn) < 0) return { ok: false, error: 'Unknown action.' };
-  const code = PropertiesService.getScriptProperties().getProperty('TEAM_CODE');
-  if (code && String(body.code || '').trim() !== code) return { ok: false, error: 'ACCESS_CODE' };
   try {
+    const user = verifyUser_(body.idToken);
+    const ctx = openUserSheet_(user);
+    CURRENT_SS = ctx.ss;
+    CURRENT_USER = { email: user.email, name: user.name, picture: user.picture, isAdmin: ctx.isAdmin };
+    if (ADMIN_FUNCS.indexOf(fn) >= 0 && !ctx.isAdmin) return { ok: false, error: 'Only the admin can do that.' };
     return { ok: true, result: globalThis[fn].apply(null, Array.isArray(body.args) ? body.args : []) };
   } catch (err) {
     return { ok: false, error: err && err.message ? err.message : String(err) };
+  } finally {
+    CURRENT_SS = null; CURRENT_USER = null;
   }
+}
+
+// Checks the Google ID token from "Sign in with Google" and returns the person's email and name.
+function verifyUser_(idToken) {
+  if (!idToken) throw new Error('LOGIN_REQUIRED');
+  const cache = CacheService.getScriptCache();
+  const key = 'tok_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(idToken))).slice(0, 40);
+  let info = null;
+  const hit = cache.get(key);
+  if (hit) info = JSON.parse(hit);
+  else {
+    const r = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken), { muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) throw new Error('LOGIN_EXPIRED');
+    const t = JSON.parse(r.getContentText());
+    const verified = t.email_verified === true || t.email_verified === 'true';
+    if (t.aud !== GOOGLE_CLIENT_ID || !verified || !t.email) throw new Error('LOGIN_EXPIRED');
+    info = { email: String(t.email).toLowerCase(), name: t.name || '', picture: t.picture || '', exp: Number(t.exp) || 0 };
+    const ttl = Math.max(60, Math.min(21600, info.exp - Math.floor(Date.now() / 1000)));
+    cache.put(key, JSON.stringify(info), ttl);
+  }
+  if (info.exp && info.exp * 1000 < Date.now()) throw new Error('LOGIN_EXPIRED');
+  return info;
+}
+
+// Finds (or on first sign-in creates) the person's own spreadsheet.
+function openUserSheet_(user) {
+  const isAdmin = user.email === ADMIN_EMAIL;
+  const users = usersSheet_();
+  let row = findRow_(users, 1, user.email);
+  if (row) {
+    const r = users.getRange(row, 1, 1, USER_HEADERS.length).getValues()[0];
+    if (String(r[4]).toLowerCase() === 'blocked') throw new Error('ACCESS_BLOCKED');
+    touchLogin_(users, row, user);
+    if (isAdmin) return { ss: mainSs_(), isAdmin: true };
+    return { ss: SpreadsheetApp.openById(String(r[3])), isAdmin: false };
+  }
+  if (isAdmin) {
+    users.appendRow([user.email, user.name, mainSs_().getUrl(), mainSs_().getId(), 'active', new Date(), new Date()]);
+    return { ss: mainSs_(), isAdmin: true };
+  }
+  return withLock_(function () {
+    row = findRow_(users, 1, user.email); // another request may have just created it
+    if (row) return { ss: SpreadsheetApp.openById(String(users.getRange(row, 4).getValue())), isAdmin: false };
+    const ss = SpreadsheetApp.create('Creator Desk · ' + (user.name || user.email));
+    CURRENT_SS = ss;
+    ensureSheets_();
+    const first = ss.getSheetByName('Sheet1');
+    if (first && ss.getSheets().length > 1) ss.deleteSheet(first);
+    try { ss.addEditor(user.email); } catch (e) { /* the sheet still works through the website */ }
+    users.appendRow([user.email, user.name, ss.getUrl(), ss.getId(), 'active', new Date(), new Date()]);
+    return { ss: ss, isAdmin: false };
+  });
+}
+
+function touchLogin_(users, row, user) {
+  const cache = CacheService.getScriptCache();
+  if (cache.get('seen_' + user.email)) return;
+  if (user.name) users.getRange(row, 2).setValue(user.name);
+  users.getRange(row, 7).setValue(new Date());
+  cache.put('seen_' + user.email, '1', 1800);
+}
+
+function usersSheet_() {
+  const ss = mainSs_();
+  let sh = ss.getSheetByName(USERS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(USERS_SHEET);
+    sh.getRange(1, 1, 1, USER_HEADERS.length).setValues([USER_HEADERS]);
+    styleHeader_(sh, USER_HEADERS.length);
+    sh.setColumnWidth(1, 220); sh.setColumnWidth(3, 300);
+  }
+  return sh;
+}
+
+function api_adminUsers() {
+  const sh = usersSheet_();
+  const last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh.getRange(2, 1, last - 1, USER_HEADERS.length).getValues().filter(function (r) { return r[0]; }).map(function (r) {
+    return { email: String(r[0]), name: String(r[1] || ''), sheetUrl: String(r[2] || ''), status: String(r[4] || 'active'),
+      joined: dateStr_(r[5]), lastLogin: dateStr_(r[6]), isAdmin: String(r[0]).toLowerCase() === ADMIN_EMAIL };
+  });
+}
+
+function api_adminSetStatus(email, status) {
+  const e = String(email || '').trim().toLowerCase();
+  if (e === ADMIN_EMAIL) throw new Error('The admin account cannot be blocked.');
+  const st = status === 'blocked' ? 'blocked' : 'active';
+  withLock_(function () {
+    const sh = usersSheet_();
+    const row = findRow_(sh, 1, e);
+    if (!row) throw new Error('That person has not signed in yet.');
+    sh.getRange(row, 5).setValue(st);
+  });
+  return api_adminUsers();
+}
+
+// Removes every creator from the signed-in person's shortlist.
+function api_clearCreators() {
+  withLock_(function () {
+    const sh = sheet_(SHEET_NAME);
+    const last = sh.getLastRow();
+    if (last >= 2) sh.deleteRows(2, last - 1);
+  });
+  return buildState_();
 }
 
 // The website page itself, so the hosted copy can be refreshed from here.
@@ -506,7 +633,7 @@ function api_refreshPosts() {
 /* ---------- state ---------- */
 
 function buildState_() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = ss_();
   const tokenOk = !!PropertiesService.getScriptProperties().getProperty('IG_TOKEN');
 
   const creators = [];
@@ -558,7 +685,8 @@ function buildState_() {
   }
 
   if (!settings.competitors) settings.competitors = DEFAULT_COMPETITORS;
-  return { live: true, tokenOk: tokenOk, sheetUrl: ss.getUrl(), creators: creators, posts: posts, settings: settings };
+  return { live: true, tokenOk: tokenOk, sheetUrl: ss.getUrl(), creators: creators, posts: posts, settings: settings,
+    user: CURRENT_USER ? { email: CURRENT_USER.email, name: CURRENT_USER.name, picture: CURRENT_USER.picture, isAdmin: CURRENT_USER.isAdmin } : null };
 }
 
 /* =========================================================
@@ -633,7 +761,7 @@ function fetchSelected() {
 
 function menuRefreshPosts() {
   const r = api_refreshPosts();
-  SpreadsheetApp.getActive().toast(r.errors.length ? r.errors.length + ' posts failed, see Status column.' : 'Campaign post numbers updated.', 'Creator Tracker', 6);
+  ss_().toast(r.errors.length ? r.errors.length + ' posts failed, see Status column.' : 'Campaign post numbers updated.', 'Creator Tracker', 6);
 }
 
 function fetchRows_(sh, rowNumbers) {
@@ -654,7 +782,7 @@ function fetchRows_(sh, rowNumbers) {
     Utilities.sleep(400);
   });
   recomputeAll(sh);
-  SpreadsheetApp.getActive().toast(done + ' updated' + (failed ? ', ' + failed + ' failed (see Status column)' : '') + '.', 'Creator Tracker', 6);
+  ss_().toast(done + ' updated' + (failed ? ', ' + failed + ' failed (see Status column)' : '') + '.', 'Creator Tracker', 6);
 }
 
 /* =========================================================
@@ -753,7 +881,7 @@ const BRAND_ALIASES = {
 const COLLAB_MARK = /(#(ad|ads|advert|advertisement|sponsored|collab|collaboration|partner|partnership|paidpartnership|paidpromotion|gifted|pr|brandpartner|brandcollab)\b)|paid partnership|in collaboration with|in association with|sponsored by|powered by|#ambassador/i;
 
 function getCompetitors_() {
-  const sh = SpreadsheetApp.getActive().getSheetByName(SETTINGS_SHEET);
+  const sh = ss_().getSheetByName(SETTINGS_SHEET);
   let v = '';
   if (sh) {
     const rows = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), 2).getValues();
@@ -911,7 +1039,7 @@ function verdict_(x, med, count) {
  * ======================================================= */
 
 function ensureSheets_() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = ss_();
   let c = ss.getSheetByName(SHEET_NAME);
   if (c && String(c.getRange(1, C.name).getValue()) !== 'Name') {
     // Older Creator Tracker layout: keep it as a backup tab and move its creators into the team format.
@@ -1032,7 +1160,7 @@ function styleHeader_(sh, n) {
 
 function sheet_(name) {
   ensureSheets_();
-  return SpreadsheetApp.getActive().getSheetByName(name);
+  return ss_().getSheetByName(name);
 }
 
 function findRow_(sh, col, value) {

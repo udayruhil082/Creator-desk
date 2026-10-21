@@ -211,7 +211,34 @@ a.btn{text-decoration:none}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.fill{transition:none}.spin{animation-duration:2s}}
 footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+.login{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}
+.login-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 28px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
+.login-card h1{margin:0}
+.login-card ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+#gbtn{min-height:44px}
+.login-err{background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
+body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
+.user-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:3px 4px 3px 4px;background:var(--surface);max-width:100%}
+.user-chip img,.user-chip .av{width:26px;height:26px;border-radius:50%;flex:none;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.user-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.user-chip button{border:0;background:var(--sunk);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12.5px;cursor:pointer}
+.user-chip button:hover{background:var(--accent-soft)}
+.btn.danger{color:var(--bad)}
 </style>
+<div class="login" id="login" hidden>
+  <div class="login-card">
+    <span class="eyebrow">Influencer marketing desk</span>
+    <h1>Creator Desk</h1>
+    <p class="muted" style="margin:0">Sign in with your Google account to open your own desk.</p>
+    <ul>
+      <li>Your shortlist, campaign and uploads are kept separate from everyone else's.</li>
+      <li>On your first sign-in, a private Google Sheet is made just for you.</li>
+      <li>Nobody else on the team can see your sheet.</li>
+    </ul>
+    <div id="gbtn"><span class="muted small">Loading Google sign-in…</span></div>
+    <div class="login-err" id="login-err" hidden role="alert"></div>
+  </div>
+</div>
 
 <header class="top gut">
   <div class="wrap">
@@ -222,7 +249,8 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     </div>
     <div class="btns">
       <span class="pill" id="mode-pill"><span class="d"></span><span id="mode-text">Loading…</span></span>
-      <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open Google Sheet ↗</a>
+      <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open my Google Sheet ↗</a>
+      <span class="user-chip" id="user-chip" hidden></span>
     </div>
   </div>
 </header>
@@ -233,6 +261,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <button class="tab" role="tab" id="tab-shortlist" data-view="shortlist" aria-selected="false">Shortlist <span class="count" id="c-short">0</span></button>
     <button class="tab" role="tab" id="tab-campaign" data-view="campaign" aria-selected="false">Campaign <span class="count" id="c-posts">0</span></button>
     <button class="tab" role="tab" id="tab-summary" data-view="summary" aria-selected="false">Manager summary</button>
+    <button class="tab" role="tab" id="tab-team" data-view="team" aria-selected="false" hidden>Team</button>
   </div>
 </nav>
 
@@ -303,6 +332,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
         <div class="btns">
           <button class="btn" id="csv-creators">Copy as CSV</button>
           <button class="btn" id="refresh-creators">Refresh all from Instagram</button>
+          <button class="btn danger" id="clear-creators">Remove all</button>
         </div>
       </div>
       <div class="tbl-wrap"><table class="t-short" id="short-table"></table></div>
@@ -456,6 +486,20 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
       </div>
     </section>
 
+    <!-- TEAM (admin only) -->
+    <section class="view" id="view-team" role="tabpanel" aria-labelledby="tab-team" hidden>
+      <div class="panel">
+        <div class="sec-head">
+          <div class="stack">
+            <h2>Team members</h2>
+            <p class="muted small">Everyone who has signed in, with a link to their own sheet. Blocking someone stops them from using Creator Desk; their sheet is kept.</p>
+          </div>
+          <button class="btn" id="team-reload">Refresh list</button>
+        </div>
+        <div class="tbl-wrap"><table id="team-table"></table></div>
+      </div>
+    </section>
+
     <footer id="footer"></footer>
   </div>
 </main>
@@ -470,14 +514,20 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
 var LIVE = !!(window.google && google.script && google.script.run);
 var API_URL = 'https://script.google.com/macros/s/AKfycbxdN5FK3nEmL_HlBt6FAjKIvq-tTNEoernAvO8jaaox1v_e4557f0Cy_AKHKjQqHZOe/exec'; // set on the hosted website: the Apps Script web app URL ending in /exec
 var REMOTE = !LIVE && /^https:\/\/script\.google\.com\//.test(API_URL);
-function teamCode(){ try{ return localStorage.getItem('creator-desk-code')||''; }catch(e){ return ''; } }
+var GOOGLE_CLIENT_ID = '655428813505-ftd9c22rvrduhe3udiv32j2gn69njqa6.apps.googleusercontent.com';
+var TOK_KEY='creator-desk-idt';
+function jwtExp(t){ try{ var p=JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); return (p.exp||0)*1000; }catch(e){ return 0; } }
+function getTok(){ try{ var t=localStorage.getItem(TOK_KEY)||''; return t&&jwtExp(t)>Date.now()+60000?t:''; }catch(e){ return ''; } }
+function setTok(t){ try{ if(t) localStorage.setItem(TOK_KEY,t); else localStorage.removeItem(TOK_KEY); }catch(e){} }
 function call(fn){
   var args = Array.prototype.slice.call(arguments,1);
   if (REMOTE) {
     return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',redirect:'follow',
-        body:JSON.stringify({fn:fn,args:args,code:teamCode()})})
+        body:JSON.stringify({fn:fn,args:args,idToken:getTok()})})
       .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the Creator Desk server. Check your internet and try again.'); })
-      .then(function(j){ if(j&&j.ok) return j.result; if(j&&j.error==='ACCESS_CODE'){ showCodeBox(); throw new Error('Enter the team access code to continue.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
+      .then(function(j){ if(j&&j.ok) return j.result; var er=j&&j.error;
+        if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok(''); showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
+        if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
   }
   if (LIVE) {
     return new Promise(function(res, rej){
@@ -543,6 +593,7 @@ var Demo = {
     demoSave(); return clone(DS); },
   api_setFee:function(name,fee){ return Demo.api_saveCreator(name,{fee:fee}); },
   api_removeCreator:function(name){ DS.creators=DS.creators.filter(function(x){return x.name!==name}); demoSave(); return clone(DS); },
+  api_clearCreators:function(){ DS.creators=[]; demoSave(); return clone(DS); },
   api_refreshCreators:function(){ DS.creators.forEach(function(c){c.updated=new Date().toISOString()}); demoSave(); return {state:clone(DS),errors:[]}; },
   api_saveSettings:function(s){ ['name','start','end','competitors'].forEach(function(k){ if(s[k]!==undefined) DS.settings[k]=s[k]||''; }); if(s.budget!==undefined) DS.settings.budget=num(s.budget); demoSave(); return clone(DS); },
   api_fillCreators:function(names){ var out=[]; names.forEach(function(n){ var h=cleanHandle(n); var c=DS.creators.find(function(x){return x.name.toLowerCase()===String(n).toLowerCase()||x.name===h});
@@ -686,10 +737,43 @@ function dayInfo(){
 }
 
 /* ---------------- state + UI plumbing ---------------- */
-function showCodeBox(){ if(document.getElementById('code-box')) return; var d=document.createElement('div'); d.id='code-box'; d.className='banner warn';
-  d.innerHTML='<span><strong>Team access code needed.</strong> Ask your team lead for the code.</span><span class="btns"><input id="code-in" type="password" autocomplete="off" style="width:180px" aria-label="Team access code"><button class="btn primary" id="code-go">Continue</button></span>';
-  var w=document.querySelector('main .wrap'); w.insertBefore(d,w.firstChild);
-  document.getElementById('code-go').onclick=function(){ try{ localStorage.setItem('creator-desk-code',document.getElementById('code-in').value.trim()); }catch(e){} location.reload(); }; }
+var gisReady=false, afterLogin=null;
+function loadGis(cb){ if(window.google&&google.accounts&&google.accounts.id){ cb(); return; }
+  var sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=cb;
+  sc.onerror=function(){ $('gbtn').innerHTML='<span class="small">Could not load Google sign-in. Check your internet and reload the page.</span>'; };
+  document.head.appendChild(sc); }
+function initGis(){ if(gisReady) return; gisReady=true;
+  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID, auto_select:true, cancel_on_tap_outside:false, callback:function(r){
+    if(!r||!r.credential){ return; } setTok(r.credential); hideLogin(); loadState(); }}); }
+function showLogin(msg){
+  document.body.classList.add('locked'); $('login').hidden=false;
+  var e=$('login-err'); e.hidden=!msg; e.textContent=msg||'';
+  loadGis(function(){ initGis(); $('gbtn').innerHTML='';
+    google.accounts.id.renderButton($('gbtn'),{theme:'outline',size:'large',text:'signin_with',shape:'pill',width:280});
+    if(!msg||/expired/.test(msg)) google.accounts.id.prompt(); });
+}
+function hideLogin(){ document.body.classList.remove('locked'); $('login').hidden=true; }
+function signOut(){ setTok(''); try{ google.accounts.id.disableAutoSelect(); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
+function loadState(){ return call('api_getState').then(function(s){ setState(s); if(view==='team') loadTeam(); }).catch(function(e){ if(!/sign in|Access turned off/i.test(e.message)) toast('Could not load data: '+e.message,true); }); }
+function renderUser(){ var u=S.user, el=$('user-chip');
+  if(!REMOTE||!u){ el.hidden=true; $('tab-team').hidden=true; return; }
+  var ini=esc(((u.name||u.email||'?').trim()[0]||'?').toUpperCase());
+  el.innerHTML=(u.picture?'<img src="'+esc(u.picture)+'" alt="" referrerpolicy="no-referrer">':'<span class="av">'+ini+'</span>')+'<span class="nm" title="'+esc(u.email)+'">'+esc(u.name||u.email)+'</span><button type="button" id="sign-out">Sign out</button>';
+  el.hidden=false; $('sign-out').onclick=signOut;
+  $('tab-team').hidden=!u.isAdmin; if(!u.isAdmin&&view==='team') showView('lookup'); }
+var TEAM=[];
+function loadTeam(){ if(!(S.user&&S.user.isAdmin)) return; $('team-table').innerHTML='<tbody><tr><td class="muted"><span class="spin"></span> Loading…</td></tr></tbody>';
+  call('api_adminUsers').then(function(u){ TEAM=u||[]; renderTeam(); }).catch(function(e){ toast(e.message,true); }); }
+function renderTeam(){
+  var head='<thead><tr><th>Name</th><th>Email</th><th>Their sheet</th><th>Joined</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>';
+  var body=TEAM.length?TEAM.map(function(u){ var bl=u.status==='blocked';
+    return '<tr><td>'+esc(u.name||'—')+(u.isAdmin?' <span class="chip neutral">Admin</span>':'')+'</td><td>'+esc(u.email)+'</td><td>'+urlCell(u.sheetUrl)+'</td><td>'+esc(u.joined||'—')+'</td><td>'+esc(u.lastLogin||'—')+'</td><td><span class="chip '+(bl?'bad':'good')+'">'+(bl?'Blocked':'Active')+'</span></td><td>'+
+      (u.isAdmin?'':'<button class="btn" data-st="'+esc(u.email)+'" data-to="'+(bl?'active':'blocked')+'">'+(bl?'Unblock':'Block')+'</button>')+'</td></tr>'; }).join('')
+    :'<tr><td colspan="7" class="muted">Nobody has signed in yet.</td></tr>';
+  var t=$('team-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
+  t.querySelectorAll('[data-st]').forEach(function(b){ b.onclick=function(){ var go=function(){ busy(b,true,'Saving…');
+      call('api_adminSetStatus',b.dataset.st,b.dataset.to).then(function(u){ TEAM=u||[]; renderTeam(); toast(b.dataset.to==='blocked'?'Blocked '+b.dataset.st:'Unblocked '+b.dataset.st); }).catch(function(e){ busy(b,false); toast(e.message,true); }); };
+    if(b.dataset.to==='blocked') armOnce(b,'Click again to block',go); else go(); }; }); }
 var S={live:LIVE||REMOTE,tokenOk:true,creators:[],posts:[],settings:{}}; var current=null; var view='lookup';
 function setState(s){ if(s){ S=normalize(s); } renderAll(); }
 var toastT;
@@ -703,9 +787,10 @@ function armOnce(btn,label,fn){ // two-click confirm, no browser dialogs
 
 function showView(v){
   view=v;
-  ['lookup','shortlist','campaign','summary'].forEach(function(k){
+  ['lookup','shortlist','campaign','summary','team'].forEach(function(k){
     $('view-'+k).hidden = k!==v; $('tab-'+k).setAttribute('aria-selected', k===v?'true':'false');
   });
+  if(v==='team') loadTeam();
   try{ if(!LIVE && location.hash!=='#'+v) history.replaceState(null,'','#'+v); }catch(e){}
 }
 
@@ -720,8 +805,9 @@ function renderAll(){
   $('refresh-creators').hidden=!live; $('refresh-posts').hidden=!live;
   var os=$('open-sheet'); if(live&&S.sheetUrl){ os.href=S.sheetUrl; os.hidden=false; } else os.hidden=true;
   $('handles').innerHTML=(S.creators||[]).map(function(c){return '<option value="'+esc(c.handle)+'">'}).join('');
-  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount();
-  $('footer').textContent=live?'Data is saved in the team’s Google Sheet. Everyone with this link sees the same shortlist and campaign.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
+  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount(); renderUser();
+  $('clear-creators').hidden=!(S.creators||[]).length;
+  $('footer').textContent=REMOTE?'Your data is saved in your own Google Sheet. Other team members cannot see it.':live?'Data is saved in the team’s Google Sheet.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
 }
 
 /* ---------------- lookup view ---------------- */
@@ -1201,10 +1287,14 @@ $('pf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='Inst
 $('bench-body').innerHTML=TIERS.map(function(t){return '<tr><td>'+t+'</td><td>'+TIER_RANGE[t]+'</td><td class="n">≥ '+BENCH[t][0]+'%</td><td class="n">≥ '+BENCH[t][1]+'%</td></tr>'}).join('');
 document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click',function(){ showView(b.dataset.view); }); });
 $('demo-reset').addEventListener('click',function(){ var b=this; armOnce(b,'Click again to reset',function(){ DS=demoSeed(); demoSave(); current=null; settingsDirty=false; setState(clone(DS)); toast('Sample data restored'); }); });
+$('clear-creators').addEventListener('click',function(){ var b=this, n=(S.creators||[]).length; if(!n) return;
+  armOnce(b,'Click again to remove all '+n,function(){ busy(b,true,'Removing…');
+    call('api_clearCreators').then(function(s){ SEL={}; current=null; setState(s); toast('Removed all '+n+' creators'); }).catch(function(e){ toast(e.message,true); }).then(function(){ busy(b,false); }); }); });
+$('team-reload').addEventListener('click',loadTeam);
 var h=(location.hash||'').replace('#',''); if(['lookup','shortlist','campaign','summary'].indexOf(h)>=0) showView(h);
 if(!LIVE&&!REMOTE){ demoLoad(); current='demo.skin.pune'; }
 renderAll();
-call('api_getState').then(function(s){ setState(s); }).catch(function(e){ toast('Could not load data: '+e.message,true); });
+if(REMOTE&&!getTok()) showLogin(''); else loadState();
 })();
 </script>
 
