@@ -531,11 +531,13 @@ function api_addPost(p) {
   let handle = isIg ? cleanHandle_(p.handle) : String(p.handle || '').trim();
   if (!handle) throw new Error('Add the creator’s name or Instagram handle.');
   if (!isIg && !num_(p.views)) throw new Error('For posts without an Instagram post link, type the views yourself.');
-  let found = null, status = 'Entered manually';
+  let found = null, status = 'Entered manually', pv = null;
   if (isIg) {
     try {
-      found = findPost_(handle, code, requireToken_());
-      status = found ? '✓ Numbers fetched from Instagram' :
+      const bd = discovery_(handle, requireToken_(), POSTS_TO_SEARCH);
+      found = matchPost_((bd.media && bd.media.data) || [], code);
+      if (found) pv = postViews_(found, bd);
+      status = found ? (pv && pv.est ? '✓ Likes and comments from Instagram. Views estimated (Instagram doesn’t share views for photo posts).' : '✓ Numbers fetched from Instagram') :
         'Post not found in the creator’s last ' + POSTS_TO_SEARCH + ' posts. Type the numbers yourself.';
     } catch (e) { status = '✗ ' + e.message; }
   }
@@ -551,7 +553,7 @@ function api_addPost(p) {
     const values = [
       "'" + id, handle, link,
       keep(PCOL.fee, num_(p.fee)),
-      found ? (found.view_count || '') : keep(PCOL.views, num_(p.views)),
+      found ? (num_(p.views) || pv.views) : keep(PCOL.views, num_(p.views)),
       found ? (found.like_count != null ? found.like_count : '') : keep(PCOL.likes, num_(p.likes)),
       found ? (found.comments_count != null ? found.comments_count : '') : keep(PCOL.comments, num_(p.comments)),
       found ? (found.media_product_type || found.media_type || '') : (existing[PCOL.type - 1] || ''),
@@ -629,11 +631,13 @@ function api_refreshPosts() {
     const plat = String(r[PCOL.platform - 1] || 'Instagram');
     if (!code || !handle || plat.indexOf('Instagram') !== 0 || plat === 'Instagram Story') continue;
     try {
-      if (!cache[handle]) cache[handle] = fetchMedia_(handle, token, POSTS_TO_SEARCH);
-      const m = matchPost_(cache[handle], code);
+      if (!cache[handle]) cache[handle] = discovery_(handle, token, POSTS_TO_SEARCH);
+      const m = matchPost_((cache[handle].media && cache[handle].media.data) || [], code);
       if (m) {
-        sh.getRange(row, PCOL.views, 1, 3).setValues([[m.view_count || '', m.like_count != null ? m.like_count : '', m.comments_count != null ? m.comments_count : '']]);
-        sh.getRange(row, PCOL.updated, 1, 2).setValues([[new Date(), '✓ Numbers fetched from Instagram']]);
+        const pv = postViews_(m, cache[handle]);
+        const views = pv.est && num_(r[PCOL.views - 1]) && String(r[PCOL.status - 1]).indexOf('estimated') < 0 ? num_(r[PCOL.views - 1]) : pv.views;
+        sh.getRange(row, PCOL.views, 1, 3).setValues([[views, m.like_count != null ? m.like_count : '', m.comments_count != null ? m.comments_count : '']]);
+        sh.getRange(row, PCOL.updated, 1, 2).setValues([[new Date(), pv.est && views === pv.views ? '✓ Likes and comments from Instagram. Views estimated (Instagram doesn’t share views for photo posts).' : '✓ Numbers fetched from Instagram']]);
       } else {
         sh.getRange(row, PCOL.status).setValue('Post not found in the last ' + POSTS_TO_SEARCH + ' posts. Numbers kept as they were.');
       }
@@ -1018,8 +1022,36 @@ function analyse_(bd, competitorList) {
     avgComments: avg_(withComments.map(function (p) { return p.comments_count; })),
     avgViews: avg_(withViews.map(function (p) { return p.view_count; })),
     competitors: brands.competitors, collabs: brands.collabs, captionsChecked: brands.checked,
-    category: detectCategory_(bd, all), language: detectLanguage_(bd, all)
+    category: detectCategory_(bd, all), language: detectLanguage_(bd, all), ytLink: findYouTube_(bd, all)
   };
+}
+
+// A YouTube link from the bio, website or captions, if the creator shares one.
+function findYouTube_(bd, media) {
+  const text = [bd.website || '', bd.biography || ''].concat((media || []).map(function (p) { return p.caption || ''; })).join(' ');
+  const m = text.match(/(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(@[\w.-]+|c\/[\w.-]+|channel\/[\w-]+|user\/[\w.-]+)|youtu\.be\/[\w-]+)/i);
+  if (m) return (/^https?:/i.test(m[0]) ? '' : 'https://') + m[0];
+  return 'None in bio';
+}
+
+// Rough Indian market price for one Reel, from followers, engagement and views.
+function reelPriceEstimate_(a) {
+  if (!a.followers) return null;
+  const tier = tierFor_(a.followers);
+  const perK = { Nano: 400, Micro: 300, Macro: 220, Mega: 150 }[tier] || 300; // ₹ per 1,000 followers
+  let p = a.followers / 1000 * perK;
+  const er = ((a.avgLikes || 0) + (a.avgComments || 0)) / a.followers * 100;
+  const st = erStatus_(tier, er);
+  p *= st === 'good' ? 1.2 : st === 'ok' ? 1 : 0.75;
+  if (a.avgViews && a.avgViews > a.followers) p *= 1.2;
+  return Math.max(500, Math.round(p / 500) * 500);
+}
+
+function sentimentEstimate_(a) {
+  if (!a.sampled) return '';
+  const cr = a.avgLikes ? (a.avgComments || 0) / a.avgLikes * 100 : null;
+  const label = cr == null ? 'Comment activity' : cr >= 3 ? 'Active, talkative audience' : cr >= 1 ? 'Normal comment activity' : 'Quiet audience';
+  return label + ' (est.): ' + Math.round(a.avgComments || 0) + ' comments per post' + (cr != null ? ', ' + cr.toFixed(1) + '% of likes' : '');
 }
 
 /* =========================================================
@@ -1122,7 +1154,30 @@ function estimateCredibility_(a) {
 
 // Details that are only filled when the cell is empty, so the team's own entries stay.
 function autoDetails_(a) {
-  return { category: a.category, language: a.language, reach: estimateReach_(a), credibility: estimateCredibility_(a) };
+  const price = reelPriceEstimate_(a);
+  const big = /Macro|Mega/.test(tierFor_(a.followers));
+  return {
+    category: a.category, language: a.language, reach: estimateReach_(a), credibility: estimateCredibility_(a),
+    ytLink: a.ytLink || '',
+    collab: price ? Math.round(price * 1.4 / 500) * 500 : '',
+    adRights: price ? Math.max(500, Math.round(price * 0.3 / 500) * 500) : '',
+    sentiment: sentimentEstimate_(a),
+    deliverables: big ? '1 Reel + 3 Stories (with link) + Auto-DM (suggested)' : '1 Reel + 2 Stories (with link) + Auto-DM (suggested)',
+    age: 'Ask creator for insights screenshot',
+    gender: 'Ask creator for insights screenshot',
+    sales: 'No past campaign yet'
+  };
+}
+
+// Instagram does not share views for photo and carousel posts. Estimate them from followers or Reel views.
+function postViews_(m, bd) {
+  if (m.view_count) return { views: m.view_count, est: false };
+  const media = (bd && bd.media && bd.media.data) || [];
+  const vids = media.filter(function (p) { return p.view_count > 0; }).map(function (p) { return p.view_count; });
+  const followers = (bd && bd.followers_count) || 0;
+  let v = vids.length ? avg_(vids) * 0.6 : estimateReach_({ followers: followers, avgViews: null });
+  if (m.like_count) v = Math.max(v || 0, m.like_count * 8);
+  return { views: v ? Math.round(v) : '', est: !!v };
 }
 
 function writeCreatorStats_(sh, row, a, cur) {
@@ -1149,7 +1204,7 @@ function recomputeAll(sh) {
   const data = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
   const g = function (r, k) { return r[C[k] - 1]; };
   const rows = data.map(function (r) {
-    const fee = num_(g(r, 'fee')), followers = num_(g(r, 'followers')), views = num_(g(r, 'views'));
+    const fee = num_(g(r, 'fee')) || num_(g(r, 'collab')), followers = num_(g(r, 'followers')), views = num_(g(r, 'views'));
     const likes = num_(g(r, 'likes')), comments = num_(g(r, 'comments'));
     const eng = (likes || comments) ? (likes || 0) + (comments || 0) : num_(g(r, 'engagement'));
     const tier = tierFor_(followers);

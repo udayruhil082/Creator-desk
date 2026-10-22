@@ -715,11 +715,11 @@ function erStatus(tier,er){ if(!ok(er)) return null; var b=BENCH[tier]||BENCH.Mi
 function creatorRows(){
   var list=(S.creators||[]).map(function(c){
     var eng=(c.avgLikes||c.avgComments)?(c.avgLikes||0)+(c.avgComments||0):(c.engagement||0); var tier=tierFor(c.followers)||c.tier||'';
-    var reach=+c.reach||null;
-    return {c:c, tier:tier, eng:eng, er:c.followers&&eng?eng/c.followers*100:null,
-      cpv:c.fee&&c.avgViews?c.fee/c.avgViews:null, cpe:c.fee&&eng?c.fee/eng:null,
-      cpm:c.fee&&c.avgViews?c.fee/c.avgViews*1000:null, cpr:c.fee&&reach?c.fee/reach:null,
-      cpf:c.fee&&c.followers?c.fee/c.followers*1000:null, erR:reach&&eng?eng/reach*100:null,
+    var reach=+c.reach||null, price=+c.fee||+c.collab||0;
+    return {c:c, tier:tier, eng:eng, price:price, priceEst:!c.fee&&!!price, er:c.followers&&eng?eng/c.followers*100:null,
+      cpv:price&&c.avgViews?price/c.avgViews:null, cpe:price&&eng?price/eng:null,
+      cpm:price&&c.avgViews?price/c.avgViews*1000:null, cpr:price&&reach?price/reach:null,
+      cpf:price&&c.followers?price/c.followers*1000:null, erR:reach&&eng?eng/reach*100:null,
       erV:c.avgViews&&eng?eng/c.avgViews*100:null, reachRate:reach&&c.followers?reach/c.followers*100:null,
       viewRate:c.avgViews&&c.followers?c.avgViews/c.followers*100:null};
   });
@@ -728,7 +728,7 @@ function creatorRows(){
     var st=erStatus(x.tier,x.er); x.st=st;
     var erTxt=(st==='good'?'ER strong':st==='ok'?'ER okay':'ER weak')+' for '+x.tier;
     if(!x.c.followers&&!x.c.avgViews){ x.v={cls:'neutral',label:'Not fetched',why:x.c.status||'Look this creator up again.'}; }
-    else if(!ok(x.cpv)){ x.v={cls:st==='good'?'good':st==='ok'?'warn':'bad',label:st==='good'?'Good engagement':st==='ok'?'Average engagement':'Low engagement',why:erTxt+'. '+(x.c.fee?'No video views, so CPV can’t be estimated.':'Add the fee to judge value.')}; }
+    else if(!ok(x.cpv)){ x.v={cls:st==='good'?'good':st==='ok'?'warn':'bad',label:st==='good'?'Good engagement':st==='ok'?'Average engagement':'Low engagement',why:erTxt+'. '+(x.price?'No video views, so CPV can’t be estimated.':'Add the fee to judge value.')}; }
     else if(cpvs.length<2){ x.v={cls:st==='weak'?'bad':'warn',label:st==='weak'?'Low engagement':'Add more creators',why:erTxt+'. Add one more creator with a fee to compare prices.'}; }
     else {
       var diff=(x.cpv-med)/med*100; var cpvTxt=Math.abs(diff)<1?'CPV at median':'CPV '+Math.abs(diff).toFixed(0)+'% '+(diff<0?'below':'above')+' median';
@@ -866,7 +866,7 @@ var DETAILS=[['category','Category','text'],['language','Language','text'],['pla
   ['sales','Sales Data','text'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
 var CATEGORIES=['Beauty','Skincare','Haircare','Fashion','Lifestyle','Travel','Food','Fitness','Health & Wellness','Parenting','Tech','Gaming','Comedy','Entertainment','Music','Dance','Education','Finance','Business','Home & Decor','Pets','Automotive','Photography','Art & DIY','Sports','Spirituality','Books','Motivation','Other'];
 var LANGUAGES=['Hindi','English','Hindi, English','Marathi','Bengali','Punjabi','Gujarati','Tamil','Telugu','Kannada','Malayalam','Odia','Urdu','Assamese','Bhojpuri'];
-var DETAIL_HINT={age:'From creator’s insights',gender:'From creator’s insights',sales:'From past campaigns',reach:'Auto estimate, or from insights',credibility:'Auto estimate',ytLink:'YouTube channel link',collab:'Quoted price',adRights:'Quoted price'};
+var DETAIL_HINT={age:'From creator’s insights',gender:'From creator’s insights',sales:'From past campaigns',reach:'Auto estimate, or from insights',credibility:'Auto estimate',ytLink:'Auto from bio, or paste link',collab:'Auto estimate, or quoted price',adRights:'Auto estimate, or quoted price'};
 var MANUAL_DETAILS=[['followers','Followers','num'],['views','Average Views','num'],['likes','Average Likes','num'],['comments','Average Comments','num'],['posts','Posts','num']];
 function renderLookup(){
   var R=creatorRows(); var box=$('lookup-result');
@@ -899,7 +899,7 @@ function renderLookup(){
       stat('ER%',pct(pick.er,2),'<span class="dot '+stCls+'"></span>'+stTxt+' · '+pick.tier+' strong ≥ '+b[0]+'%')+
     '</div>'+
     '<div class="value-row">'+
-      '<div class="vbox"><span class="k">CPV</span><span class="v">'+rs(pick.cpv,2)+'</span><span class="small muted">'+(c.fee?'Fee '+rs(c.fee)+' ÷ average views':'Add the fee below')+'</span></div>'+
+      '<div class="vbox"><span class="k">CPV</span><span class="v">'+rs(pick.cpv,2)+'</span><span class="small muted">'+(c.fee?'Fee '+rs(c.fee)+' ÷ average views':c.collab?'Collab price '+rs(+c.collab)+' (est.) ÷ average views':'Add the fee below')+'</span></div>'+
       '<div class="vbox"><span class="k">CPE</span><span class="v">'+rs(pick.cpe,2)+'</span><span class="small muted">Fee ÷ engagement</span></div>'+
       '<div class="vbox"><span class="k">Shortlist median CPV</span><span class="v">'+rs(R.med,2)+'</span><span class="small muted">'+(R.n>1?'Across '+R.n+' creators with fee and views':'Add more creators with fees to compare')+'</span></div>'+
       '<div class="vbox"><span class="k">Verdict</span><span><span class="chip '+pick.v.cls+'">'+esc(pick.v.label)+'</span></span><span class="small muted">'+esc(pick.v.why)+'</span></div>'+
@@ -943,7 +943,7 @@ function sortList(list,key,dir,fn){
   return list.slice().sort(function(a,b){ var va=fn(a,key), vb=fn(b,key); var na=va==null||va===''||(typeof va==='number'&&!isFinite(va)), nb=vb==null||vb===''||(typeof vb==='number'&&!isFinite(vb));
     if(na&&nb) return 0; if(na) return 1; if(nb) return -1; return (va<vb?-1:va>vb?1:0)*dir; });
 }
-function urlCell(u){ if(!u) return '<span class="muted">—</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
+function urlCell(u){ if(!u) return '<span class="muted">—</span>'; if(/\s/.test(String(u).trim())||!/[.\/]/.test(u)) return '<span class="muted small">'+esc(u)+'</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
 function renderShortlist(){
   var R=creatorRows(); var list=sortList(R.list,sKey,sDir,sval);
   var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
@@ -1087,10 +1087,10 @@ function summaryText(){
   var neg=R.list.filter(function(x){return x.v.label==='Negotiate'});
   var avoid=R.list.filter(function(x){return x.v.label==='Avoid or renegotiate'});
   if(R.list.length){
-    var withFee=R.list.filter(function(x){return x.c.fee});
-    if(withFee.length){ L.push(''); L.push('Shortlist averages ('+withFee.length+' creators with fee):');
+    var withFee=R.list.filter(function(x){return x.price});
+    if(withFee.length){ L.push(''); L.push('Shortlist averages ('+withFee.length+' creators with fee or est. price):');
       L.push('Avg CPV '+rs(avgOf(withFee,'cpv'),2)+' | Avg CPE '+rs(avgOf(withFee,'cpe'),2)+' | Avg CPM '+rs(avgOf(withFee,'cpm'),0)+' | Avg CPR '+rs(avgOf(withFee,'cpr'),2)+' (est.)');
-      L.push('Avg ER '+pct(avgOf(withFee,'er'),2)+' | Total fees '+rs(withFee.reduce(function(a,x){return a+(+x.c.fee||0)},0))); }
+      L.push('Avg ER '+pct(avgOf(withFee,'er'),2)+' | Total price '+rs(withFee.reduce(function(a,x){return a+(x.price||0)},0))); }
     L.push(''); L.push('Shortlist for next booking ('+R.list.length+' creators checked):');
     good.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): good value, ER '+pct(x.er,2)+', est. CPV '+rs(x.cpv,2)); });
     neg.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): negotiate ('+x.v.why.replace(/\.$/,'')+')'); });
@@ -1103,9 +1103,9 @@ function summaryText(){
 }
 function avgOf(list,k){ var v=list.map(function(x){return x[k]}).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
 function metricData(){
-  var R=creatorRows(), P=postRows(), L=R.list.filter(function(x){return x.c.fee}), t=P.t, s=S.settings||{};
+  var R=creatorRows(), P=postRows(), L=R.list.filter(function(x){return x.price}), t=P.t, s=S.settings||{};
   var sum=function(k){ return L.reduce(function(a,x){ return a+(+x.c[k]||0); },0); };
-  var fees=sum('fee'), views=sum('avgViews'), reach=sum('reach'), fol=sum('followers'), eng=L.reduce(function(a,x){return a+(x.eng||0)},0);
+  var fees=L.reduce(function(a,x){ return a+(x.price||0); },0), views=sum('avgViews'), reach=sum('reach'), fol=sum('followers'), eng=L.reduce(function(a,x){return a+(x.eng||0)},0);
   return {n:L.length, posts:(S.posts||[]).length, rows:[
     ['Total fees / spend','sum of fees',rs(fees),rs(t.fee)],
     ['Budget used','spend ÷ budget × 100','—',s.budget?pct(t.fee/s.budget*100,1):'—'],
@@ -1131,7 +1131,7 @@ function metricData(){
 }
 function renderSummary(){ $('summary-text').textContent=summaryText();
   var M=metricData();
-  $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
+  $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee or est. price)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
     M.rows.map(function(r){ return '<tr><td><strong>'+esc(r[0])+'</strong></td><td class="small muted" style="font-family:var(--f-mono)">'+esc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[3]+'</td></tr>'; }).join('')+'</tbody>'; }
 $('copy-summary').addEventListener('click',function(){ var b=this, text=summaryText();
   var done=function(){ var o=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=o},1600); };
