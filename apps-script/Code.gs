@@ -106,7 +106,7 @@ function doGet() {
  * Sign-in and per-user sheets
  * ======================================================= */
 
-const SITE_URL = 'https://creator-desk-fiama.netlify.app';
+const SITE_URL = 'https://mycreatordesk.co.in';
 const GOOGLE_CLIENT_ID = '655428813505-ftd9c22rvrduhe3udiv32j2gn69njqa6.apps.googleusercontent.com'; // OAuth web client used by "Sign in with Google"
 const ADMIN_EMAIL = 'vanshikajuyal06@gmail.com'; // uses this spreadsheet; can see and block team members
 const USERS_SHEET = 'Users';
@@ -122,7 +122,7 @@ function mainSs_() { return SpreadsheetApp.getActive(); }
 const API_FUNCS = ['api_getState', 'api_lookup', 'api_saveCreator', 'api_setFee', 'api_removeCreator', 'api_clearCreators',
   'api_addCreatorManual', 'api_bulkCreators', 'api_refreshCreators', 'api_fillCreators', 'api_exportShortlist',
   'api_saveSettings', 'api_addPost', 'api_bulkPosts', 'api_updatePost', 'api_removePost', 'api_refreshPosts',
-  'api_adminUsers', 'api_adminSetStatus'];
+  'api_adminUsers', 'api_adminSetStatus', 'api_connectInstagram', 'api_disconnectInstagram', 'api_igStatus'];
 const ADMIN_FUNCS = ['api_adminUsers', 'api_adminSetStatus'];
 
 function doPost(e) {
@@ -654,7 +654,7 @@ function api_refreshPosts() {
 
 function buildState_() {
   const ss = ss_();
-  const tokenOk = !!PropertiesService.getScriptProperties().getProperty('IG_TOKEN');
+  const tokenOk = !!(ownConnection_() || PropertiesService.getScriptProperties().getProperty('IG_TOKEN'));
 
   const creators = [];
   const csh = ss.getSheetByName(SHEET_NAME);
@@ -706,6 +706,7 @@ function buildState_() {
 
   if (!settings.competitors) settings.competitors = DEFAULT_COMPETITORS;
   return { live: true, tokenOk: tokenOk, sheetUrl: ss.getUrl(), creators: creators, posts: posts, settings: settings,
+    ig: api_igStatus(),
     user: CURRENT_USER ? { email: CURRENT_USER.email, name: CURRENT_USER.name, picture: CURRENT_USER.picture, isAdmin: CURRENT_USER.isAdmin } : null };
 }
 
@@ -809,14 +810,66 @@ function fetchRows_(sh, rowNumbers) {
  * Instagram API
  * ======================================================= */
 
+// Each person can connect their own Instagram professional account ("Connect Instagram" on the website).
+// Lookups then use their own connection and their own Meta limits; otherwise the team connection is used.
+function ownConnection_() {
+  if (!CURRENT_USER || !CURRENT_USER.email) return null;
+  const raw = PropertiesService.getScriptProperties().getProperty('IGC_' + CURRENT_USER.email);
+  try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+
 function getIgId() {
+  const own = ownConnection_();
+  if (own && own.igId) return own.igId;
   return PropertiesService.getScriptProperties().getProperty('IG_ID') || DEFAULT_IG_ID;
 }
 
 function requireToken_() {
+  const own = ownConnection_();
+  if (own && own.token) return own.token;
   const t = PropertiesService.getScriptProperties().getProperty('IG_TOKEN');
-  if (!t) throw new Error('Access token missing. In the Google Sheet use Creator Tracker → Save access token.');
+  if (!t) throw new Error('Instagram is not connected. Press Connect Instagram at the top of the page.');
   return t;
+}
+
+/* ---------- Connect Instagram (Facebook Login for Business) ---------- */
+
+const FB_APP_ID = '1113383891047813';
+
+function graphGet_(path, params) {
+  const q = Object.keys(params).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+  const r = UrlFetchApp.fetch('https://graph.facebook.com/' + API_VERSION + '/' + path + '?' + q, { muteHttpExceptions: true });
+  let j = {};
+  try { j = JSON.parse(r.getContentText()); } catch (e) { throw new Error('Unexpected answer from Facebook (HTTP ' + r.getResponseCode() + ').'); }
+  if (j.error) throw new Error('Facebook says: ' + (j.error.message || 'unknown error'));
+  return j;
+}
+
+// Called after Facebook sends the person back with ?code=…  Stores a Page token that does not expire.
+function api_connectInstagram(code, redirectUri) {
+  const secret = PropertiesService.getScriptProperties().getProperty('FB_APP_SECRET');
+  if (!secret) throw new Error('The Facebook app secret is not set up yet (Apps Script → Project settings → Script properties → FB_APP_SECRET).');
+  if (!code) throw new Error('Facebook did not return a login code. Try Connect Instagram again.');
+  const short = graphGet_('oauth/access_token', { client_id: FB_APP_ID, client_secret: secret, redirect_uri: redirectUri, code: code });
+  const long = graphGet_('oauth/access_token', { grant_type: 'fb_exchange_token', client_id: FB_APP_ID, client_secret: secret, fb_exchange_token: short.access_token });
+  const pages = graphGet_('me/accounts', { fields: 'name,access_token,instagram_business_account{id,username}', limit: 100, access_token: long.access_token });
+  const withIg = (pages.data || []).filter(function (p) { return p.instagram_business_account && p.access_token; });
+  if (!withIg.length) throw new Error('No Instagram professional account was found. Link your Instagram Business or Creator account to a Facebook Page, then try again, and tick that Page and Instagram account when Facebook asks.');
+  const p = withIg[0];
+  const conn = { token: p.access_token, igId: p.instagram_business_account.id, username: p.instagram_business_account.username || '', page: p.name || '', connected: new Date().toISOString() };
+  PropertiesService.getScriptProperties().setProperty('IGC_' + CURRENT_USER.email, JSON.stringify(conn));
+  return api_igStatus();
+}
+
+function api_disconnectInstagram() {
+  if (CURRENT_USER && CURRENT_USER.email) PropertiesService.getScriptProperties().deleteProperty('IGC_' + CURRENT_USER.email);
+  return api_igStatus();
+}
+
+function api_igStatus() {
+  const own = ownConnection_();
+  if (own) return { own: true, username: own.username, page: own.page, connected: own.connected };
+  return { own: false, team: !!PropertiesService.getScriptProperties().getProperty('IG_TOKEN') };
 }
 
 function fetchCreator_(handle, token) {

@@ -227,6 +227,11 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
 .user-chip button{border:0;background:var(--sunk);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12.5px;cursor:pointer}
 .user-chip button:hover{background:var(--accent-soft)}
 .btn.danger{color:var(--bad)}
+.ig-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:4px 4px 4px 12px;background:var(--surface)}
+.ig-chip .ig-dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.ig-chip .ig-dot.team{background:var(--muted)}
+.ig-chip button{border:0;background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.ig-chip button.ghost{background:var(--sunk);color:var(--ink);font-weight:500}
 </style>
 <div class="login" id="login" hidden>
   <div class="login-card">
@@ -253,6 +258,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
     <div class="btns">
       <span class="pill" id="mode-pill"><span class="d"></span><span id="mode-text">Loading…</span></span>
       <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open my Google Sheet ↗</a>
+      <span class="ig-chip" id="ig-chip" hidden></span>
       <span class="user-chip" id="user-chip" hidden></span>
     </div>
   </div>
@@ -809,6 +815,31 @@ function renderUser(){ var u=S.user, el=$('user-chip');
   el.innerHTML=(u.picture?'<img src="'+esc(u.picture)+'" alt="" referrerpolicy="no-referrer">':'<span class="av">'+ini+'</span>')+'<span class="nm" title="'+esc(u.email)+'">'+esc(u.name||u.email)+'</span><button type="button" id="sign-out">Sign out</button>';
   el.hidden=false; $('sign-out').onclick=signOut;
   $('tab-team').hidden=!u.isAdmin; if(!u.isAdmin&&view==='team') showView('lookup'); }
+var FB_APP_ID='1113383891047813', FB_CONFIG_ID='';
+function connectInstagram(){
+  var st=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{ sessionStorage.setItem('cd-fb-state',st); sessionStorage.setItem('cd-view',view); }catch(e){}
+  var q={client_id:FB_APP_ID, redirect_uri:LOGIN_URI, state:st, response_type:'code'};
+  if(FB_CONFIG_ID) q.config_id=FB_CONFIG_ID; else q.scope='instagram_basic,pages_show_list,pages_read_engagement,business_management';
+  location.href='https://www.facebook.com/'+'v26.0/dialog/oauth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
+}
+// Facebook sends the person back with ?code=…&state=… after they allow access.
+function readFacebookReturn(){
+  var sp=new URLSearchParams(location.search); var code=sp.get('code'), st=sp.get('state'), err=sp.get('error_description')||sp.get('error');
+  if(!code&&!err) return null;
+  var want=''; try{ want=sessionStorage.getItem('cd-fb-state')||''; sessionStorage.removeItem('cd-fb-state'); }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+  if(err) return {error:'Instagram was not connected: '+err};
+  if(!want||st!==want) return {error:'Instagram connection could not be confirmed. Please try again.'};
+  return {code:code};
+}
+function renderIg(){ var el=$('ig-chip'); if(!REMOTE||!S.user){ el.hidden=true; return; } var g=S.ig||{};
+  if(g.own){ el.innerHTML='<span class="ig-dot"></span><span>Instagram: <strong>@'+esc(g.username||'connected')+'</strong></span><button type="button" class="ghost" id="ig-off">Disconnect</button>'; }
+  else { el.innerHTML='<span class="ig-dot team"></span><span>'+(g.team?'Using team Instagram':'Instagram not connected')+'</span><button type="button" id="ig-on">Connect Instagram</button>'; }
+  el.hidden=false;
+  var on=$('ig-on'); if(on) on.onclick=connectInstagram;
+  var off=$('ig-off'); if(off) off.onclick=function(){ var b=this; armOnce(b,'Click again',function(){ call('api_disconnectInstagram').then(function(s){ S.ig=s; renderIg(); toast('Instagram disconnected'); }).catch(function(e){ toast(e.message,true); }); }); };
+}
 var TEAM=[];
 function niceDate(v){ if(!v) return '—'; var d=new Date(v); if(isNaN(d)) return String(v); return d.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}); }
 function loadTeam(){ if(!(S.user&&S.user.isAdmin)) return; $('team-table').innerHTML='<tbody><tr><td class="muted"><span class="spin"></span> Loading…</td></tr></tbody>';
@@ -854,7 +885,7 @@ function renderAll(){
   $('refresh-creators').hidden=!live; $('refresh-posts').hidden=!live;
   var os=$('open-sheet'); if(live&&S.sheetUrl){ os.href=S.sheetUrl; os.hidden=false; } else os.hidden=true;
   $('handles').innerHTML=(S.creators||[]).map(function(c){return '<option value="'+esc(c.handle)+'">'}).join('');
-  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount(); renderUser();
+  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount(); renderUser(); renderIg();
   $('clear-creators').hidden=!(S.creators||[]).length;
   $('footer').textContent=REMOTE?'Your data is saved in your own Google Sheet. Other team members cannot see it.':live?'Data is saved in the team’s Google Sheet.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
 }
@@ -1396,7 +1427,12 @@ if(REMOTE&&!getTok()){
   var tried=''; try{ tried=sessionStorage.getItem('cd-silent')||''; }catch(e){}
   if(hadEmail&&!tried&&!lr){ try{ sessionStorage.setItem('cd-silent','1'); }catch(e){} signIn(true); } // signs straight back in if Google still remembers you
   else showLogin(lr&&lr!=='ok'?lr:'');
-} else { try{ sessionStorage.removeItem('cd-silent'); }catch(e){} loadState(); }
+} else { try{ sessionStorage.removeItem('cd-silent'); }catch(e){}
+  var fr=REMOTE?readFacebookReturn():null;
+  if(fr&&fr.error){ toast(fr.error,true); loadState(); }
+  else if(fr&&fr.code){ toast('Connecting your Instagram…');
+    call('api_connectInstagram',fr.code,LOGIN_URI).then(function(g){ toast('Instagram connected: @'+(g.username||'')); }).catch(function(e){ toast(e.message,true); }).then(function(){ loadState(); }); }
+  else loadState(); }
 })();
 </script>
 
