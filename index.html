@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 <body>
-<title>Creator Desk</title>
+<title>My Creator Desk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -236,7 +236,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
 <div class="login" id="login" hidden>
   <div class="login-card">
     <span class="eyebrow">Influencer marketing desk</span>
-    <h1>Creator Desk</h1>
+    <h1>My Creator Desk</h1>
     <p class="muted" style="margin:0">Sign in with your Google account to open your own desk.</p>
     <ul>
       <li>Your shortlist, campaign and uploads are kept separate from everyone else's.</li>
@@ -252,7 +252,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
   <div class="wrap">
     <div class="stack">
       <span class="eyebrow">Influencer marketing desk</span>
-      <h1>Creator Desk</h1>
+      <h1>My Creator Desk</h1>
       <p class="muted">Upload your creator sheet or look up any Instagram handle. Fill the blanks from Instagram, spot competitor collabs, shortlist and share with your manager, then track every campaign post's CPV, CPE and budget.</p>
     </div>
     <div class="btns">
@@ -358,8 +358,8 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
           <span class="chip neutral" id="sel-count">0 selected</span>
         </div>
         <div class="grid4">
-          <label class="field">Sheet name<input id="sh-title" type="text" placeholder="Fiama shortlist, Oct 2026"></label>
-          <label class="field">Manager's email (optional)<input id="sh-email" type="email" autocomplete="off" placeholder="name@itc.in"></label>
+          <label class="field">Sheet name<input id="sh-title" type="text" placeholder="Brand shortlist, Oct 2026"></label>
+          <label class="field">Manager's email (optional)<input id="sh-email" type="email" autocomplete="off" placeholder="manager@company.com"></label>
           <label class="field">Access<select id="sh-access"><option value="view">Can view</option><option value="edit">Can edit</option></select></label>
           <button class="btn primary" id="sh-btn" type="button">Create Google Sheet</button>
         </div>
@@ -405,7 +405,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
           <h3>Competitor brands</h3>
           <p class="muted small">Each creator's last 25 captions are checked for these brands (names, @handles and hashtags), and for posts marked as ads or collabs. Separate brands with commas. After changing the list, press Refresh all from Instagram to check again.</p>
         </div>
-        <textarea class="paste" id="comp-list" rows="3" style="min-height:70px"></textarea>
+        <textarea class="paste" id="comp-list" rows="3" style="min-height:70px" placeholder="Your competitor brands, separated by commas. For example: Nivea, Mamaearth, Plum"></textarea>
         <div class="btns"><button class="btn primary" id="comp-save">Save competitor list</button><span class="small muted" id="comp-msg" role="status"></span></div>
       </div>
     </section>
@@ -518,7 +518,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
         <div class="sec-head">
           <div class="stack">
             <h2>Team members</h2>
-            <p class="muted small">Everyone who has signed in, with a link to their own sheet. Blocking someone stops them from using Creator Desk; their sheet is kept.</p>
+            <p class="muted small">Everyone who has signed in, with a link to their own sheet. Blocking someone stops them from using My Creator Desk; their sheet is kept.</p>
           </div>
           <button class="btn" id="team-reload">Refresh list</button>
         </div>
@@ -551,13 +551,13 @@ function call(fn){
   if (REMOTE) {
     return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',redirect:'follow',
         body:JSON.stringify({fn:fn,args:args,idToken:getTok()})})
-      .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the Creator Desk server. Check your internet and try again.'); })
+      .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the My Creator Desk server. Check your internet and try again.'); })
       .then(function(j){ if(j&&j.ok) return j.result; var er=j&&j.error;
         if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok('');
           var em='', last=0; try{ em=localStorage.getItem('cd-email')||''; last=+sessionStorage.getItem('cd-silent-at')||0; }catch(x){}
           if(em&&Date.now()-last>120000){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(x){} signIn(true); throw new Error('Signing you back in…'); }
           showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
-        if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
+        if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to My Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
   }
   if (LIVE) {
     return new Promise(function(res, rej){
@@ -581,7 +581,7 @@ function demoSeed(){
       c({competitors:'None found',collabs:'@demo.serumbrand, @demo.sunscreen',category:'Skincare',language:'Hindi, English',name:'demo.skin.pune',followers:64000,views:72000,likes:4100,comments:160,posts:412,fee:28000,collab:28000,adRights:8000,age:'58%',reach:51000,credibility:'86%',gender:'F 78% / M 22%',sentiment:'Asks about routine, positive',deliverables:'1 Reel + 2 Stories with link'}),
       c({competitors:'Dove (2 posts, 1 marked as ad/collab, latest 3 Oct 2026)',collabs:'@doveindia, @demo.lipstick',category:'Beauty',language:'Hindi',name:'demo.beauty.mumbai',followers:480000,views:410000,likes:9800,comments:300,posts:1320,fee:180000,collab:180000,adRights:45000,age:'49%',reach:330000,credibility:'79%',gender:'F 71% / M 29%',sentiment:'Mostly positive',deliverables:'Collab Reel + Story + Autodm'}),
       c({competitors:'None found',collabs:'None found',category:'Campus',language:'Hindi',name:'demo.campus.jaipur',followers:9200,views:14500,likes:520,comments:40,posts:188,fee:6000,collab:6000,adRights:1500,age:'72%',credibility:'91%',gender:'F 55% / M 45%',deliverables:'1 Reel'}),
-      c({competitors:'Ghar Soaps (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@gharsoaps, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,age:'41%',credibility:'68%',sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
+      c({competitors:'Mamaearth (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@mamaearth.in, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,age:'41%',credibility:'68%',sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
       c({competitors:'None found',collabs:'@demo.trimmer',category:'Grooming',language:'Kannada, English',name:'demo.grooming.blr',followers:88000,views:41000,likes:1200,comments:45,posts:530,fee:35000,collab:35000,adRights:10000,credibility:'74%',gender:'M 81% / F 19%'}),
       c({competitors:'None found',collabs:'None found',category:'Wellness',language:'Telugu',name:'demo.wellness.hyd',followers:310000,views:260000,likes:6900,comments:210,posts:960,fee:120000,collab:120000,adRights:30000,age:'46%',credibility:'83%'}),
       c({category:'Food',language:'Hindi',name:'Demo Kitchen Diaries',platform:'YouTube',link:'',ytLink:'youtube.com/@demokitchen',followers:240000,views:90000,likes:5200,comments:310,fee:45000,collab:45000,source:'Manual',status:'Entered manually',deliverables:'1 integrated video'})
@@ -592,7 +592,7 @@ function demoSeed(){
       {id:'DEMO03',handle:'demo.campus.jaipur',link:'',fee:6000,views:21000,likes:1800,comments:190,type:'REELS',posted:'2026-10-16T09:15:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'},
       {id:'DEMO04',handle:'demo.grooming.blr',link:'',fee:35000,views:71000,likes:3100,comments:140,type:'REELS',posted:'2026-10-17T18:45:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'}
     ],
-    settings:{name:'Winter gel bar push (example)',budget:400000,start:'2026-10-12',end:'2026-11-10',competitors:'Dove, Ghar Soaps, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril'}
+    settings:{name:'Festive launch (example)',budget:400000,start:'2026-10-12',end:'2026-11-10',competitors:'Dove, Mamaearth, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril'}
   };
 }
 var DS;
@@ -632,7 +632,7 @@ var Demo = {
       if(!c){ c={name:h,platform:'Instagram'}; DS.creators.push(c); }
       var fill={link:'https://www.instagram.com/'+h+'/',followers:f,views:Math.round(f*(0.4+r()*1.4)),comments:Math.round(eng*0.04),likes:Math.round(eng*0.96),posts:Math.round(80+r()*1500)};
       Object.keys(fill).forEach(function(k){ if(c[k]==null||c[k]==='') c[k]=fill[k]; });
-      var comps=['Dove','Ghar Soaps','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
+      var comps=['Dove','Mamaearth','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
       c.source='Instagram API'; c.updated=new Date().toISOString(); c.status='Made-up sample numbers (demo)'; out.push({name:n,ok:true,msg:'Filled'}); });
     demoSave(); return {results:out}; },
   api_addPost:function(p){
@@ -683,7 +683,7 @@ var TEAM_COLS=[
   ['collab','Collab Reel + Story w link + Autodm','rs'],['adRights','1 Month Ad Rights','rs'],['fee','Fee (₹)','fee']
 ];
 var TEAM_KEYS=TEAM_COLS.map(function(c){return c[0]});
-var DEFAULT_COMP='Dove, Ghar Soaps, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril';
+var DEFAULT_COMP='';
 function hasComp(c){ return !!(c.competitors&&c.competitors!=='None found'); }
 var EDITABLE=['category','language','link','ytLink','sales','age','reach','credibility','sentiment','gender','deliverables','collab','adRights','fee','platform'];
 var MANUAL_NUMBERS=['followers','views','comments','likes','posts','engagement'];

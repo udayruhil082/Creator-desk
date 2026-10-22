@@ -1,5 +1,5 @@
 /**
- * Creator Desk — website + Google Sheet for influencer marketing.
+ * My Creator Desk — website + Google Sheet for influencer marketing.
  *
  * What it does
  *   • Creator lookup: type an Instagram handle, get followers, average likes,
@@ -99,7 +99,7 @@ const BENCH = { Nano: [4, 2], Micro: [3, 1.5], Macro: [2, 1], Mega: [1.5, 0.7] }
 
 // The old Apps Script page link now just points people to the website, which needs Google sign-in.
 function doGet() {
-  return ContentService.createTextOutput('Creator Desk has moved to ' + SITE_URL + ' . Open that link and sign in with Google.');
+  return ContentService.createTextOutput('My Creator Desk has moved to ' + SITE_URL + ' . Open that link and sign in with Google.');
 }
 
 /* =========================================================
@@ -189,7 +189,7 @@ function openUserSheet_(user) {
   return withLock_(function () {
     row = findRow_(users, 1, user.email); // another request may have just created it
     if (row) return { ss: SpreadsheetApp.openById(String(users.getRange(row, 4).getValue())), isAdmin: false };
-    const ss = SpreadsheetApp.create('Creator Desk · ' + (user.name || user.email));
+    const ss = SpreadsheetApp.create('My Creator Desk · ' + (user.name || user.email));
     CURRENT_SS = ss;
     ensureSheets_();
     const first = ss.getSheetByName('Sheet1');
@@ -972,7 +972,7 @@ function friendlyError_(e) {
  * Competitor and brand-collab detection (from public captions)
  * ======================================================= */
 
-const DEFAULT_COMPETITORS = 'Dove, Ghar Soaps, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril';
+const DEFAULT_COMPETITORS = '';
 // Known handles / hashtags and caption phrases, so short names like Lux or Pears don't match "luxury" or the fruit.
 const BRAND_ALIASES = {
   'dove': { tags: ['dove', 'doveindia', 'dovebodywash', 'dovebeautybar'], phrase: /\bdove\b/ },

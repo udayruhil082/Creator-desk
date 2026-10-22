@@ -1,4 +1,4 @@
-# Creator Desk
+# My Creator Desk
 
 Influencer marketing desk for the team: look up Instagram creators by handle, upload a creator sheet and fill the blanks from Instagram, spot competitor collabs, shortlist and share with a manager, and track campaign posts (CPV, CPE, ER, budget).
 

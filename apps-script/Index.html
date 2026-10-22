@@ -1,4 +1,4 @@
-<title>Creator Desk</title>
+<title>My Creator Desk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,24 +198,61 @@ a.btn{text-decoration:none}
 .brand-box{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .brand-box.hit{background:var(--warn-bg)}
 .brand-box.clear{background:var(--sunk)}
+.form.post input::placeholder{font-size:13px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.18)}
 .toast.err{background:var(--bad);color:#fff}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.fill{transition:none}.spin{animation-duration:2s}}
 footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+.login{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}
+.login-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 28px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
+.login-card h1{margin:0}
+.login-card ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+#gbtn{min-height:44px}
+.login-err{background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
+body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
+.g-btn{gap:10px;padding:10px 18px;font-size:15px;border-radius:99px;background:#fff;color:#1f1f1f;border-color:#dadce0}
+.g-btn:hover{border-color:#a8c7fa;background:#f8fafd}
+.user-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:3px 4px 3px 4px;background:var(--surface);max-width:100%}
+.user-chip img,.user-chip .av{width:26px;height:26px;border-radius:50%;flex:none;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.user-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.user-chip button{border:0;background:var(--sunk);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12.5px;cursor:pointer}
+.user-chip button:hover{background:var(--accent-soft)}
+.btn.danger{color:var(--bad)}
+.ig-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:4px 4px 4px 12px;background:var(--surface)}
+.ig-chip .ig-dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.ig-chip .ig-dot.team{background:var(--muted)}
+.ig-chip button{border:0;background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.ig-chip button.ghost{background:var(--sunk);color:var(--ink);font-weight:500}
 </style>
+<div class="login" id="login" hidden>
+  <div class="login-card">
+    <span class="eyebrow">Influencer marketing desk</span>
+    <h1>My Creator Desk</h1>
+    <p class="muted" style="margin:0">Sign in with your Google account to open your own desk.</p>
+    <ul>
+      <li>Your shortlist, campaign and uploads are kept separate from everyone else's.</li>
+      <li>On your first sign-in, a private Google Sheet is made just for you.</li>
+      <li>Nobody else on the team can see your sheet.</li>
+    </ul>
+    <div id="gbtn"><span class="muted small">Loading Google sign-in…</span></div>
+    <div class="login-err" id="login-err" hidden role="alert"></div>
+  </div>
+</div>
 
 <header class="top gut">
   <div class="wrap">
     <div class="stack">
       <span class="eyebrow">Influencer marketing desk</span>
-      <h1>Creator Desk</h1>
+      <h1>My Creator Desk</h1>
       <p class="muted">Upload your creator sheet or look up any Instagram handle. Fill the blanks from Instagram, spot competitor collabs, shortlist and share with your manager, then track every campaign post's CPV, CPE and budget.</p>
     </div>
     <div class="btns">
       <span class="pill" id="mode-pill"><span class="d"></span><span id="mode-text">Loading…</span></span>
-      <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open Google Sheet ↗</a>
+      <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open my Google Sheet ↗</a>
+      <span class="ig-chip" id="ig-chip" hidden></span>
+      <span class="user-chip" id="user-chip" hidden></span>
     </div>
   </div>
 </header>
@@ -226,6 +263,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <button class="tab" role="tab" id="tab-shortlist" data-view="shortlist" aria-selected="false">Shortlist <span class="count" id="c-short">0</span></button>
     <button class="tab" role="tab" id="tab-campaign" data-view="campaign" aria-selected="false">Campaign <span class="count" id="c-posts">0</span></button>
     <button class="tab" role="tab" id="tab-summary" data-view="summary" aria-selected="false">Manager summary</button>
+    <button class="tab" role="tab" id="tab-team" data-view="team" aria-selected="false" hidden>Team</button>
   </div>
 </nav>
 
@@ -234,6 +272,10 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <div class="banner info" id="demo-banner" hidden>
       <span><strong>Demo version with sample creators.</strong> Lookups here use made-up numbers. In the team version, every lookup pulls live data from Instagram and saves it to the shared Google Sheet.</span>
       <button class="btn" id="demo-reset">Reset sample data</button>
+    </div>
+    <div class="banner warn" id="load-banner" hidden>
+      <span><strong>Connection problem.</strong> <span id="load-msg"></span> Your data is safe in your Google Sheet.</span>
+      <button class="btn" id="load-retry">Try again</button>
     </div>
     <div class="banner warn" id="token-banner" hidden>
       <span><strong>Instagram access token missing or expired.</strong> Open the Google Sheet and use Creator Tracker → Save access token. Saved data still shows below.</span>
@@ -296,6 +338,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
         <div class="btns">
           <button class="btn" id="csv-creators">Copy as CSV</button>
           <button class="btn" id="refresh-creators">Refresh all from Instagram</button>
+          <button class="btn danger" id="clear-creators">Remove all</button>
         </div>
       </div>
       <div class="tbl-wrap"><table class="t-short" id="short-table"></table></div>
@@ -308,8 +351,8 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <span class="chip neutral" id="sel-count">0 selected</span>
         </div>
         <div class="grid4">
-          <label class="field">Sheet name<input id="sh-title" type="text" placeholder="Fiama shortlist, Oct 2026"></label>
-          <label class="field">Manager's email (optional)<input id="sh-email" type="email" autocomplete="off" placeholder="name@itc.in"></label>
+          <label class="field">Sheet name<input id="sh-title" type="text" placeholder="Brand shortlist, Oct 2026"></label>
+          <label class="field">Manager's email (optional)<input id="sh-email" type="email" autocomplete="off" placeholder="manager@company.com"></label>
           <label class="field">Access<select id="sh-access"><option value="view">Can view</option><option value="edit">Can edit</option></select></label>
           <button class="btn primary" id="sh-btn" type="button">Create Google Sheet</button>
         </div>
@@ -330,8 +373,8 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           </div>
           <form class="form manual" id="manual-form">
             <label class="field" style="grid-column:1/-1">Creator name or handle<input id="mf-name" type="text" autocomplete="off" placeholder="Beauty with Riya"></label>
-            <label class="field">Category<input id="mf-category" type="text" placeholder="Beauty"></label>
-            <label class="field">Language<input id="mf-language" type="text" placeholder="Hindi"></label>
+            <label class="field">Category<input id="mf-category" type="text" list="cat-list" placeholder="Beauty"></label>
+            <label class="field">Language<input id="mf-language" type="text" list="lang-list" placeholder="Hindi"></label>
             <label class="field">Platform<select id="mf-platform"></select></label>
             <label class="field">Followers<input id="mf-fol" type="number" min="0" step="any"></label>
             <label class="field">Fee (₹)<input id="mf-fee" type="number" min="0" step="any"></label>
@@ -355,7 +398,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <h3>Competitor brands</h3>
           <p class="muted small">Each creator's last 25 captions are checked for these brands (names, @handles and hashtags), and for posts marked as ads or collabs. Separate brands with commas. After changing the list, press Refresh all from Instagram to check again.</p>
         </div>
-        <textarea class="paste" id="comp-list" rows="3" style="min-height:70px"></textarea>
+        <textarea class="paste" id="comp-list" rows="3" style="min-height:70px" placeholder="Your competitor brands, separated by commas. For example: Nivea, Mamaearth, Plum"></textarea>
         <div class="btns"><button class="btn primary" id="comp-save">Save competitor list</button><span class="small muted" id="comp-msg" role="status"></span></div>
       </div>
     </section>
@@ -392,9 +435,9 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <label class="field">Platform<select id="pf-platform"></select></label>
           <label class="field" style="grid-column:span 2">Post link<input id="pf-link" type="url" spellcheck="false" placeholder="https://www.instagram.com/reel/…"></label>
           <label class="field">Fee paid (₹)<input id="pf-fee" type="number" min="0" step="any"></label>
-          <label class="field">Views<input id="pf-views" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
-          <label class="field">Likes<input id="pf-likes" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
-          <label class="field">Comments<input id="pf-comments" type="number" min="0" step="any" placeholder="auto for Instagram"></label>
+          <label class="field">Views<input id="pf-views" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
+          <label class="field">Likes<input id="pf-likes" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
+          <label class="field">Comments<input id="pf-comments" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
           <button class="btn primary" id="pf-btn" type="submit">Add post and fetch numbers</button>
         </form>
         <datalist id="handles"></datalist>
@@ -430,6 +473,10 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <textarea id="copy-fallback" hidden readonly aria-label="Text to copy"></textarea>
           <p class="small muted">Paste it into WhatsApp, Slack or email. It updates whenever the numbers change.</p>
         </div>
+        <div class="panel" style="grid-column:1/-1;order:1">
+          <div class="stack"><h3>All metrics</h3><p class="small muted">Shortlist values use creators with a fee. Campaign values use every tracked post.</p></div>
+          <div class="tbl-wrap"><table id="metrics-table"></table></div>
+        </div>
         <div class="panel">
           <h3>How the numbers are worked out</h3>
           <dl class="formulas">
@@ -439,7 +486,16 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
             <dt>CPV</dt><dd>fee ÷ views</dd>
             <dt>CPE</dt><dd>fee ÷ engagements</dd>
             <dt>CPM</dt><dd>fee ÷ views × 1,000</dd>
+            <dt>CPR</dt><dd>fee ÷ average reach</dd>
+            <dt>Avg CPV / CPE / CPR</dt><dd>average of each creator’s value</dd>
+            <dt>Blended CPV / CPR</dt><dd>total fees ÷ total views (or reach)</dd>
+            <dt>Cost per 1K followers</dt><dd>fee ÷ followers × 1,000</dd>
+            <dt>ER (reach)</dt><dd>engagements ÷ reach × 100</dd>
+            <dt>Reach rate</dt><dd>reach ÷ followers × 100</dd>
+            <dt>View rate</dt><dd>avg views ÷ followers × 100</dd>
+            <dt>Budget used</dt><dd>spend ÷ budget × 100</dd>
           </dl>
+          <p class="small muted">Average Reach is not public on Instagram. When the team hasn’t entered it from the creator’s insights, it is estimated as 80% of average views (or a typical reach rate for the tier), so CPR is an estimate too.</p>
           <div class="tbl-wrap"><table>
             <thead><tr><th>Tier</th><th>Followers</th><th class="n">Strong ER</th><th class="n">Okay ER</th></tr></thead>
             <tbody id="bench-body"></tbody>
@@ -449,11 +505,26 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
       </div>
     </section>
 
+    <!-- TEAM (admin only) -->
+    <section class="view" id="view-team" role="tabpanel" aria-labelledby="tab-team" hidden>
+      <div class="panel">
+        <div class="sec-head">
+          <div class="stack">
+            <h2>Team members</h2>
+            <p class="muted small">Everyone who has signed in, with a link to their own sheet. Blocking someone stops them from using My Creator Desk; their sheet is kept.</p>
+          </div>
+          <button class="btn" id="team-reload">Refresh list</button>
+        </div>
+        <div class="tbl-wrap"><table id="team-table"></table></div>
+      </div>
+    </section>
+
     <footer id="footer"></footer>
   </div>
 </main>
 
 <div class="toast" id="toast" hidden role="status"></div>
+<datalist id="cat-list"></datalist><datalist id="lang-list"></datalist>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -463,14 +534,23 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
 var LIVE = !!(window.google && google.script && google.script.run);
 var API_URL = ''; // set on the hosted website: the Apps Script web app URL ending in /exec
 var REMOTE = !LIVE && /^https:\/\/script\.google\.com\//.test(API_URL);
-function teamCode(){ try{ return localStorage.getItem('creator-desk-code')||''; }catch(e){ return ''; } }
+var GOOGLE_CLIENT_ID = '655428813505-ftd9c22rvrduhe3udiv32j2gn69njqa6.apps.googleusercontent.com';
+var TOK_KEY='creator-desk-idt';
+function jwtExp(t){ try{ var p=JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); return (p.exp||0)*1000; }catch(e){ return 0; } }
+function getTok(){ try{ var t=localStorage.getItem(TOK_KEY)||''; return t&&jwtExp(t)>Date.now()+60000?t:''; }catch(e){ return ''; } }
+function setTok(t){ try{ if(t) localStorage.setItem(TOK_KEY,t); else localStorage.removeItem(TOK_KEY); }catch(e){} }
 function call(fn){
   var args = Array.prototype.slice.call(arguments,1);
   if (REMOTE) {
     return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',redirect:'follow',
-        body:JSON.stringify({fn:fn,args:args,code:teamCode()})})
-      .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the Creator Desk server. Check your internet and try again.'); })
-      .then(function(j){ if(j&&j.ok) return j.result; if(j&&j.error==='ACCESS_CODE'){ showCodeBox(); throw new Error('Enter the team access code to continue.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
+        body:JSON.stringify({fn:fn,args:args,idToken:getTok()})})
+      .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the My Creator Desk server. Check your internet and try again.'); })
+      .then(function(j){ if(j&&j.ok) return j.result; var er=j&&j.error;
+        if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok('');
+          var em='', last=0; try{ em=localStorage.getItem('cd-email')||''; last=+sessionStorage.getItem('cd-silent-at')||0; }catch(x){}
+          if(em&&Date.now()-last>120000){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(x){} signIn(true); throw new Error('Signing you back in…'); }
+          showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
+        if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to My Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
   }
   if (LIVE) {
     return new Promise(function(res, rej){
@@ -494,7 +574,7 @@ function demoSeed(){
       c({competitors:'None found',collabs:'@demo.serumbrand, @demo.sunscreen',category:'Skincare',language:'Hindi, English',name:'demo.skin.pune',followers:64000,views:72000,likes:4100,comments:160,posts:412,fee:28000,collab:28000,adRights:8000,age:'58%',reach:51000,credibility:'86%',gender:'F 78% / M 22%',sentiment:'Asks about routine, positive',deliverables:'1 Reel + 2 Stories with link'}),
       c({competitors:'Dove (2 posts, 1 marked as ad/collab, latest 3 Oct 2026)',collabs:'@doveindia, @demo.lipstick',category:'Beauty',language:'Hindi',name:'demo.beauty.mumbai',followers:480000,views:410000,likes:9800,comments:300,posts:1320,fee:180000,collab:180000,adRights:45000,age:'49%',reach:330000,credibility:'79%',gender:'F 71% / M 29%',sentiment:'Mostly positive',deliverables:'Collab Reel + Story + Autodm'}),
       c({competitors:'None found',collabs:'None found',category:'Campus',language:'Hindi',name:'demo.campus.jaipur',followers:9200,views:14500,likes:520,comments:40,posts:188,fee:6000,collab:6000,adRights:1500,age:'72%',credibility:'91%',gender:'F 55% / M 45%',deliverables:'1 Reel'}),
-      c({competitors:'Ghar Soaps (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@gharsoaps, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,age:'41%',credibility:'68%',sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
+      c({competitors:'Mamaearth (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@mamaearth.in, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,age:'41%',credibility:'68%',sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
       c({competitors:'None found',collabs:'@demo.trimmer',category:'Grooming',language:'Kannada, English',name:'demo.grooming.blr',followers:88000,views:41000,likes:1200,comments:45,posts:530,fee:35000,collab:35000,adRights:10000,credibility:'74%',gender:'M 81% / F 19%'}),
       c({competitors:'None found',collabs:'None found',category:'Wellness',language:'Telugu',name:'demo.wellness.hyd',followers:310000,views:260000,likes:6900,comments:210,posts:960,fee:120000,collab:120000,adRights:30000,age:'46%',credibility:'83%'}),
       c({category:'Food',language:'Hindi',name:'Demo Kitchen Diaries',platform:'YouTube',link:'',ytLink:'youtube.com/@demokitchen',followers:240000,views:90000,likes:5200,comments:310,fee:45000,collab:45000,source:'Manual',status:'Entered manually',deliverables:'1 integrated video'})
@@ -505,7 +585,7 @@ function demoSeed(){
       {id:'DEMO03',handle:'demo.campus.jaipur',link:'',fee:6000,views:21000,likes:1800,comments:190,type:'REELS',posted:'2026-10-16T09:15:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'},
       {id:'DEMO04',handle:'demo.grooming.blr',link:'',fee:35000,views:71000,likes:3100,comments:140,type:'REELS',posted:'2026-10-17T18:45:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'}
     ],
-    settings:{name:'Winter gel bar push (example)',budget:400000,start:'2026-10-12',end:'2026-11-10',competitors:'Dove, Ghar Soaps, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril'}
+    settings:{name:'Festive launch (example)',budget:400000,start:'2026-10-12',end:'2026-11-10',competitors:'Dove, Mamaearth, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril'}
   };
 }
 var DS;
@@ -536,6 +616,7 @@ var Demo = {
     demoSave(); return clone(DS); },
   api_setFee:function(name,fee){ return Demo.api_saveCreator(name,{fee:fee}); },
   api_removeCreator:function(name){ DS.creators=DS.creators.filter(function(x){return x.name!==name}); demoSave(); return clone(DS); },
+  api_clearCreators:function(){ DS.creators=[]; demoSave(); return clone(DS); },
   api_refreshCreators:function(){ DS.creators.forEach(function(c){c.updated=new Date().toISOString()}); demoSave(); return {state:clone(DS),errors:[]}; },
   api_saveSettings:function(s){ ['name','start','end','competitors'].forEach(function(k){ if(s[k]!==undefined) DS.settings[k]=s[k]||''; }); if(s.budget!==undefined) DS.settings.budget=num(s.budget); demoSave(); return clone(DS); },
   api_fillCreators:function(names){ var out=[]; names.forEach(function(n){ var h=cleanHandle(n); var c=DS.creators.find(function(x){return x.name.toLowerCase()===String(n).toLowerCase()||x.name===h});
@@ -544,7 +625,7 @@ var Demo = {
       if(!c){ c={name:h,platform:'Instagram'}; DS.creators.push(c); }
       var fill={link:'https://www.instagram.com/'+h+'/',followers:f,views:Math.round(f*(0.4+r()*1.4)),comments:Math.round(eng*0.04),likes:Math.round(eng*0.96),posts:Math.round(80+r()*1500)};
       Object.keys(fill).forEach(function(k){ if(c[k]==null||c[k]==='') c[k]=fill[k]; });
-      var comps=['Dove','Ghar Soaps','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
+      var comps=['Dove','Mamaearth','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
       c.source='Instagram API'; c.updated=new Date().toISOString(); c.status='Made-up sample numbers (demo)'; out.push({name:n,ok:true,msg:'Filled'}); });
     demoSave(); return {results:out}; },
   api_addPost:function(p){
@@ -595,7 +676,7 @@ var TEAM_COLS=[
   ['collab','Collab Reel + Story w link + Autodm','rs'],['adRights','1 Month Ad Rights','rs'],['fee','Fee (₹)','fee']
 ];
 var TEAM_KEYS=TEAM_COLS.map(function(c){return c[0]});
-var DEFAULT_COMP='Dove, Ghar Soaps, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril';
+var DEFAULT_COMP='';
 function hasComp(c){ return !!(c.competitors&&c.competitors!=='None found'); }
 var EDITABLE=['category','language','link','ytLink','sales','age','reach','credibility','sentiment','gender','deliverables','collab','adRights','fee','platform'];
 var MANUAL_NUMBERS=['followers','views','comments','likes','posts','engagement'];
@@ -633,15 +714,20 @@ function erStatus(tier,er){ if(!ok(er)) return null; var b=BENCH[tier]||BENCH.Mi
 function creatorRows(){
   var list=(S.creators||[]).map(function(c){
     var eng=(c.avgLikes||c.avgComments)?(c.avgLikes||0)+(c.avgComments||0):(c.engagement||0); var tier=tierFor(c.followers)||c.tier||'';
-    return {c:c, tier:tier, eng:eng, er:c.followers&&eng?eng/c.followers*100:null,
-      cpv:c.fee&&c.avgViews?c.fee/c.avgViews:null, cpe:c.fee&&eng?c.fee/eng:null};
+    var reach=+c.reach||null, price=+c.fee||+c.collab||0;
+    return {c:c, tier:tier, eng:eng, price:price, priceEst:!c.fee&&!!price, er:c.followers&&eng?eng/c.followers*100:null,
+      cpv:price&&c.avgViews?price/c.avgViews:null, cpe:price&&eng?price/eng:null,
+      cpm:price&&c.avgViews?price/c.avgViews*1000:null, cpr:price&&reach?price/reach:null,
+      cpf:price&&c.followers?price/c.followers*1000:null, erR:reach&&eng?eng/reach*100:null,
+      erV:c.avgViews&&eng?eng/c.avgViews*100:null, reachRate:reach&&c.followers?reach/c.followers*100:null,
+      viewRate:c.avgViews&&c.followers?c.avgViews/c.followers*100:null};
   });
   var cpvs=list.map(function(x){return x.cpv}).filter(ok); var med=median(cpvs);
   list.forEach(function(x){
     var st=erStatus(x.tier,x.er); x.st=st;
     var erTxt=(st==='good'?'ER strong':st==='ok'?'ER okay':'ER weak')+' for '+x.tier;
     if(!x.c.followers&&!x.c.avgViews){ x.v={cls:'neutral',label:'Not fetched',why:x.c.status||'Look this creator up again.'}; }
-    else if(!ok(x.cpv)){ x.v={cls:st==='good'?'good':st==='ok'?'warn':'bad',label:st==='good'?'Good engagement':st==='ok'?'Average engagement':'Low engagement',why:erTxt+'. '+(x.c.fee?'No video views, so CPV can’t be estimated.':'Add the fee to judge value.')}; }
+    else if(!ok(x.cpv)){ x.v={cls:st==='good'?'good':st==='ok'?'warn':'bad',label:st==='good'?'Good engagement':st==='ok'?'Average engagement':'Low engagement',why:erTxt+'. '+(x.price?'No video views, so CPV can’t be estimated.':'Add the fee to judge value.')}; }
     else if(cpvs.length<2){ x.v={cls:st==='weak'?'bad':'warn',label:st==='weak'?'Low engagement':'Add more creators',why:erTxt+'. Add one more creator with a fee to compare prices.'}; }
     else {
       var diff=(x.cpv-med)/med*100; var cpvTxt=Math.abs(diff)<1?'CPV at median':'CPV '+Math.abs(diff).toFixed(0)+'% '+(diff<0?'below':'above')+' median';
@@ -679,10 +765,88 @@ function dayInfo(){
 }
 
 /* ---------------- state + UI plumbing ---------------- */
-function showCodeBox(){ if(document.getElementById('code-box')) return; var d=document.createElement('div'); d.id='code-box'; d.className='banner warn';
-  d.innerHTML='<span><strong>Team access code needed.</strong> Ask your team lead for the code.</span><span class="btns"><input id="code-in" type="password" autocomplete="off" style="width:180px" aria-label="Team access code"><button class="btn primary" id="code-go">Continue</button></span>';
-  var w=document.querySelector('main .wrap'); w.insertBefore(d,w.firstChild);
-  document.getElementById('code-go').onclick=function(){ try{ localStorage.setItem('creator-desk-code',document.getElementById('code-in').value.trim()); }catch(e){} location.reload(); }; }
+var LOGIN_URI=location.origin+location.pathname;
+function signIn(silent){
+  var n=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{ sessionStorage.setItem('cd-nonce',n); sessionStorage.setItem('cd-view',view); }catch(e){}
+  var q={client_id:GOOGLE_CLIENT_ID, redirect_uri:LOGIN_URI, response_type:'id_token', scope:'openid email profile', nonce:n,
+    prompt:silent?'none':'select_account'};
+  var hint=''; try{ hint=localStorage.getItem('cd-email')||''; }catch(e){} if(hint) q.login_hint=hint;
+  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
+}
+// Reads the sign-in answer Google sends back in the address (#id_token=…), then cleans the address.
+function readLoginReturn(){
+  var h=location.hash||''; if(!/id_token=|error=/.test(h)) return '';
+  var p={}; h.slice(1).split('&').forEach(function(kv){ var a=kv.split('='); p[decodeURIComponent(a[0])]=decodeURIComponent((a[1]||'').replace(/\+/g,' ')); });
+  var v='lookup', n=''; try{ v=sessionStorage.getItem('cd-view')||'lookup'; n=sessionStorage.getItem('cd-nonce')||''; sessionStorage.removeItem('cd-nonce'); }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+(v&&v!=='lookup'?'#'+v:'')); }catch(e){}
+  if(p.id_token){
+    var pl={}; try{ pl=JSON.parse(decodeURIComponent(escape(atob(p.id_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){}
+    if(!n||pl.nonce!==n) return 'Sign-in could not be confirmed. Please try again.';
+    setTok(p.id_token); try{ if(pl.email) localStorage.setItem('cd-email',pl.email); }catch(e){}
+    if(['lookup','shortlist','campaign','summary','team'].indexOf(v)>=0) view=v;
+    return 'ok';
+  }
+  return p.error==='interaction_required'||p.error==='login_required'||p.error==='consent_required'?'':'Google sign-in was cancelled. Try again.';
+}
+function showLogin(msg){
+  document.body.classList.add('locked'); $('login').hidden=false;
+  var e=$('login-err'); e.hidden=!msg; e.textContent=msg||'';
+  $('gbtn').innerHTML='<button class="btn g-btn" type="button" id="g-signin"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Sign in with Google</button>';
+  $('g-signin').onclick=function(){ signIn(false); };
+}
+function hideLogin(){ document.body.classList.remove('locked'); $('login').hidden=true; }
+function signOut(){ setTok(''); try{ localStorage.removeItem('cd-email'); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
+function loadState(tries){ tries=tries==null?2:tries; var lb=$('load-banner');
+  return call('api_getState').then(function(s){ if(lb) lb.hidden=true; setState(s); if(view==='team') loadTeam(); }).catch(function(e){
+    if(/sign in|Signing you|Access turned off/i.test(e.message)) return;
+    if(tries>0) return new Promise(function(r){ setTimeout(r,1500); }).then(function(){ return loadState(tries-1); });
+    if(lb){ $('load-msg').textContent='Could not load your data ('+e.message+').'; lb.hidden=false; } else toast('Could not load data: '+e.message,true); }); }
+function renderUser(){ var u=S.user, el=$('user-chip');
+  if(!REMOTE||!u){ el.hidden=true; $('tab-team').hidden=true; return; }
+  var ini=esc(((u.name||u.email||'?').trim()[0]||'?').toUpperCase());
+  el.innerHTML=(u.picture?'<img src="'+esc(u.picture)+'" alt="" referrerpolicy="no-referrer">':'<span class="av">'+ini+'</span>')+'<span class="nm" title="'+esc(u.email)+'">'+esc(u.name||u.email)+'</span><button type="button" id="sign-out">Sign out</button>';
+  el.hidden=false; $('sign-out').onclick=signOut;
+  $('tab-team').hidden=!u.isAdmin; if(!u.isAdmin&&view==='team') showView('lookup'); }
+var FB_APP_ID='1113383891047813', FB_CONFIG_ID='';
+function connectInstagram(){
+  var st=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{ sessionStorage.setItem('cd-fb-state',st); sessionStorage.setItem('cd-view',view); }catch(e){}
+  var q={client_id:FB_APP_ID, redirect_uri:LOGIN_URI, state:st, response_type:'code'};
+  if(FB_CONFIG_ID) q.config_id=FB_CONFIG_ID; else q.scope='instagram_basic,pages_show_list,pages_read_engagement,business_management';
+  location.href='https://www.facebook.com/'+'v26.0/dialog/oauth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
+}
+// Facebook sends the person back with ?code=…&state=… after they allow access.
+function readFacebookReturn(){
+  var sp=new URLSearchParams(location.search); var code=sp.get('code'), st=sp.get('state'), err=sp.get('error_description')||sp.get('error');
+  if(!code&&!err) return null;
+  var want=''; try{ want=sessionStorage.getItem('cd-fb-state')||''; sessionStorage.removeItem('cd-fb-state'); }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+  if(err) return {error:'Instagram was not connected: '+err};
+  if(!want||st!==want) return {error:'Instagram connection could not be confirmed. Please try again.'};
+  return {code:code};
+}
+function renderIg(){ var el=$('ig-chip'); if(!REMOTE||!S.user){ el.hidden=true; return; } var g=S.ig||{};
+  if(g.own){ el.innerHTML='<span class="ig-dot"></span><span>Instagram: <strong>@'+esc(g.username||'connected')+'</strong></span><button type="button" class="ghost" id="ig-off">Disconnect</button>'; }
+  else { el.innerHTML='<span class="ig-dot team"></span><span>'+(g.team?'Using team Instagram':'Instagram not connected')+'</span><button type="button" id="ig-on">Connect Instagram</button>'; }
+  el.hidden=false;
+  var on=$('ig-on'); if(on) on.onclick=connectInstagram;
+  var off=$('ig-off'); if(off) off.onclick=function(){ var b=this; armOnce(b,'Click again',function(){ call('api_disconnectInstagram').then(function(s){ S.ig=s; renderIg(); toast('Instagram disconnected'); }).catch(function(e){ toast(e.message,true); }); }); };
+}
+var TEAM=[];
+function niceDate(v){ if(!v) return '—'; var d=new Date(v); if(isNaN(d)) return String(v); return d.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}); }
+function loadTeam(){ if(!(S.user&&S.user.isAdmin)) return; $('team-table').innerHTML='<tbody><tr><td class="muted"><span class="spin"></span> Loading…</td></tr></tbody>';
+  call('api_adminUsers').then(function(u){ TEAM=u||[]; renderTeam(); }).catch(function(e){ toast(e.message,true); }); }
+function renderTeam(){
+  var head='<thead><tr><th>Name</th><th>Email</th><th>Their sheet</th><th>Joined</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>';
+  var body=TEAM.length?TEAM.map(function(u){ var bl=u.status==='blocked';
+    return '<tr><td>'+esc(u.name||'—')+(u.isAdmin?' <span class="chip neutral">Admin</span>':'')+'</td><td>'+esc(u.email)+'</td><td>'+urlCell(u.sheetUrl)+'</td><td>'+esc(niceDate(u.joined))+'</td><td>'+esc(niceDate(u.lastLogin))+'</td><td><span class="chip '+(bl?'bad':'good')+'">'+(bl?'Blocked':'Active')+'</span></td><td>'+
+      (u.isAdmin?'':'<button class="btn" data-st="'+esc(u.email)+'" data-to="'+(bl?'active':'blocked')+'">'+(bl?'Unblock':'Block')+'</button>')+'</td></tr>'; }).join('')
+    :'<tr><td colspan="7" class="muted">Nobody has signed in yet.</td></tr>';
+  var t=$('team-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
+  t.querySelectorAll('[data-st]').forEach(function(b){ b.onclick=function(){ var go=function(){ busy(b,true,'Saving…');
+      call('api_adminSetStatus',b.dataset.st,b.dataset.to).then(function(u){ TEAM=u||[]; renderTeam(); toast(b.dataset.to==='blocked'?'Blocked '+b.dataset.st:'Unblocked '+b.dataset.st); }).catch(function(e){ busy(b,false); toast(e.message,true); }); };
+    if(b.dataset.to==='blocked') armOnce(b,'Click again to block',go); else go(); }; }); }
 var S={live:LIVE||REMOTE,tokenOk:true,creators:[],posts:[],settings:{}}; var current=null; var view='lookup';
 function setState(s){ if(s){ S=normalize(s); } renderAll(); }
 var toastT;
@@ -696,9 +860,10 @@ function armOnce(btn,label,fn){ // two-click confirm, no browser dialogs
 
 function showView(v){
   view=v;
-  ['lookup','shortlist','campaign','summary'].forEach(function(k){
+  ['lookup','shortlist','campaign','summary','team'].forEach(function(k){
     $('view-'+k).hidden = k!==v; $('tab-'+k).setAttribute('aria-selected', k===v?'true':'false');
   });
+  if(v==='team') loadTeam();
   try{ if(!LIVE && location.hash!=='#'+v) history.replaceState(null,'','#'+v); }catch(e){}
 }
 
@@ -713,8 +878,9 @@ function renderAll(){
   $('refresh-creators').hidden=!live; $('refresh-posts').hidden=!live;
   var os=$('open-sheet'); if(live&&S.sheetUrl){ os.href=S.sheetUrl; os.hidden=false; } else os.hidden=true;
   $('handles').innerHTML=(S.creators||[]).map(function(c){return '<option value="'+esc(c.handle)+'">'}).join('');
-  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount();
-  $('footer').textContent=live?'Data is saved in the team’s Google Sheet. Everyone with this link sees the same shortlist and campaign.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
+  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount(); renderUser(); renderIg();
+  $('clear-creators').hidden=!(S.creators||[]).length;
+  $('footer').textContent=REMOTE?'Your data is saved in your own Google Sheet. Other team members cannot see it.':live?'Data is saved in the team’s Google Sheet.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
 }
 
 /* ---------------- lookup view ---------------- */
@@ -722,6 +888,9 @@ var DETAILS=[['category','Category','text'],['language','Language','text'],['pla
   ['collab','Collab Reel + Story w link + Autodm (₹)','num'],['adRights','1 Month Ad Rights (₹)','num'],['link','Link','text'],['ytLink','YT Link','text'],
   ['reach','Average Reach','num'],['age','Age Split 18-24','text'],['gender','Gender Split','text'],['credibility','Audience Credibility','text'],
   ['sales','Sales Data','text'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
+var CATEGORIES=['Beauty','Skincare','Haircare','Fashion','Lifestyle','Travel','Food','Fitness','Health & Wellness','Parenting','Tech','Gaming','Comedy','Entertainment','Music','Dance','Education','Finance','Business','Home & Decor','Pets','Automotive','Photography','Art & DIY','Sports','Spirituality','Books','Motivation','Other'];
+var LANGUAGES=['Hindi','English','Hindi, English','Marathi','Bengali','Punjabi','Gujarati','Tamil','Telugu','Kannada','Malayalam','Odia','Urdu','Assamese','Bhojpuri'];
+var DETAIL_HINT={age:'From creator’s insights',gender:'From creator’s insights',sales:'From past campaigns',reach:'Auto estimate, or from insights',credibility:'Auto estimate',ytLink:'Auto from bio, or paste link',collab:'Auto estimate, or quoted price',adRights:'Auto estimate, or quoted price'};
 var MANUAL_DETAILS=[['followers','Followers','num'],['views','Average Views','num'],['likes','Average Likes','num'],['comments','Average Comments','num'],['posts','Posts','num']];
 function renderLookup(){
   var R=creatorRows(); var box=$('lookup-result');
@@ -737,7 +906,8 @@ function renderLookup(){
   var form=fields.map(function(f){ var v=c[f[0]]; var id='cd-'+f[0];
     if(f[2]==='platform') return '<label class="field">'+f[1]+'<select id="'+id+'" data-d="'+f[0]+'">'+PLATFORMS.map(function(p){return '<option'+(p===(c.platform||'Instagram')?' selected':'')+'>'+p+'</option>'}).join('')+'</select></label>';
     if(f[2]==='long') return '<label class="field wide">'+f[1]+'<textarea id="'+id+'" data-d="'+f[0]+'" rows="2">'+esc(v||'')+'</textarea></label>';
-    return '<label class="field">'+f[1]+'<input id="'+id+'" data-d="'+f[0]+'" type="'+(f[2]==='num'?'number" min="0" step="any':'text')+'" value="'+esc(v==null?'':v)+'"></label>';
+    var extra=f[0]==='category'?' list="cat-list" placeholder="Auto from Instagram"':f[0]==='language'?' list="lang-list" placeholder="Auto from Instagram"':DETAIL_HINT[f[0]]?' placeholder="'+DETAIL_HINT[f[0]]+'"':'';
+    return '<label class="field">'+f[1]+'<input id="'+id+'" data-d="'+f[0]+'" type="'+(f[2]==='num'?'number" min="0" step="any':'text')+'"'+extra+' value="'+esc(v==null?'':v)+'"></label>';
   }).join('');
   box.innerHTML=
    '<div class="panel">'+
@@ -753,7 +923,7 @@ function renderLookup(){
       stat('ER%',pct(pick.er,2),'<span class="dot '+stCls+'"></span>'+stTxt+' · '+pick.tier+' strong ≥ '+b[0]+'%')+
     '</div>'+
     '<div class="value-row">'+
-      '<div class="vbox"><span class="k">CPV</span><span class="v">'+rs(pick.cpv,2)+'</span><span class="small muted">'+(c.fee?'Fee '+rs(c.fee)+' ÷ average views':'Add the fee below')+'</span></div>'+
+      '<div class="vbox"><span class="k">CPV</span><span class="v">'+rs(pick.cpv,2)+'</span><span class="small muted">'+(c.fee?'Fee '+rs(c.fee)+' ÷ average views':c.collab?'Collab price '+rs(+c.collab)+' (est.) ÷ average views':'Add the fee below')+'</span></div>'+
       '<div class="vbox"><span class="k">CPE</span><span class="v">'+rs(pick.cpe,2)+'</span><span class="small muted">Fee ÷ engagement</span></div>'+
       '<div class="vbox"><span class="k">Shortlist median CPV</span><span class="v">'+rs(R.med,2)+'</span><span class="small muted">'+(R.n>1?'Across '+R.n+' creators with fee and views':'Add more creators with fees to compare')+'</span></div>'+
       '<div class="vbox"><span class="k">Verdict</span><span><span class="chip '+pick.v.cls+'">'+esc(pick.v.label)+'</span></span><span class="small muted">'+esc(pick.v.why)+'</span></div>'+
@@ -792,15 +962,15 @@ var sKey='cpv', sDir=1;
 var VORD={'Good value':0,'Good engagement':1,'Negotiate':2,'Average engagement':3,'Add more creators':4,'Not fetched':5,'Low engagement':6,'Avoid or renegotiate':7};
 var NUMSORT={followers:1,views:1,reach:1,comments:1,collab:1,adRights:1,fee:1};
 function sval(x,k){ if(k==='name') return x.c.handle.toLowerCase(); if(k==='competitors') return hasComp(x.c)?0:(x.c.competitors?1:null); if(k==='verdict') return VORD[x.v.label]; if(k==='engagement') return x.eng;
-  if(k==='er'||k==='cpv'||k==='cpe') return x[k]; if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
+  if(k==='er'||k==='cpv'||k==='cpe'||k==='cpm'||k==='cpr') return x[k]; if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
 function sortList(list,key,dir,fn){
   return list.slice().sort(function(a,b){ var va=fn(a,key), vb=fn(b,key); var na=va==null||va===''||(typeof va==='number'&&!isFinite(va)), nb=vb==null||vb===''||(typeof vb==='number'&&!isFinite(vb));
     if(na&&nb) return 0; if(na) return 1; if(nb) return -1; return (va<vb?-1:va>vb?1:0)*dir; });
 }
-function urlCell(u){ if(!u) return '<span class="muted">—</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
+function urlCell(u){ if(!u) return '<span class="muted">—</span>'; if(/\s/.test(String(u).trim())||!/[.\/]/.test(u)) return '<span class="muted small">'+esc(u)+'</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
 function renderShortlist(){
   var R=creatorRows(); var list=sortList(R.list,sKey,sDir,sval);
-  var cols=TEAM_COLS.concat([['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
+  var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
   var allSel=list.length&&list.every(function(x){return SEL[x.c.handle]});
   var head='<thead><tr><th><input type="checkbox" id="sel-all" aria-label="Select all creators"'+(allSel?' checked':'')+'></th>'+cols.map(function(c){ var n=['int','er','eng','rs2','rs','fee'].indexOf(c[2])>=0;
     return '<th class="'+(n?'n':'')+(c[0]==='name'?' stick':'')+'"><button class="sort '+(sKey===c[0]?'on':'')+'" data-k="'+c[0]+'">'+esc(c[1])+'<span class="arr">'+(sKey===c[0]&&sDir<0?'▼':'▲')+'</span></button></th>'; }).join('')+'<th><span class="small">Remove</span></th></tr></thead>';
@@ -913,7 +1083,7 @@ $('post-form').addEventListener('submit',function(e){
   if(!String(p.handle).trim()){ toast('Add the creator’s handle or name.',true); $('pf-handle').focus(); return; }
   if(!igLink&&!num(p.views)){ toast(p.platform.indexOf('Instagram')===0&&p.platform!=='Instagram Story'?'Paste the Instagram post link, or type the views yourself.':'Type the views from the creator’s insights.',true); $('pf-views').focus(); return; }
   busy(btn,true,'Fetching numbers…');
-  call('api_addPost',p).then(function(r){ setState(r.state); $('post-form').reset(); $('pf-platform').value='Instagram'; toast(r.status, /^✗|not found/i.test(r.status)); })
+  call('api_addPost',p).then(function(r){ setState(r.state); $('post-form').reset(); $('pf-platform').value='Instagram'; toast(/^Entered manually$/i.test(r.status||'')?'Post added':r.status, /^✗|not found/i.test(r.status)); })
   .catch(function(err){ toast(err.message,true); }).then(function(){ busy(btn,false); });
 });
 $('refresh-posts').addEventListener('click',function(){ var b=this; busy(b,true,'Refreshing…');
@@ -941,6 +1111,10 @@ function summaryText(){
   var neg=R.list.filter(function(x){return x.v.label==='Negotiate'});
   var avoid=R.list.filter(function(x){return x.v.label==='Avoid or renegotiate'});
   if(R.list.length){
+    var withFee=R.list.filter(function(x){return x.price});
+    if(withFee.length){ L.push(''); L.push('Shortlist averages ('+withFee.length+' creators with fee or est. price):');
+      L.push('Avg CPV '+rs(avgOf(withFee,'cpv'),2)+' | Avg CPE '+rs(avgOf(withFee,'cpe'),2)+' | Avg CPM '+rs(avgOf(withFee,'cpm'),0)+' | Avg CPR '+rs(avgOf(withFee,'cpr'),2)+' (est.)');
+      L.push('Avg ER '+pct(avgOf(withFee,'er'),2)+' | Total price '+rs(withFee.reduce(function(a,x){return a+(x.price||0)},0))); }
     L.push(''); L.push('Shortlist for next booking ('+R.list.length+' creators checked):');
     good.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): good value, ER '+pct(x.er,2)+', est. CPV '+rs(x.cpv,2)); });
     neg.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): negotiate ('+x.v.why.replace(/\.$/,'')+')'); });
@@ -951,7 +1125,38 @@ function summaryText(){
   }
   return L.join('\n');
 }
-function renderSummary(){ $('summary-text').textContent=summaryText(); }
+function avgOf(list,k){ var v=list.map(function(x){return x[k]}).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
+function metricData(){
+  var R=creatorRows(), P=postRows(), L=R.list.filter(function(x){return x.price}), t=P.t, s=S.settings||{};
+  var sum=function(k){ return L.reduce(function(a,x){ return a+(+x.c[k]||0); },0); };
+  var fees=L.reduce(function(a,x){ return a+(x.price||0); },0), views=sum('avgViews'), reach=sum('reach'), fol=sum('followers'), eng=L.reduce(function(a,x){return a+(x.eng||0)},0);
+  return {n:L.length, posts:(S.posts||[]).length, rows:[
+    ['Total fees / spend','sum of fees',rs(fees),rs(t.fee)],
+    ['Budget used','spend ÷ budget × 100','—',s.budget?pct(t.fee/s.budget*100,1):'—'],
+    ['Budget left','budget − spend','—',s.budget?rs(s.budget-t.fee):'—'],
+    ['Avg ER (followers)','engagement ÷ followers × 100',pct(avgOf(L,'er'),2),'—'],
+    ['Avg ER (views)','engagement ÷ views × 100',pct(avgOf(L,'erV'),2),t.views?pct(t.eng/t.views*100,2):'—'],
+    ['Avg ER (reach)','engagement ÷ reach × 100',pct(avgOf(L,'erR'),2),'—'],
+    ['Avg CPV','average of CPV',rs(avgOf(L,'cpv'),2),rs(avgOf(P.list,'cpv'),2)],
+    ['Blended CPV','total fees ÷ total views',views?rs(fees/views,2):'—',t.views?rs(t.fee/t.views,2):'—'],
+    ['Avg CPE','average of CPE',rs(avgOf(L,'cpe'),2),rs(avgOf(P.list,'cpe'),2)],
+    ['Blended CPE','total fees ÷ total engagement',eng?rs(fees/eng,2):'—',t.eng?rs(t.fee/t.eng,2):'—'],
+    ['Avg CPM','average of fee ÷ views × 1,000',rs(avgOf(L,'cpm'),0),rs(avgOf(P.list,'cpm'),0)],
+    ['Blended CPM','total fees ÷ total views × 1,000',views?rs(fees/views*1000,0):'—',t.views?rs(t.fee/t.views*1000,0):'—'],
+    ['Avg CPR','average of fee ÷ reach',rs(avgOf(L,'cpr'),2),'—'],
+    ['Blended CPR','total fees ÷ total reach',reach?rs(fees/reach,2):'—','—'],
+    ['Cost per 1K followers','fee ÷ followers × 1,000',rs(avgOf(L,'cpf'),0),'—'],
+    ['Avg reach rate','reach ÷ followers × 100',pct(avgOf(L,'reachRate'),1),'—'],
+    ['Avg view rate','views ÷ followers × 100',pct(avgOf(L,'viewRate'),1),'—'],
+    ['Total views','sum of views',short(views),short(t.views)],
+    ['Total engagement','likes + comments',short(eng),short(t.eng)],
+    ['Total followers reached','sum of followers',short(fol),'—']
+  ]};
+}
+function renderSummary(){ $('summary-text').textContent=summaryText();
+  var M=metricData();
+  $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee or est. price)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
+    M.rows.map(function(r){ return '<tr><td><strong>'+esc(r[0])+'</strong></td><td class="small muted" style="font-family:var(--f-mono)">'+esc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[3]+'</td></tr>'; }).join('')+'</tbody>'; }
 $('copy-summary').addEventListener('click',function(){ var b=this, text=summaryText();
   var done=function(){ var o=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=o},1600); };
   var fb=function(){ var ta=$('copy-fallback'); ta.hidden=false; ta.value=text; ta.focus(); ta.select(); toast('Select all and copy the text below'); };
@@ -1121,10 +1326,10 @@ function runUpload(){
   call('api_bulkCreators',rows).then(function(r){
     setState(r.state);
     var have={}; (S.creators||[]).forEach(function(c){ have[c.handle.toLowerCase()]=c; });
-    var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors; }).map(function(o){return o.ig});
+    var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors||!c.category||!c.language||!c.reach; }).map(function(o){return o.ig});
     var skipped=list.filter(function(o){return o.ig}).length-todo.length;
     $('up-preview').hidden=true; var pr=$('up-progress'); pr.hidden=false;
-    var done=0, results=[], size=4;
+    var done=0, results=[], size=10;
     function step(){
       $('up-prog-l').textContent=todo.length?'Fetching from Instagram… '+done+' of '+todo.length:'Nothing new to fetch';
       $('up-prog-r').textContent=todo.length?Math.round(done/todo.length*100)+'%':''; $('up-fill').style.width=(todo.length?done/todo.length*100:100)+'%';
@@ -1188,15 +1393,38 @@ $('comp-save').addEventListener('click',function(){ var b=this; busy(b,true,'Sav
   .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
 
 /* ---------------- boot ---------------- */
+$('cat-list').innerHTML=CATEGORIES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
+$('lang-list').innerHTML=LANGUAGES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
 $('mf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='YouTube'?' selected':'')+'>'+p+'</option>'}).join('');
 $('pf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='Instagram'?' selected':'')+'>'+p+'</option>'}).join('');
 
 $('bench-body').innerHTML=TIERS.map(function(t){return '<tr><td>'+t+'</td><td>'+TIER_RANGE[t]+'</td><td class="n">≥ '+BENCH[t][0]+'%</td><td class="n">≥ '+BENCH[t][1]+'%</td></tr>'}).join('');
 document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click',function(){ showView(b.dataset.view); }); });
 $('demo-reset').addEventListener('click',function(){ var b=this; armOnce(b,'Click again to reset',function(){ DS=demoSeed(); demoSave(); current=null; settingsDirty=false; setState(clone(DS)); toast('Sample data restored'); }); });
+$('clear-creators').addEventListener('click',function(){ var b=this, n=(S.creators||[]).length; if(!n) return;
+  armOnce(b,'Click again to remove all '+n,function(){ busy(b,true,'Removing…');
+    call('api_clearCreators').then(function(s){ SEL={}; current=null; setState(s); toast('Removed all '+n+' creators'); }).catch(function(e){ toast(e.message,true); }).then(function(){ busy(b,false); }); }); });
+$('team-reload').addEventListener('click',loadTeam);
+$('load-retry').addEventListener('click',function(){ var b=this; busy(b,true,'Loading…'); loadState(1).then(function(){ busy(b,false); }); });
 var h=(location.hash||'').replace('#',''); if(['lookup','shortlist','campaign','summary'].indexOf(h)>=0) showView(h);
 if(!LIVE&&!REMOTE){ demoLoad(); current='demo.skin.pune'; }
 renderAll();
-call('api_getState').then(function(s){ setState(s); }).catch(function(e){ toast('Could not load data: '+e.message,true); });
+document.addEventListener('visibilitychange',function(){
+  if(!REMOTE||document.hidden||!$('login').hidden) return; var t=''; try{ t=localStorage.getItem(TOK_KEY)||''; }catch(e){}
+  if(t&&jwtExp(t)<Date.now()+120000){ var em=''; try{ em=localStorage.getItem('cd-email')||''; }catch(e){} if(em){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(e){} signIn(true); } }
+});
+var lr=REMOTE?readLoginReturn():'';
+if(lr==='ok') showView(view);
+if(REMOTE&&!getTok()){
+  var hadEmail=''; try{ hadEmail=localStorage.getItem('cd-email')||''; }catch(e){}
+  var tried=''; try{ tried=sessionStorage.getItem('cd-silent')||''; }catch(e){}
+  if(hadEmail&&!tried&&!lr){ try{ sessionStorage.setItem('cd-silent','1'); }catch(e){} signIn(true); } // signs straight back in if Google still remembers you
+  else showLogin(lr&&lr!=='ok'?lr:'');
+} else { try{ sessionStorage.removeItem('cd-silent'); }catch(e){}
+  var fr=REMOTE?readFacebookReturn():null;
+  if(fr&&fr.error){ toast(fr.error,true); loadState(); }
+  else if(fr&&fr.code){ toast('Connecting your Instagram…');
+    call('api_connectInstagram',fr.code,LOGIN_URI).then(function(g){ toast('Instagram connected: @'+(g.username||'')); }).catch(function(e){ toast(e.message,true); }).then(function(){ loadState(); }); }
+  else loadState(); }
 })();
 </script>
