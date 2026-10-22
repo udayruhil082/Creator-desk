@@ -274,6 +274,10 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
       <span><strong>Demo version with sample creators.</strong> Lookups here use made-up numbers. In the team version, every lookup pulls live data from Instagram and saves it to the shared Google Sheet.</span>
       <button class="btn" id="demo-reset">Reset sample data</button>
     </div>
+    <div class="banner warn" id="load-banner" hidden>
+      <span><strong>Connection problem.</strong> <span id="load-msg"></span> Your data is safe in your Google Sheet.</span>
+      <button class="btn" id="load-retry">Try again</button>
+    </div>
     <div class="banner warn" id="token-banner" hidden>
       <span><strong>Instagram access token missing or expired.</strong> Open the Google Sheet and use Creator Tracker → Save access token. Saved data still shows below.</span>
     </div>
@@ -543,7 +547,10 @@ function call(fn){
         body:JSON.stringify({fn:fn,args:args,idToken:getTok()})})
       .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the Creator Desk server. Check your internet and try again.'); })
       .then(function(j){ if(j&&j.ok) return j.result; var er=j&&j.error;
-        if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok(''); showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
+        if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok('');
+          var em='', last=0; try{ em=localStorage.getItem('cd-email')||''; last=+sessionStorage.getItem('cd-silent-at')||0; }catch(x){}
+          if(em&&Date.now()-last>120000){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(x){} signIn(true); throw new Error('Signing you back in…'); }
+          showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
         if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
   }
   if (LIVE) {
@@ -791,7 +798,11 @@ function showLogin(msg){
 }
 function hideLogin(){ document.body.classList.remove('locked'); $('login').hidden=true; }
 function signOut(){ setTok(''); try{ localStorage.removeItem('cd-email'); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
-function loadState(){ return call('api_getState').then(function(s){ setState(s); if(view==='team') loadTeam(); }).catch(function(e){ if(!/sign in|Access turned off/i.test(e.message)) toast('Could not load data: '+e.message,true); }); }
+function loadState(tries){ tries=tries==null?2:tries; var lb=$('load-banner');
+  return call('api_getState').then(function(s){ if(lb) lb.hidden=true; setState(s); if(view==='team') loadTeam(); }).catch(function(e){
+    if(/sign in|Signing you|Access turned off/i.test(e.message)) return;
+    if(tries>0) return new Promise(function(r){ setTimeout(r,1500); }).then(function(){ return loadState(tries-1); });
+    if(lb){ $('load-msg').textContent='Could not load your data ('+e.message+').'; lb.hidden=false; } else toast('Could not load data: '+e.message,true); }); }
 function renderUser(){ var u=S.user, el=$('user-chip');
   if(!REMOTE||!u){ el.hidden=true; $('tab-team').hidden=true; return; }
   var ini=esc(((u.name||u.email||'?').trim()[0]||'?').toUpperCase());
@@ -799,12 +810,13 @@ function renderUser(){ var u=S.user, el=$('user-chip');
   el.hidden=false; $('sign-out').onclick=signOut;
   $('tab-team').hidden=!u.isAdmin; if(!u.isAdmin&&view==='team') showView('lookup'); }
 var TEAM=[];
+function niceDate(v){ if(!v) return '—'; var d=new Date(v); if(isNaN(d)) return String(v); return d.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}); }
 function loadTeam(){ if(!(S.user&&S.user.isAdmin)) return; $('team-table').innerHTML='<tbody><tr><td class="muted"><span class="spin"></span> Loading…</td></tr></tbody>';
   call('api_adminUsers').then(function(u){ TEAM=u||[]; renderTeam(); }).catch(function(e){ toast(e.message,true); }); }
 function renderTeam(){
   var head='<thead><tr><th>Name</th><th>Email</th><th>Their sheet</th><th>Joined</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>';
   var body=TEAM.length?TEAM.map(function(u){ var bl=u.status==='blocked';
-    return '<tr><td>'+esc(u.name||'—')+(u.isAdmin?' <span class="chip neutral">Admin</span>':'')+'</td><td>'+esc(u.email)+'</td><td>'+urlCell(u.sheetUrl)+'</td><td>'+esc(u.joined||'—')+'</td><td>'+esc(u.lastLogin||'—')+'</td><td><span class="chip '+(bl?'bad':'good')+'">'+(bl?'Blocked':'Active')+'</span></td><td>'+
+    return '<tr><td>'+esc(u.name||'—')+(u.isAdmin?' <span class="chip neutral">Admin</span>':'')+'</td><td>'+esc(u.email)+'</td><td>'+urlCell(u.sheetUrl)+'</td><td>'+esc(niceDate(u.joined))+'</td><td>'+esc(niceDate(u.lastLogin))+'</td><td><span class="chip '+(bl?'bad':'good')+'">'+(bl?'Blocked':'Active')+'</span></td><td>'+
       (u.isAdmin?'':'<button class="btn" data-st="'+esc(u.email)+'" data-to="'+(bl?'active':'blocked')+'">'+(bl?'Unblock':'Block')+'</button>')+'</td></tr>'; }).join('')
     :'<tr><td colspan="7" class="muted">Nobody has signed in yet.</td></tr>';
   var t=$('team-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
@@ -1047,7 +1059,7 @@ $('post-form').addEventListener('submit',function(e){
   if(!String(p.handle).trim()){ toast('Add the creator’s handle or name.',true); $('pf-handle').focus(); return; }
   if(!igLink&&!num(p.views)){ toast(p.platform.indexOf('Instagram')===0&&p.platform!=='Instagram Story'?'Paste the Instagram post link, or type the views yourself.':'Type the views from the creator’s insights.',true); $('pf-views').focus(); return; }
   busy(btn,true,'Fetching numbers…');
-  call('api_addPost',p).then(function(r){ setState(r.state); $('post-form').reset(); $('pf-platform').value='Instagram'; toast(r.status, /^✗|not found/i.test(r.status)); })
+  call('api_addPost',p).then(function(r){ setState(r.state); $('post-form').reset(); $('pf-platform').value='Instagram'; toast(/^Entered manually$/i.test(r.status||'')?'Post added':r.status, /^✗|not found/i.test(r.status)); })
   .catch(function(err){ toast(err.message,true); }).then(function(){ busy(btn,false); });
 });
 $('refresh-posts').addEventListener('click',function(){ var b=this; busy(b,true,'Refreshing…');
@@ -1290,7 +1302,7 @@ function runUpload(){
   call('api_bulkCreators',rows).then(function(r){
     setState(r.state);
     var have={}; (S.creators||[]).forEach(function(c){ have[c.handle.toLowerCase()]=c; });
-    var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors; }).map(function(o){return o.ig});
+    var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors||!c.category||!c.language||!c.reach; }).map(function(o){return o.ig});
     var skipped=list.filter(function(o){return o.ig}).length-todo.length;
     $('up-preview').hidden=true; var pr=$('up-progress'); pr.hidden=false;
     var done=0, results=[], size=10;
@@ -1369,9 +1381,14 @@ $('clear-creators').addEventListener('click',function(){ var b=this, n=(S.creato
   armOnce(b,'Click again to remove all '+n,function(){ busy(b,true,'Removing…');
     call('api_clearCreators').then(function(s){ SEL={}; current=null; setState(s); toast('Removed all '+n+' creators'); }).catch(function(e){ toast(e.message,true); }).then(function(){ busy(b,false); }); }); });
 $('team-reload').addEventListener('click',loadTeam);
+$('load-retry').addEventListener('click',function(){ var b=this; busy(b,true,'Loading…'); loadState(1).then(function(){ busy(b,false); }); });
 var h=(location.hash||'').replace('#',''); if(['lookup','shortlist','campaign','summary'].indexOf(h)>=0) showView(h);
 if(!LIVE&&!REMOTE){ demoLoad(); current='demo.skin.pune'; }
 renderAll();
+document.addEventListener('visibilitychange',function(){
+  if(!REMOTE||document.hidden||!$('login').hidden) return; var t=''; try{ t=localStorage.getItem(TOK_KEY)||''; }catch(e){}
+  if(t&&jwtExp(t)<Date.now()+120000){ var em=''; try{ em=localStorage.getItem('cd-email')||''; }catch(e){} if(em){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(e){} signIn(true); } }
+});
 var lr=REMOTE?readLoginReturn():'';
 if(lr==='ok') showView(view);
 if(REMOTE&&!getTok()){

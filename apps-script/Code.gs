@@ -1115,7 +1115,7 @@ function estimateCredibility_(a) {
   const cr = a.avgLikes ? (a.avgComments || 0) / a.avgLikes * 100 : null;
   if (cr != null && cr >= 0.5 && cr <= 15) score += 1;
   if (a.avgViews && a.avgViews >= a.followers * 0.25) score += 1;
-  const label = score >= 3 ? 'High' : score >= 2 ? 'Medium' : 'Low';
+  const label = score >= 3 && st !== 'weak' ? 'High' : score >= 2 && st !== 'weak' ? 'Medium' : 'Low';
   return label + ' (est.): ER ' + er.toFixed(2) + '%' + (cr != null ? ', comments ' + cr.toFixed(1) + '% of likes' : '') +
     (a.avgViews ? ', views ' + Math.round(a.avgViews / a.followers * 100) + '% of followers' : '');
 }
