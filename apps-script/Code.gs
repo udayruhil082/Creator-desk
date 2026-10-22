@@ -396,7 +396,9 @@ function api_refreshCreators() {
   data.forEach(function (r, i) {
     const handle = cleanHandle_(r[C.name - 1]);
     const plat = String(r[C.platform - 1] || 'Instagram');
-    if (handle && plat === 'Instagram' && String(r[C.source - 1]) !== 'Manual') todo.push({ row: i + 2, handle: handle, cur: r });
+    const upd = r[C.updated - 1] instanceof Date ? r[C.updated - 1].getTime() : 0;
+    const fresh = upd && Date.now() - upd < 12 * 3600000 && String(r[C.status - 1]).indexOf('✓') === 0;
+    if (handle && plat === 'Instagram' && String(r[C.source - 1]) !== 'Manual' && !fresh) todo.push({ row: i + 2, handle: handle, cur: r });
   });
   const got = fetchMany_(todo.map(function (t) { return t.handle; }), token);
   todo.forEach(function (t, k) {
@@ -905,7 +907,28 @@ function apiUrl_(handle, mediaFields, token, limit) {
 
 // Fetches many creators at the same time (much faster than one by one).
 // Returns one {bd} or {error} per handle, in the same order.
-// Answers are kept for 30 minutes, so uploading the same sheet again does not use up Instagram's hourly limit.
+// Safe hourly budget per Instagram connection, kept below Meta's limit so the account is never flagged.
+const HOURLY_BUDGET = 150;
+function budgetKey_(token) {
+  const h = Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(token))).slice(0, 16);
+  return 'rl_' + h + '_' + Math.floor(Date.now() / 3600000);
+}
+function budgetLeft_(token) {
+  const used = Number(CacheService.getScriptCache().get(budgetKey_(token)) || 0);
+  return Math.max(0, HOURLY_BUDGET - used);
+}
+function spendBudget_(token, n) {
+  if (!n) return;
+  const cache = CacheService.getScriptCache(), key = budgetKey_(token);
+  cache.put(key, String(Number(cache.get(key) || 0) + n), 3700);
+}
+function budgetMessage_() {
+  const next = new Date((Math.floor(Date.now() / 3600000) + 1) * 3600000);
+  return 'Safe hourly limit reached to protect your Instagram connection. Try again after ' +
+    Utilities.formatDate(next, 'Asia/Kolkata', 'h:mm a') + ' IST.';
+}
+
+// Answers are kept for 6 hours, so looking up or uploading the same creators again does not use the hourly limit.
 function fetchMany_(handles, token) {
   const cache = CacheService.getScriptCache();
   const out = handles.map(function () { return null; });
@@ -915,6 +938,10 @@ function fetchMany_(handles, token) {
     if (hit) out[i] = { bd: JSON.parse(hit) }; else need.push(i);
   });
   let limited = false;
+  const left = budgetLeft_(token);
+  need.slice(left).forEach(function (i) { out[i] = { error: budgetMessage_() }; });
+  need.length = Math.min(need.length, left);
+  spendBudget_(token, need.length);
   for (let s = 0; s < need.length; s += 10) {
     const part = need.slice(s, s + 10);
     if (limited) { part.forEach(function (i) { out[i] = { error: friendlyError_({ code: 4 }) }; }); continue; }
@@ -933,7 +960,7 @@ function fetchMany_(handles, token) {
       } else if (!res.business_discovery) out[i] = { error: 'No data returned for this account.' };
       else {
         out[i] = { bd: res.business_discovery };
-        try { cache.put('bd_' + h, JSON.stringify(res.business_discovery), 1800); } catch (e) { /* too big to cache */ }
+        try { cache.put('bd_' + h, JSON.stringify(res.business_discovery), 21600); } catch (e) { /* too big to cache */ }
       }
     });
   }
@@ -941,6 +968,8 @@ function fetchMany_(handles, token) {
 }
 
 function callApi_(handle, mediaFields, token, limit) {
+  if (budgetLeft_(token) <= 0) return { error: { message: budgetMessage_() } };
+  spendBudget_(token, 1);
   const r = UrlFetchApp.fetch(apiUrl_(handle, mediaFields, token, limit), { muteHttpExceptions: true });
   try { return JSON.parse(r.getContentText()); }
   catch (e) { return { error: { message: 'Unexpected response from Instagram (HTTP ' + r.getResponseCode() + ').' } }; }
