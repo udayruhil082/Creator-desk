@@ -1373,7 +1373,7 @@ function insights_(bd, media) {
       er: gl.length ? avg_(gl.map(engOf_)) / followers * 100 : null, views: v.length ? avg_(v) : null };
   });
   out.contentMix = rows.map(function (r) {
-    return r.f + ' ' + r.share + '% (' + r.n + ' posts) · ER ' + (r.er != null ? r.er.toFixed(2) + '%' : '—') + (r.views ? ' · ' + shortNum_(r.views) + ' views' : '');
+    return r.f + ' ' + r.share + '% (' + r.n + (r.n === 1 ? ' post' : ' posts') + ') · ER ' + (r.er != null ? r.er.toFixed(2) + '%' : '—') + (r.views ? ' · ' + shortNum_(r.views) + ' views' : '');
   }).join(' | ');
   const ranked = rows.filter(function (r) { return r.n >= 2 && r.er != null; }).sort(function (a, b) { return b.er - a.er; });
   if (!ranked.length) out.bestFormat = rows.length ? rows[0].f + ' (only format with enough posts)' : '';
