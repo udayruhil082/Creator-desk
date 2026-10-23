@@ -202,6 +202,9 @@ a.btn{text-decoration:none}
 .drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .t-short input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
 .comp-hit{display:block;white-space:normal;max-width:260px;font-size:12.5px}
+.split{display:flex;gap:18px}.split>div{display:flex;flex-direction:column}.split strong{font-family:var(--f-display);font-size:20px}
+.mix{display:flex;flex-direction:column;gap:6px}.mixrow{display:grid;grid-template-columns:96px 1fr;gap:2px 10px;align-items:center}.mixrow .muted{grid-column:2}
+.bar{display:block;height:8px;background:var(--surface);border-radius:4px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .brand-box{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .brand-box.hit{background:var(--warn-bg)}
 .brand-box.clear{background:var(--sunk)}
@@ -474,7 +477,7 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
         <div class="panel">
           <div class="sec-head">
             <h2>Update for your manager</h2>
-            <button class="btn primary" id="copy-summary">Copy text</button>
+            <div class="btns"><button class="btn" id="dl-report">Download report (PDF)</button><button class="btn primary" id="copy-summary">Copy text</button></div>
           </div>
           <pre class="summary" id="summary-text"></pre>
           <textarea id="copy-fallback" hidden readonly aria-label="Text to copy"></textarea>
@@ -501,6 +504,9 @@ body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
             <dt>Reach rate</dt><dd>reach ÷ followers × 100</dd>
             <dt>View rate</dt><dd>avg views ÷ followers × 100</dd>
             <dt>Budget used</dt><dd>spend ÷ budget × 100</dd>
+            <dt>Audience quality</dt><dd>score out of 100 from organic posts: ER for the size, comments vs likes, like spikes, Reel views vs followers, follow count</dd>
+            <dt>Sponsored vs organic</dt><dd>(sponsored ER − organic ER) ÷ organic ER × 100, boosted posts left out</dd>
+            <dt>Likely boosted</dt><dd>sponsored post with about 3× the creator’s normal views</dd>
           </dl>
           <p class="small muted">Average Reach is not public on Instagram. When the team hasn’t entered it from the creator’s insights, it is estimated as 80% of average views (or a typical reach rate for the tier), so CPR is an estimate too.</p>
           <div class="tbl-wrap"><table>
@@ -571,19 +577,19 @@ function call(fn){
 }
 
 /* ---------------- demo backend (used only outside Apps Script) ---------------- */
-var DKEY='creator-desk-demo-v4';
+var DKEY='creator-desk-demo-v5';
 function demoSeed(){
-  var c=function(o){ var d={category:'',language:'',name:'',link:'',followers:null,ytLink:'',views:null,sales:'',age:'',reach:null,comments:null,credibility:'',sentiment:'',gender:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:null,likes:null,updated:new Date(Date.now()-864e5*2).toISOString(),status:'Sample numbers',source:'Instagram API'};
-    Object.keys(o).forEach(function(k){d[k]=o[k]}); if(d.platform==='Instagram'&&!d.link) d.link='https://www.instagram.com/'+d.name+'/'; return d; };
+  var c=function(o){ var d={category:'',language:'',name:'',link:'',followers:null,ytLink:'',views:null,reach:null,comments:null,sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:null,likes:null,updated:new Date(Date.now()-864e5*2).toISOString(),status:'Sample numbers',source:'Instagram API'};
+    Object.keys(o).forEach(function(k){d[k]=o[k]}); if(d.source!=='Manual'&&d.followers&&!d.credibility){ var rr=rng(hashStr(d.name)); Object.assign(d,demoInsights(rr,d.followers,((d.likes||0)+(d.comments||0))/d.followers)); } if(d.platform==='Instagram'&&!d.link) d.link='https://www.instagram.com/'+d.name+'/'; return d; };
   return {
     live:false, tokenOk:true,
     creators:[
-      c({competitors:'None found',collabs:'@demo.serumbrand, @demo.sunscreen',category:'Skincare',language:'Hindi, English',name:'demo.skin.pune',followers:64000,views:72000,likes:4100,comments:160,posts:412,fee:28000,collab:28000,adRights:8000,age:'58%',reach:51000,credibility:'86%',gender:'F 78% / M 22%',sentiment:'Asks about routine, positive',deliverables:'1 Reel + 2 Stories with link'}),
-      c({competitors:'Dove (2 posts, 1 marked as ad/collab, latest 3 Oct 2026)',collabs:'@doveindia, @demo.lipstick',category:'Beauty',language:'Hindi',name:'demo.beauty.mumbai',followers:480000,views:410000,likes:9800,comments:300,posts:1320,fee:180000,collab:180000,adRights:45000,age:'49%',reach:330000,credibility:'79%',gender:'F 71% / M 29%',sentiment:'Mostly positive',deliverables:'Collab Reel + Story + Autodm'}),
-      c({competitors:'None found',collabs:'None found',category:'Campus',language:'Hindi',name:'demo.campus.jaipur',followers:9200,views:14500,likes:520,comments:40,posts:188,fee:6000,collab:6000,adRights:1500,age:'72%',credibility:'91%',gender:'F 55% / M 45%',deliverables:'1 Reel'}),
-      c({competitors:'Mamaearth (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@mamaearth.in, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,age:'41%',credibility:'68%',sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
-      c({competitors:'None found',collabs:'@demo.trimmer',category:'Grooming',language:'Kannada, English',name:'demo.grooming.blr',followers:88000,views:41000,likes:1200,comments:45,posts:530,fee:35000,collab:35000,adRights:10000,credibility:'74%',gender:'M 81% / F 19%'}),
-      c({competitors:'None found',collabs:'None found',category:'Wellness',language:'Telugu',name:'demo.wellness.hyd',followers:310000,views:260000,likes:6900,comments:210,posts:960,fee:120000,collab:120000,adRights:30000,age:'46%',credibility:'83%'}),
+      c({competitors:'None found',collabs:'@demo.serumbrand, @demo.sunscreen',category:'Skincare',language:'Hindi, English',name:'demo.skin.pune',followers:64000,views:72000,likes:4100,comments:160,posts:412,fee:28000,collab:28000,adRights:8000,reach:51000,sentiment:'Asks about routine, positive',deliverables:'1 Reel + 2 Stories with link'}),
+      c({competitors:'Dove (2 posts, 1 marked as ad/collab, latest 3 Oct 2026)',collabs:'@doveindia, @demo.lipstick',category:'Beauty',language:'Hindi',name:'demo.beauty.mumbai',followers:480000,views:410000,likes:9800,comments:300,posts:1320,fee:180000,collab:180000,adRights:45000,reach:330000,sentiment:'Mostly positive',deliverables:'Collab Reel + Story + Autodm'}),
+      c({competitors:'None found',collabs:'None found',category:'Campus',language:'Hindi',name:'demo.campus.jaipur',followers:9200,views:14500,likes:520,comments:40,posts:188,fee:6000,collab:6000,adRights:1500,deliverables:'1 Reel'}),
+      c({competitors:'Mamaearth (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@mamaearth.in, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
+      c({competitors:'None found',collabs:'@demo.trimmer',category:'Grooming',language:'Kannada, English',name:'demo.grooming.blr',followers:88000,views:41000,likes:1200,comments:45,posts:530,fee:35000,collab:35000,adRights:10000}),
+      c({competitors:'None found',collabs:'None found',category:'Wellness',language:'Telugu',name:'demo.wellness.hyd',followers:310000,views:260000,likes:6900,comments:210,posts:960,fee:120000,collab:120000,adRights:30000}),
       c({category:'Food',language:'Hindi',name:'Demo Kitchen Diaries',platform:'YouTube',link:'',ytLink:'youtube.com/@demokitchen',followers:240000,views:90000,likes:5200,comments:310,fee:45000,collab:45000,source:'Manual',status:'Entered manually',deliverables:'1 integrated video'})
     ],
     posts:[
@@ -610,7 +616,8 @@ var Demo = {
       var r=rng(hashStr(handle)); var f=Math.round(Math.pow(10, 3.6+r()*2.6));
       var er=(f<1e4?3+r()*4:f<1e5?1.2+r()*3.5:f<1e6?0.8+r()*2.2:0.4+r()*1.4)/100;
       var eng=f*er; var views=Math.round(f*(0.4+r()*1.4));
-      c={competitors:r()<0.3?'Pears (1 post, 1 marked as ad/collab)':'None found',collabs:r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found',category:'',language:'',name:handle,link:'https://www.instagram.com/'+handle+'/',followers:f,ytLink:'',views:views,sales:'',age:'',reach:null,comments:Math.round(eng*0.04),credibility:'',sentiment:'',gender:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:Math.round(80+r()*1500),likes:Math.round(eng*0.96),updated:new Date().toISOString(),status:'Made-up sample numbers (demo)',source:'Instagram API'};
+      c={competitors:r()<0.3?'Pears (1 post, 1 marked as ad/collab)':'None found',collabs:r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found',category:'',language:'',name:handle,link:'https://www.instagram.com/'+handle+'/',followers:f,ytLink:'',views:views,reach:null,comments:Math.round(eng*0.04),sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:Math.round(80+r()*1500),likes:Math.round(eng*0.96),updated:new Date().toISOString(),status:'Made-up sample numbers (demo)',source:'Instagram API'};
+      Object.assign(c,demoInsights(r,f,er));
       DS.creators.push(c);
     } else { c.updated=new Date().toISOString(); }
     if(num(fee)) c.fee=num(fee);
@@ -633,6 +640,7 @@ var Demo = {
       var fill={link:'https://www.instagram.com/'+h+'/',followers:f,views:Math.round(f*(0.4+r()*1.4)),comments:Math.round(eng*0.04),likes:Math.round(eng*0.96),posts:Math.round(80+r()*1500)};
       Object.keys(fill).forEach(function(k){ if(c[k]==null||c[k]==='') c[k]=fill[k]; });
       var comps=['Dove','Mamaearth','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
+      Object.assign(c,demoInsights(r,f,er));
       c.source='Instagram API'; c.updated=new Date().toISOString(); c.status='Made-up sample numbers (demo)'; out.push({name:n,ok:true,msg:'Filled'}); });
     demoSave(); return {results:out}; },
   api_addPost:function(p){
@@ -661,7 +669,7 @@ var Demo = {
     var hl=/^[a-z0-9._]{2,30}$/i.test(name); var plat=PLATFORMS.indexOf(c.platform)>=0?c.platform:((lh||hl)?'Instagram':'Other');
     var ig=!forceManual&&plat==='Instagram'&&(lh||hl); if(ig&&hl) name=name.toLowerCase();
     var ex=DS.creators.find(function(x){return x.name.toLowerCase()===name.toLowerCase()});
-    var o=ex||{category:'',language:'',name:name,link:'',followers:null,ytLink:'',views:null,sales:'',age:'',reach:null,comments:null,credibility:'',sentiment:'',gender:'',deliverables:'',collab:null,adRights:null,fee:null,platform:plat,posts:null,likes:null};
+    var o=ex||{category:'',language:'',name:name,link:'',followers:null,ytLink:'',views:null,reach:null,comments:null,credibility:'',sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:plat,posts:null,likes:null};
     TEAM_KEYS.concat(['likes','posts']).forEach(function(k){ if(k==='name'||k==='er'||k==='cpv'||k==='cpe'||k==='engagement') return; var v=c[k]; if(v==null||String(v).trim()==='') return; o[k]=NUMERIC.indexOf(k)>=0?num(v):String(v).trim(); });
     if(!num(c.likes)&&num(c.engagement)) o.likes=Math.max(0,num(c.engagement)-(o.comments||0))||null;
     o.platform=plat; if(!o.link&&plat==='Instagram'&&hl) o.link='https://www.instagram.com/'+name+'/';
@@ -677,15 +685,15 @@ var BENCH={Nano:[4,2],Micro:[3,1.5],Macro:[2,1],Mega:[1.5,0.7]};
 var TIERS=['Nano','Micro','Macro','Mega'];
 var TEAM_COLS=[
   ['category','Category','text'],['language','Language','text'],['name','Name','name'],['link','Link','url'],['followers','Followers','int'],
-  ['ytLink','YT Link','url'],['er','ER%','er'],['views','Average Views','int'],['sales','Sales Data','text'],['age','Age Split 18-24','text'],
-  ['reach','Average Reach','int'],['comments','Average Comments','int'],['credibility','Audience Credibility','text'],['sentiment','Sentiments & Comments','long'],
-  ['engagement','Engagement','eng'],['gender','Gender Split','text'],['cpv','CPV','rs2'],['cpe','CPE','rs2'],['deliverables','Deliverables','long'],
+  ['ytLink','YT Link','url'],['er','ER%','er'],['views','Average Views','int'],
+  ['reach','Average Reach','int'],['comments','Average Comments','int'],['credibility','Audience Quality','quality'],['sentiment','Sentiments & Comments','long'],
+  ['engagement','Engagement','eng'],['cpv','CPV','rs2'],['cpe','CPE','rs2'],['deliverables','Deliverables','long'],
   ['collab','Collab Reel + Story w link + Autodm','rs'],['adRights','1 Month Ad Rights','rs'],['fee','Fee (₹)','fee']
 ];
 var TEAM_KEYS=TEAM_COLS.map(function(c){return c[0]});
 var DEFAULT_COMP='';
 function hasComp(c){ return !!(c.competitors&&c.competitors!=='None found'); }
-var EDITABLE=['category','language','link','ytLink','sales','age','reach','credibility','sentiment','gender','deliverables','collab','adRights','fee','platform'];
+var EDITABLE=['category','language','link','ytLink','reach','sentiment','deliverables','collab','adRights','fee','platform'];
 var MANUAL_NUMBERS=['followers','views','comments','likes','posts','engagement'];
 var NUMERIC=['followers','views','reach','comments','engagement','collab','adRights','fee','posts','likes'];
 function normalize(s){ (s.creators||[]).forEach(function(c){ c.handle=c.name; c.avgViews=c.views; c.avgLikes=c.likes; c.avgComments=c.comments; }); return s; }
@@ -890,14 +898,51 @@ function renderAll(){
   $('footer').textContent=REMOTE?'Your data is saved in your own Google Sheet. Other team members cannot see it.':live?'Data is saved in the team’s Google Sheet.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
 }
 
+/* ---------------- audience quality, sponsored vs organic, content mix ---------------- */
+function qualityInfo(c){ var t=String(c&&c.credibility||''); var m=t.match(/^(Genuine|Check|Suspicious) · (\d+)\/100/);
+  if(m) return {label:m[1], score:+m[2], cls:m[1]==='Genuine'?'good':m[1]==='Check'?'warn':'bad', icon:m[1]==='Genuine'?'🟢':m[1]==='Check'?'🟡':'🔴'};
+  if(/Not enough posts/.test(t)) return {label:'Not enough posts', score:null, cls:'neutral', icon:''};
+  return null; }
+function parseMix(t){ return String(t||'').split(' | ').map(function(s){ var m=s.match(/^(Reels|Carousel|Photo) (\d+)% \((\d+) posts?\) · ER ([\d.]+%|—)(?: · (.+) views)?$/);
+  return m?{f:m[1],share:+m[2],n:+m[3],er:m[4],views:m[5]||''}:null; }).filter(Boolean); }
+function liftCls(t){ var m=String(t||'').match(/^([+-]\d+)%/); if(!m) return ''; var v=+m[1]; return Math.abs(v)<10?'':v>0?'good':'bad'; }
+function insightRow(c){
+  var q=qualityInfo(c), mix=parseMix(c.contentMix), none='<span class="small muted">Refresh this creator to see this.</span>';
+  var lab=function(t){ return '<span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">'+t+'</span>'; };
+  var qBox='<div class="vbox">'+lab('Audience quality (fake follower check)')+
+    (q?(q.score!=null?'<span class="v">'+q.score+'<span class="small muted">/100</span></span>':'')+'<span><span class="chip '+q.cls+'">'+esc((q.icon?q.icon+' ':'')+q.label)+'</span></span><span class="small">'+esc(c.qualityWhy||'')+'</span><span class="small muted">Estimate. Sponsored and boosted posts are left out, so paid promotion is never counted as fake.</span>':none)+'</div>';
+  var lc=liftCls(c.sponsoredLift);
+  var sBox='<div class="vbox">'+lab('Sponsored vs organic')+
+    (c.sponsoredLift?'<div class="split"><div><span class="small muted">Organic ER</span><strong>'+pct(num(c.organicEr),2)+'</strong></div><div><span class="small muted">Sponsored ER</span><strong>'+pct(num(c.sponsoredEr),2)+'</strong></div></div>'+
+      '<span class="small">'+(lc?'<span class="chip '+lc+'">'+esc(c.sponsoredLift.split(' · ')[0])+'</span> ':'')+esc(lc?c.sponsoredLift.replace(/^[+-]\d+% · /,''):c.sponsoredLift)+'</span>'+
+      (c.boosted&&c.boosted!=='None'?'<span class="small">⚡ '+esc(c.boosted)+'</span>':'')+
+      '<span class="small muted">Sponsored = captions with #ad, #collab, paid partnership and similar tags.</span>':none)+'</div>';
+  var mBox='<div class="vbox">'+lab('Content mix')+
+    (mix.length?'<div class="mix">'+mix.map(function(r){ return '<div class="mixrow"><span class="small"><strong>'+r.f+'</strong> '+r.share+'%</span><span class="bar"><i style="width:'+Math.max(4,r.share)+'%"></i></span><span class="small muted">ER '+esc(r.er)+(r.views?' · '+esc(r.views)+' views':'')+'</span></div>'; }).join('')+'</div>'+
+      (c.bestFormat?'<span class="small">Best format: <strong>'+esc(c.bestFormat)+'</strong></span>':''):none)+'</div>';
+  return '<div class="value-row">'+qBox+sBox+mBox+'</div>';
+}
+function demoInsights(r,f,er){
+  var score=Math.round(35+r()*62), label=score>=70?'Genuine':score>=45?'Check':'Suspicious';
+  var reels=Math.round(45+r()*40), car=Math.round((100-reels)*0.6), ph=100-reels-car;
+  var e=er*100, re=e*(1.1+r()*0.6), ce=e*(0.8+r()*0.3), pe=e*(0.6+r()*0.3), lift=Math.round(-45+r()*60);
+  var sp=Math.round(r()*5);
+  return {credibility:label+' · '+score+'/100',
+    qualityWhy:(label==='Genuine'?'ER '+e.toFixed(2)+'% is normal for the size. Reels reach '+Math.round(30+r()*40)+'% of followers':label==='Check'?'1 normal post has a sudden like spike with few comments. ER '+e.toFixed(2)+'% is normal for the size':'ER '+e.toFixed(2)+'% is low for the size. Very few comments for the likes')+'. Based on '+(25-sp)+' organic posts; sponsored posts are left out. (demo)',
+    organicEr:+e.toFixed(2), sponsoredEr:sp?+(e*(1+lift/100)).toFixed(2):null,
+    sponsoredLift:sp?(lift>=0?'+':'')+lift+'% · '+(Math.abs(lift)<10?'Same as organic':lift>0?'Sponsored does better':'Sponsored does worse')+' ('+sp+' sponsored, '+(25-sp)+' organic)':'No sponsored posts in last 25',
+    boosted:sp?(r()<0.4?'1 of '+sp+' sponsored posts look boosted (paid promotion)':'None'):'',
+    bestFormat:'Reels ('+(re/pe).toFixed(1)+'x the ER of Photo)',
+    contentMix:'Reels '+reels+'% ('+Math.round(reels/4)+' posts) · ER '+re.toFixed(2)+'% · '+short(f*(0.3+r()*0.6))+' views | Carousel '+car+'% ('+Math.round(car/4)+' posts) · ER '+ce.toFixed(2)+'% | Photo '+ph+'% ('+Math.max(1,Math.round(ph/4))+' posts) · ER '+pe.toFixed(2)+'%'};
+}
+
 /* ---------------- lookup view ---------------- */
 var DETAILS=[['category','Category','text'],['language','Language','text'],['platform','Platform','platform'],['fee','Fee (₹)','num'],
   ['collab','Collab Reel + Story w link + Autodm (₹)','num'],['adRights','1 Month Ad Rights (₹)','num'],['link','Link','text'],['ytLink','YT Link','text'],
-  ['reach','Average Reach','num'],['age','Age Split 18-24','text'],['gender','Gender Split','text'],['credibility','Audience Credibility','text'],
-  ['sales','Sales Data','text'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
+  ['reach','Average Reach','num'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
 var CATEGORIES=['Beauty','Skincare','Haircare','Fashion','Lifestyle','Travel','Food','Fitness','Health & Wellness','Parenting','Tech','Gaming','Comedy','Entertainment','Music','Dance','Education','Finance','Business','Home & Decor','Pets','Automotive','Photography','Art & DIY','Sports','Spirituality','Books','Motivation','Other'];
 var LANGUAGES=['Hindi','English','Hindi, English','Marathi','Bengali','Punjabi','Gujarati','Tamil','Telugu','Kannada','Malayalam','Odia','Urdu','Assamese','Bhojpuri'];
-var DETAIL_HINT={age:'From creator’s insights',gender:'From creator’s insights',sales:'From past campaigns',reach:'Auto estimate, or from insights',credibility:'Auto estimate',ytLink:'Auto from bio, or paste link',collab:'Auto estimate, or quoted price',adRights:'Auto estimate, or quoted price'};
+var DETAIL_HINT={reach:'Auto estimate, or from insights',ytLink:'Auto from bio, or paste link',collab:'Auto estimate, or quoted price',adRights:'Auto estimate, or quoted price'};
 var MANUAL_DETAILS=[['followers','Followers','num'],['views','Average Views','num'],['likes','Average Likes','num'],['comments','Average Comments','num'],['posts','Posts','num']];
 function renderLookup(){
   var R=creatorRows(); var box=$('lookup-result');
@@ -939,7 +984,7 @@ function renderLookup(){
       '<div class="brand-box '+(hasComp(c)?'hit':'clear')+'"><span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">Competitor mentions</span>'+
         (hasComp(c)?'<span><span class="chip warn">⚠ Worked with a competitor</span></span><span class="small">'+esc(c.competitors)+'</span>':'<span class="small">'+(c.competitors?'No competitor brands found in the last 25 captions.':'Refresh this creator to check.')+'</span>')+'</div>'+
       '<div class="brand-box clear"><span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">Recent brand collabs</span><span class="small">'+esc(c.collabs&&c.collabs!=='None found'?c.collabs:(c.collabs?'No posts marked as ads or collabs in the last 25 captions.':'Refresh this creator to check.'))+'</span><span class="small muted">From captions with #ad, #collab, paid partnership and similar tags. Collabs not written in captions won’t show.</span></div>'+
-    '</div>':'')+
+    '</div>'+insightRow(c):'')+
     '<div class="stack"><h3>Creator details</h3><p class="small muted">The columns your team fills in. '+(isApi(c)?'Followers, views, likes and comments come from Instagram.':'This creator was entered manually, so you can edit every number.')+'</p></div>'+
     '<form class="form details" id="details-form">'+form+'<button class="btn primary" type="submit" id="cd-save">Save details</button></form>'+
    '</div>';
@@ -969,7 +1014,7 @@ var sKey='cpv', sDir=1;
 var VORD={'Good value':0,'Good engagement':1,'Negotiate':2,'Average engagement':3,'Add more creators':4,'Not fetched':5,'Low engagement':6,'Avoid or renegotiate':7};
 var NUMSORT={followers:1,views:1,reach:1,comments:1,collab:1,adRights:1,fee:1};
 function sval(x,k){ if(k==='name') return x.c.handle.toLowerCase(); if(k==='competitors') return hasComp(x.c)?0:(x.c.competitors?1:null); if(k==='verdict') return VORD[x.v.label]; if(k==='engagement') return x.eng;
-  if(k==='er'||k==='cpv'||k==='cpe'||k==='cpm'||k==='cpr') return x[k]; if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
+  if(k==='er'||k==='cpv'||k==='cpe'||k==='cpm'||k==='cpr') return x[k]; if(k==='credibility'){ var qq=qualityInfo(x.c); return qq?qq.score:null; } if(k==='sponsoredLift'){ var lm=String(x.c.sponsoredLift||'').match(/^([+-]\d+)%/); return lm?+lm[1]:null; } if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
 function sortList(list,key,dir,fn){
   return list.slice().sort(function(a,b){ var va=fn(a,key), vb=fn(b,key); var na=va==null||va===''||(typeof va==='number'&&!isFinite(va)), nb=vb==null||vb===''||(typeof vb==='number'&&!isFinite(vb));
     if(na&&nb) return 0; if(na) return 1; if(nb) return -1; return (va<vb?-1:va>vb?1:0)*dir; });
@@ -977,7 +1022,7 @@ function sortList(list,key,dir,fn){
 function urlCell(u){ if(!u) return '<span class="muted">—</span>'; if(/\s/.test(String(u).trim())||!/[.\/]/.test(u)) return '<span class="muted small">'+esc(u)+'</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
 function renderShortlist(){
   var R=creatorRows(); var list=sortList(R.list,sKey,sDir,sval);
-  var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
+  var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['sponsoredLift','Sponsored vs organic','lift'],['bestFormat','Best format','long'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
   var allSel=list.length&&list.every(function(x){return SEL[x.c.handle]});
   var head='<thead><tr><th><input type="checkbox" id="sel-all" aria-label="Select all creators"'+(allSel?' checked':'')+'></th>'+cols.map(function(c){ var n=['int','er','eng','rs2','rs','fee'].indexOf(c[2])>=0;
     return '<th class="'+(n?'n':'')+(c[0]==='name'?' stick':'')+'"><button class="sort '+(sKey===c[0]?'on':'')+'" data-k="'+c[0]+'">'+esc(c[1])+'<span class="arr">'+(sKey===c[0]&&sDir<0?'▼':'▲')+'</span></button></th>'; }).join('')+'<th><span class="small">Remove</span></th></tr></thead>';
@@ -994,6 +1039,8 @@ function renderShortlist(){
       if(t==='fee') return '<td class="n'+hi(k)+'"><input class="cell-in fee" type="number" min="0" step="any" data-fee="'+esc(c.handle)+'" value="'+(c.fee||'')+'" placeholder="Add fee" aria-label="Fee for '+esc(c.handle)+'"></td>';
       if(t==='long') return '<td class="'+hi(k).trim()+'"><div class="why" style="margin:0">'+(v?esc(v):'<span class="muted">—</span>')+'</div></td>';
       if(t==='verdict') return '<td class="'+hi(k).trim()+'"><span class="chip '+x.v.cls+'">'+esc(x.v.label)+'</span><div class="why">'+esc(x.v.why)+'</div></td>';
+      if(t==='quality'){ var qi=qualityInfo(c); return '<td class="'+hi(k).trim()+'">'+(qi?'<span class="chip '+qi.cls+'">'+esc(qi.label+(qi.score!=null?' · '+qi.score:''))+'</span><div class="why">'+esc(String(c.qualityWhy||'').replace(/ Based on.*$/,''))+'</div>':'<span class="muted">—</span>')+'</td>'; }
+      if(t==='lift'){ var lc2=liftCls(v); return '<td class="'+hi(k).trim()+'">'+(v?(lc2?'<span class="chip '+lc2+'">'+esc(String(v).split(' · ')[0])+'</span><div class="why">'+esc(String(v).replace(/^[+-]\d+% · /,''))+'</div>':'<span class="small muted">'+esc(v)+'</span>'):'<span class="muted">—</span>')+'</td>'; }
       if(t==='comp') return '<td class="'+hi(k).trim()+'">'+(hasComp(c)?'<span class="chip warn">⚠ Competitor</span><span class="comp-hit">'+esc(v)+'</span>':(v?'<span class="muted small">None found</span>':'<span class="muted">—</span>'))+'</td>';
       if(k==='tier') return '<td class="'+hi(k).trim()+'">'+esc(x.tier||'—')+'</td>';
       return '<td class="'+hi(k).trim()+'">'+(v?esc(v):'<span class="muted">—</span>')+'</td>';
@@ -1127,6 +1174,10 @@ function summaryText(){
     neg.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): negotiate ('+x.v.why.replace(/\.$/,'')+')'); });
     avoid.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): avoid or renegotiate ('+x.v.why.replace(/\.$/,'')+')'); });
     if(!good.length&&!neg.length&&!avoid.length) L.push('• Add fees to compare prices.');
+    var qs=R.list.map(function(x){return {x:x,q:qualityInfo(x.c)}}).filter(function(o){return o.q&&o.q.score!=null});
+    if(qs.length){ var cnt=function(l){return qs.filter(function(o){return o.q.label===l}).length};
+      L.push(''); L.push('Audience quality (est.): '+cnt('Genuine')+' genuine, '+cnt('Check')+' to check, '+cnt('Suspicious')+' suspicious');
+      qs.filter(function(o){return o.q.label!=='Genuine'}).forEach(function(o){ L.push('• '+dn(o.x.c)+': '+o.q.label.toLowerCase()+' ('+o.q.score+'/100). '+String(o.x.c.qualityWhy||'').replace(/\. Based on.*$/,'')); }); }
     var comp=R.list.filter(function(x){return hasComp(x.c)});
     if(comp.length){ L.push(''); L.push('Worked with competitors recently:'); comp.forEach(function(x){ L.push('• '+dn(x.c)+': '+x.c.competitors); }); }
   }
@@ -1164,10 +1215,114 @@ function renderSummary(){ $('summary-text').textContent=summaryText();
   var M=metricData();
   $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee or est. price)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
     M.rows.map(function(r){ return '<tr><td><strong>'+esc(r[0])+'</strong></td><td class="small muted" style="font-family:var(--f-mono)">'+esc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[3]+'</td></tr>'; }).join('')+'</tbody>'; }
+$('dl-report').addEventListener('click',function(){ downloadReport(this); });
 $('copy-summary').addEventListener('click',function(){ var b=this, text=summaryText();
   var done=function(){ var o=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=o},1600); };
   var fb=function(){ var ta=$('copy-fallback'); ta.hidden=false; ta.value=text; ta.focus(); ta.select(); toast('Select all and copy the text below'); };
   try{ navigator.clipboard.writeText(text).then(done,fb); }catch(e){ fb(); } });
+
+/* ---------------- campaign report (PDF) ---------------- */
+var H2P_URL='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+function loadScript(src){ return new Promise(function(res,rej){ if(window.html2pdf) return res(); var s=document.createElement('script'); s.src=src; s.onload=function(){res()}; s.onerror=function(){rej(new Error('Could not load the PDF maker. Check your internet and try again.'))}; document.head.appendChild(s); }); }
+function rpSum(list,f){ return list.reduce(function(a,x){ var v=f(x); return a+(ok(v)?v:0); },0); }
+function rpAvg(list,f){ var v=list.map(f).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
+function reportHTML(){
+  var P=postRows(), R=creatorRows(), s=S.settings||{}, user=(S.user&&S.user.name)||'', posts=P.list, cr=R.list;
+  var today=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  var dates=s.start&&s.end?new Date(s.start).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' – '+new Date(s.end).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
+  var A='#0D6A65', INK='#15211F', MU='#586966', LN='#D5DFDC', SK='#EEF3F1';
+  var th='style="text-align:left;padding:6px 7px;font-size:9.5px;color:#fff;background:'+A+';font-weight:600"', thn='style="text-align:right;padding:6px 7px;font-size:9.5px;color:#fff;background:'+A+';font-weight:600"';
+  var td=function(v,n,b){ return '<td style="padding:5px 7px;font-size:9.5px;border-bottom:1px solid '+LN+';'+(n?'text-align:right;':'')+(b?'font-weight:700;':'')+'">'+v+'</td>'; };
+  var h2=function(t,sub){ return '<div class="avoid" style="margin:22px 0 8px"><div style="font-size:15px;font-weight:700;color:'+INK+'">'+t+'</div>'+(sub?'<div style="font-size:9.5px;color:'+MU+'">'+sub+'</div>':'')+'</div>'; };
+  var tile=function(k,v,sub){ return '<div style="flex:1;background:'+SK+';border-radius:8px;padding:10px 12px"><div style="font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:'+MU+'">'+k+'</div><div style="font-size:18px;font-weight:700;color:'+INK+';margin-top:2px">'+v+'</div><div style="font-size:8.5px;color:'+MU+'">'+(sub||'')+'</div></div>'; };
+  var out=[];
+  out.push('<div style="border-bottom:3px solid '+A+';padding-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">'+
+    '<div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+A+';font-weight:600">Campaign report</div>'+
+    '<div style="font-size:24px;font-weight:700;color:'+INK+';margin-top:2px">'+esc(s.name||'Influencer campaign')+'</div>'+
+    '<div style="font-size:10px;color:'+MU+'">'+[dates,s.budget?'Budget '+rs(s.budget):'',posts.length+' posts · '+cr.length+' creators on the shortlist'].filter(Boolean).map(esc).join(' · ')+'</div></div>'+
+    '<div style="text-align:right;font-size:9px;color:'+MU+'">'+esc(today)+(user?'<br>Prepared by '+esc(user):'')+'<br><strong style="color:'+A+'">My Creator Desk</strong></div></div>');
+
+  if(posts.length){
+    var t=P.t, likes=rpSum(posts,function(x){return x.p.likes}), comm=rpSum(posts,function(x){return x.p.comments}), n=posts.length;
+    out.push('<div class="avoid" style="display:flex;gap:8px;margin-top:14px">'+
+      tile('Total spend',rs(t.fee),s.budget?pct(t.fee/s.budget*100,0)+' of budget':'avg '+rs(t.fee/n)+' per post')+
+      tile('Total views',short(t.views),'avg '+short(t.views/n)+' per post')+
+      tile('Blended CPV',t.views?rs(t.fee/t.views,2):'—','avg of posts '+rs(rpAvg(posts,function(x){return x.cpv}),2))+
+      tile('ER by views',t.views?pct(t.eng/t.views*100,2):'—','avg of posts '+pct(rpAvg(posts,function(x){return x.erV}),2))+'</div>');
+    out.push(h2('Totals and averages','Total = everything added up. Average = per post. Blended = total cost ÷ total result.'));
+    var rows=[
+      ['Spend',rs(t.fee),rs(t.fee/n)],
+      ['Views',n0(t.views),n0(t.views/n)],
+      ['Likes',n0(likes),n0(likes/n)],
+      ['Comments',n0(comm),n0(comm/n)],
+      ['Engagement (likes + comments)',n0(t.eng),n0(t.eng/n)],
+      ['CPV (cost per view)',t.views?rs(t.fee/t.views,2)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpv}),2)],
+      ['CPE (cost per engagement)',t.eng?rs(t.fee/t.eng,2)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpe}),2)],
+      ['CPM (cost per 1,000 views)',t.views?rs(t.fee/t.views*1000,0)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpm}),0)],
+      ['ER by views',t.views?pct(t.eng/t.views*100,2)+' blended':'—',pct(rpAvg(posts,function(x){return x.erV}),2)]];
+    if(s.budget) rows.push(['Budget used',pct(t.fee/s.budget*100,1)+' ('+rs(s.budget-t.fee)+' left)','—']);
+    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Metric</th><th '+thn+'>Total</th><th '+thn+'>Average per post</th></tr></thead><tbody>'+
+      rows.map(function(r){ return '<tr>'+td('<strong>'+r[0]+'</strong>')+td(r[1],1)+td(r[2],1)+'</tr>'; }).join('')+'</tbody></table>');
+
+    // spend vs views chart
+    var top=posts.slice().sort(function(a,b){return (b.p.fee||0)-(a.p.fee||0)}).slice(0,10);
+    var mf=Math.max.apply(null,top.map(function(x){return x.p.fee||0}).concat([1])), mv=Math.max.apply(null,top.map(function(x){return x.p.views||0}).concat([1]));
+    out.push(h2('Spend vs views','Top '+top.length+' posts by spend. A long green bar with a short grey bar means good value.'));
+    out.push('<div class="avoid">'+top.map(function(x){ var p=x.p;
+      return '<div style="display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;margin:3px 0"><div style="font-size:9px;color:'+INK+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(pdn(p))+'</div>'+
+        '<div><div style="display:flex;align-items:center;gap:6px"><div style="height:7px;border-radius:3px;background:#9AA9A6;width:'+Math.max(1,(p.fee||0)/mf*75)+'%"></div><span style="font-size:8px;color:'+MU+'">'+rs(p.fee)+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><div style="height:7px;border-radius:3px;background:'+A+';width:'+Math.max(1,(p.views||0)/mv*75)+'%"></div><span style="font-size:8px;color:'+MU+'">'+short(p.views)+' views</span></div></div></div>'; }).join('')+
+      '<div style="font-size:8.5px;color:'+MU+';margin-top:4px"><span style="display:inline-block;width:9px;height:7px;background:#9AA9A6;border-radius:2px"></span> Spend &nbsp; <span style="display:inline-block;width:9px;height:7px;background:'+A+';border-radius:2px"></span> Views</div></div>');
+
+    out.push(h2('Every post','Sorted by cost per view, best first.'));
+    var ps=posts.slice().sort(function(a,b){ return (ok(a.cpv)?a.cpv:1e9)-(ok(b.cpv)?b.cpv:1e9); });
+    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Creator</th><th '+th+'>Platform</th><th '+thn+'>Fee</th><th '+thn+'>Views</th><th '+thn+'>Likes</th><th '+thn+'>Comments</th><th '+thn+'>ER views</th><th '+thn+'>CPV</th><th '+thn+'>CPE</th><th '+thn+'>CPM</th><th '+th+'>Verdict</th></tr></thead><tbody>'+
+      ps.map(function(x){ var p=x.p; return '<tr>'+td(esc(pdn(p)))+td(esc(p.platform||'Instagram'))+td(rs(p.fee),1)+td(n0(p.views),1)+td(n0(p.likes),1)+td(n0(p.comments),1)+td(pct(x.erV,2),1)+td(rs(x.cpv,2),1)+td(rs(x.cpe,2),1)+td(rs(x.cpm,0),1)+td(esc(x.v.label))+'</tr>'; }).join('')+
+      '<tr style="background:'+SK+'">'+td('Total',0,1)+td('')+td(rs(t.fee),1,1)+td(n0(t.views),1,1)+td(n0(likes),1,1)+td(n0(comm),1,1)+td(t.views?pct(t.eng/t.views*100,2):'—',1,1)+td(t.views?rs(t.fee/t.views,2):'—',1,1)+td(t.eng?rs(t.fee/t.eng,2):'—',1,1)+td(t.views?rs(t.fee/t.views*1000,0):'—',1,1)+td('')+'</tr>'+
+      '<tr style="background:'+SK+'">'+td('Average',0,1)+td('')+td(rs(t.fee/n),1,1)+td(n0(t.views/n),1,1)+td(n0(likes/n),1,1)+td(n0(comm/n),1,1)+td(pct(rpAvg(posts,function(x){return x.erV}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpv}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpe}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpm}),0),1,1)+td('')+'</tr>'+
+      '</tbody></table>');
+    var ranked=posts.filter(function(x){return ok(x.cpv)}).sort(function(a,b){return a.cpv-b.cpv});
+    if(ranked.length>=2){
+      var k=Math.min(3,Math.floor(ranked.length/2)||1);
+      var li=function(x){ return '<li style="font-size:9.5px;margin:2px 0">'+esc(pdn(x.p))+': '+rs(x.cpv,2)+' per view, '+short(x.p.views)+' views for '+rs(x.p.fee)+'</li>'; };
+      out.push('<div class="avoid" style="display:flex;gap:10px;margin-top:16px">'+
+        '<div style="flex:1;border-left:3px solid #1E7845;padding:6px 10px;background:#F2FAF5"><div style="font-size:10.5px;font-weight:700;color:#1E7845">Best value (top '+k+')</div><ul style="margin:4px 0 0;padding-left:14px">'+ranked.slice(0,k).map(li).join('')+'</ul></div>'+
+        '<div style="flex:1;border-left:3px solid #B13529;padding:6px 10px;background:#FCF3F1"><div style="font-size:10.5px;font-weight:700;color:#B13529">Costliest per view (bottom '+k+')</div><ul style="margin:4px 0 0;padding-left:14px">'+ranked.slice(-k).reverse().map(li).join('')+'</ul></div></div>');
+    }
+  }
+
+  if(cr.length){
+    var priced=cr.filter(function(x){return x.price});
+    out.push(h2('Creator shortlist',cr.length+' creators. Prices marked (est.) are estimates when no fee was typed.'));
+    var ths='style="text-align:left;padding:5px 5px;font-size:8.5px;color:#fff;background:'+A+';font-weight:600"', thns='style="text-align:right;padding:5px 5px;font-size:8.5px;color:#fff;background:'+A+';font-weight:600"';
+    var tds=function(v,n,b){ return '<td style="padding:4px 5px;font-size:8.5px;border-bottom:1px solid '+LN+';'+(n?'text-align:right;':'')+(b?'font-weight:700;':'')+'">'+v+'</td>'; };
+    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+ths+'>Creator</th><th '+thns+'>Followers</th><th '+thns+'>Avg views</th><th '+thns+'>ER</th><th '+ths+'>Audience quality</th><th '+ths+'>Best format</th><th '+thns+'>Sponsored vs organic</th><th '+thns+'>Price</th><th '+thns+'>CPV</th><th '+ths+'>Verdict</th></tr></thead><tbody>'+
+      cr.map(function(x){ var c=x.c, q=qualityInfo(c); return '<tr>'+tds(esc(dn(c)))+tds(short(c.followers),1)+tds(short(c.avgViews),1)+tds(pct(x.er,2),1)+tds(q?esc(q.label+(q.score!=null?' '+q.score:'')):'—')+tds(esc(String(c.bestFormat||'—').replace(/ \(.*$/,'')))+tds(esc((String(c.sponsoredLift||'').match(/^[+-]\d+%/)||[c.sponsoredLift?'None':'—'])[0]))+tds(x.price?rs(x.price)+(x.priceEst?' (est.)':''):'—',1)+tds(rs(x.cpv,2),1)+tds(esc(x.v.label))+'</tr>'; }).join('')+
+      '<tr style="background:'+SK+'">'+tds('Total',0,1)+tds(short(rpSum(cr,function(x){return x.c.followers})),1,1)+tds(short(rpSum(cr,function(x){return x.c.avgViews})),1,1)+tds('')+tds('')+tds('')+tds('')+tds(rs(rpSum(priced,function(x){return x.price})),1,1)+tds('')+tds('')+'</tr>'+
+      '<tr style="background:'+SK+'">'+tds('Average',0,1)+tds(short(rpAvg(cr,function(x){return x.c.followers})),1,1)+tds(short(rpAvg(cr,function(x){return x.c.avgViews})),1,1)+tds(pct(rpAvg(cr,function(x){return x.er}),2),1,1)+tds(ok(rpAvg(cr,function(x){var q=qualityInfo(x.c);return q&&q.score}))?Math.round(rpAvg(cr,function(x){var q=qualityInfo(x.c);return q&&q.score}))+'/100':'',0,1)+tds('')+tds('')+tds(priced.length?rs(rpAvg(priced,function(x){return x.price})):'—',1,1)+tds(rs(rpAvg(cr,function(x){return x.cpv}),2),1,1)+tds('')+'</tr>'+
+      '</tbody></table>');
+    var flags=cr.filter(function(x){ var q=qualityInfo(x.c); return q&&(q.label==='Suspicious'||q.label==='Check'); });
+    var comp=cr.filter(function(x){return hasComp(x.c)});
+    if(flags.length||comp.length){
+      out.push(h2('Things to check before booking'));
+      out.push('<ul class="avoid" style="margin:0;padding-left:16px">'+flags.map(function(x){ var q=qualityInfo(x.c); return '<li style="font-size:9.5px;margin:3px 0"><strong>'+esc(dn(x.c))+'</strong>: audience quality '+esc(q.label.toLowerCase())+(q.score!=null?' ('+q.score+'/100)':'')+'. '+esc(String(x.c.qualityWhy||'').replace(/\. Based on.*$/,''))+'</li>'; }).join('')+
+        comp.map(function(x){ return '<li style="font-size:9.5px;margin:3px 0"><strong>'+esc(dn(x.c))+'</strong>: worked with a competitor: '+esc(x.c.competitors)+'</li>'; }).join('')+'</ul>');
+    }
+  }
+  if(!posts.length&&!cr.length) out.push('<p style="font-size:11px;color:'+MU+';margin-top:20px">No creators or campaign posts yet.</p>');
+  out.push('<div class="avoid" style="margin-top:22px;padding-top:8px;border-top:1px solid '+LN+';font-size:8px;color:'+MU+';line-height:1.5">Views, likes, comments and followers come from Instagram. Audience quality, boosted posts and estimated prices are estimates worked out from public numbers. Instagram views for photo posts are estimated. Generated with My Creator Desk · mycreatordesk.co.in</div>');
+  return '<div style="font-family:\'IBM Plex Sans\',Arial,sans-serif;color:'+INK+';background:#fff;width:718px;padding:4px 2px">'+out.join('')+'</div>';
+}
+function downloadReport(btn){
+  busy(btn,true,'Making PDF…');
+  loadScript(H2P_URL).then(function(){
+    var holder=document.createElement('div'); holder.style.cssText='position:fixed;left:-10000px;top:0;background:#fff'; holder.innerHTML=reportHTML(); document.body.appendChild(holder);
+    var d0=new Date(), name=((S.settings&&S.settings.name)||'Campaign')+' report '+d0.getFullYear()+'-'+('0'+(d0.getMonth()+1)).slice(-2)+'-'+('0'+d0.getDate()).slice(-2);
+    return html2pdf().set({margin:[10,10,12,10], filename:name.replace(/[\\/:*?"<>|]+/g,'-')+'.pdf', image:{type:'jpeg',quality:0.96},
+      html2canvas:{scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'], avoid:['tr','.avoid']}}).from(holder.firstChild).save().then(function(){ holder.remove(); toast('Report downloaded'); }, function(e){ holder.remove(); throw e; });
+  }).catch(function(e){ toast(e.message||'Could not make the PDF',true); }).then(function(){ busy(btn,false); });
+}
 
 /* ---------------- estimator ---------------- */
 function renderEstimator(){
@@ -1229,12 +1384,12 @@ $('paste-posts-btn').addEventListener('click',function(){ var b=this;
 function q(v){ v=v==null?'':String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function fx(v,d){ return ok(v)?v.toFixed(d):''; }
 function creatorsCSV(only){ var R=creatorRows();
-  var head=TEAM_COLS.map(function(c){return q(c[1])}).concat(['Platform','Tier','Average Likes','Verdict','Why','Competitor mentions','Recent brand collabs']).join(',');
+  var head=TEAM_COLS.map(function(c){return q(c[1])}).concat(['Platform','Tier','Average Likes','Verdict','Why','Competitor mentions','Recent brand collabs','Quality reasons','Organic ER%','Sponsored ER%','Sponsored vs organic','Likely boosted posts','Best format','Content mix']).join(',');
   var rows=R.list; if(only&&only.length) rows=rows.filter(function(x){return only.indexOf(x.c.handle)>=0});
   return [head].concat(rows.map(function(x){ var c=x.c;
     return TEAM_COLS.map(function(col){ var k=col[0];
       if(k==='name') return q(c.handle); if(k==='er') return fx(x.er,2); if(k==='engagement') return x.eng?Math.round(x.eng):''; if(k==='cpv'||k==='cpe') return fx(x[k],2);
-      var v=c[k]; return q(v==null?'':v); }).concat([q(c.platform||'Instagram'),x.tier,c.likes||'',q(x.v.label),q(x.v.why),q(c.competitors||''),q(c.collabs||'')]).join(','); })).join('\n'); }
+      var v=c[k]; return q(v==null?'':v); }).concat([q(c.platform||'Instagram'),x.tier,c.likes||'',q(x.v.label),q(x.v.why),q(c.competitors||''),q(c.collabs||''),q(c.qualityWhy||''),c.organicEr||'',c.sponsoredEr||'',q(c.sponsoredLift||''),q(c.boosted||''),q(c.bestFormat||''),q(c.contentMix||'')]).join(','); })).join('\n'); }
 function postsCSV(){ var P=postRows();
   return [['Creator','Platform','Post','Fee','Views','Likes','Comments','ER views %','CPV','CPE','CPM','Verdict'].join(',')].concat(P.list.map(function(x){ var p=x.p;
     return [q(pdn(p)),q(p.platform||'Instagram'),q(p.link||p.id),p.fee||'',p.views||'',p.likes||'',p.comments||'',fx(x.erV,2),fx(x.cpv,3),fx(x.cpe,2),fx(x.cpm,0),q(x.v.label)].join(','); })).join('\n'); }
@@ -1252,10 +1407,10 @@ var HEAD_ALIAS={
   handle:['handle','handles','instagramhandle','ighandle','username','usernames','instagram','instagramid','igid','instahandle','instagramusername','iguser','igusername','insta','instaid'],
   link:['link','profilelink','instagramlink','iglink','url','profileurl','instagramurl','instaprofile','instagramprofile','instalink','profile'],
   followers:['followers','followercount','igfollowers','instagramfollowers','followerscount'], ytLink:['ytlink','youtube','youtubelink','ytchannel','youtubechannel','yt'],
-  views:['averageviews','avgviews','views','avgreelviews','averagereelviews'], sales:['salesdata','sales'], age:['agesplit1824','age1824','agesplit','age'],
-  reach:['averagereach','avgreach','reach'], comments:['averagecomments','avgcomments','comments'], credibility:['audiencecredibility','credibility'],
+  views:['averageviews','avgviews','views','avgreelviews','averagereelviews'],
+  reach:['averagereach','avgreach','reach'], comments:['averagecomments','avgcomments','comments'],
   sentiment:['sentimentscomments','sentimentcomments','sentiments','sentiment'], engagement:['engagement','avgengagement','averageengagement'],
-  gender:['gendersplit','gender'], deliverables:['deliverables','deliverable'], adRights:['1monthadrights','adrights','monthadrights','onemonthadrights'],
+  deliverables:['deliverables','deliverable'], adRights:['1monthadrights','adrights','monthadrights','onemonthadrights'],
   fee:['fee','fees','cost','price','commercials','commercial','quote','rate','fees₹'], platform:['platform'], likes:['averagelikes','avglikes','likes']
 };
 function hnorm(h){ return String(h||'').toLowerCase().replace(/[^a-z0-9₹]/g,''); }

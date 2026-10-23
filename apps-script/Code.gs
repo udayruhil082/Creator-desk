@@ -42,14 +42,11 @@ const CCOLS = [
   ['ytLink', 'YT Link', 'text'],
   ['er', 'ER%', 'calc'],
   ['views', 'Average Views', 'auto'],
-  ['sales', 'Sales Data', 'text'],
-  ['age', 'Age Split 18-24', 'text'],
   ['reach', 'Average Reach', 'num'],
   ['comments', 'Average Comments', 'auto'],
-  ['credibility', 'Audience Credibility', 'text'],
+  ['credibility', 'Audience Quality (est.)', 'auto'],
   ['sentiment', 'Sentiments & Comments', 'text'],
   ['engagement', 'Engagement', 'calc'],
-  ['gender', 'Gender Split', 'text'],
   ['cpv', 'CPV', 'calc'],
   ['cpe', 'CPE', 'calc'],
   ['deliverables', 'Deliverables', 'text'],
@@ -66,15 +63,24 @@ const CCOLS = [
   ['status', 'Status', 'auto'],
   ['source', 'Source', 'auto'],
   ['competitors', 'Competitor mentions', 'auto'],
-  ['collabs', 'Recent brand collabs', 'auto']
+  ['collabs', 'Recent brand collabs', 'auto'],
+  ['qualityWhy', 'Quality reasons', 'auto'],
+  ['organicEr', 'Organic ER%', 'auto'],
+  ['sponsoredEr', 'Sponsored ER%', 'auto'],
+  ['sponsoredLift', 'Sponsored vs organic', 'auto'],
+  ['boosted', 'Likely boosted posts', 'auto'],
+  ['bestFormat', 'Best format', 'auto'],
+  ['contentMix', 'Content mix', 'auto']
 ];
+// Columns dropped because Instagram does not share them (only the creator can, from their own insights).
+const DROPPED_HEADERS = ['Sales Data', 'Age Split 18-24', 'Gender Split'];
 const HEADERS = CCOLS.map(function (c) { return c[1]; });
 const C = {};
 CCOLS.forEach(function (c, i) { C[c[0]] = i + 1; });
-const TEAM_COLS = 22; // the team's 21 columns plus Fee: the order used for paste and CSV
+const TEAM_COLS = 19; // the team's columns plus Fee: the order used for paste and CSV
 // Fields the website may edit. Numbers from Instagram stay locked unless the creator was entered manually.
-const EDITABLE = ['category', 'language', 'link', 'ytLink', 'sales', 'age', 'reach', 'credibility', 'sentiment',
-  'gender', 'deliverables', 'collab', 'adRights', 'fee', 'platform'];
+const EDITABLE = ['category', 'language', 'link', 'ytLink', 'reach', 'sentiment',
+  'deliverables', 'collab', 'adRights', 'fee', 'platform'];
 const MANUAL_NUMBERS = ['followers', 'views', 'comments', 'likes', 'posts', 'engagement'];
 const NUMERIC = ['followers', 'views', 'reach', 'comments', 'engagement', 'collab', 'adRights', 'fee', 'posts', 'likes'];
 
@@ -397,7 +403,7 @@ function api_refreshCreators() {
     const handle = cleanHandle_(r[C.name - 1]);
     const plat = String(r[C.platform - 1] || 'Instagram');
     const upd = r[C.updated - 1] instanceof Date ? r[C.updated - 1].getTime() : 0;
-    const fresh = upd && Date.now() - upd < 12 * 3600000 && String(r[C.status - 1]).indexOf('✓') === 0;
+    const fresh = upd && Date.now() - upd < 12 * 3600000 && String(r[C.status - 1]).indexOf('✓') === 0 && String(r[C.bestFormat - 1]) !== '';
     if (handle && plat === 'Instagram' && String(r[C.source - 1]) !== 'Manual' && !fresh) todo.push({ row: i + 2, handle: handle, cur: r });
   });
   const got = fetchMany_(todo.map(function (t) { return t.handle; }), token);
@@ -462,6 +468,7 @@ function api_fillCreators(names) {
       if (blank('platform')) out.platform = 'Instagram';
       if (blank('source') || cur[C.source - 1] === 'Manual') out.source = 'Instagram API';
       out.competitors = a.competitors; out.collabs = a.collabs; out.updated = new Date();
+      Object.assign(out, insightCells_(a));
       out.status = '✓ Filled from Instagram (last ' + a.sampled + ' posts)' + (a.hiddenLikes ? '. Some posts hide likes.' : '');
       setCells_(sh, row, out);
       results.push({ name: it.name, ok: true, msg: 'Filled' });
@@ -478,7 +485,7 @@ function api_exportShortlist(names, title, email, access) {
   const sh = sheet_(SHEET_NAME);
   const last = sh.getLastRow();
   const vals = last >= 2 ? sh.getRange(2, 1, last - 1, HEADERS.length).getDisplayValues() : [];
-  const keys = CCOLS.slice(0, TEAM_COLS).map(function (c) { return c[0]; }).concat(['platform', 'tier', 'verdict', 'why', 'competitors', 'collabs']);
+  const keys = CCOLS.slice(0, TEAM_COLS).map(function (c) { return c[0]; }).concat(['platform', 'tier', 'credibility', 'qualityWhy', 'sponsoredLift', 'bestFormat', 'verdict', 'why', 'competitors', 'collabs']);
   const head = keys.map(function (k) { return HEADERS[C[k] - 1]; });
   const rows = vals.filter(function (r) { return want.indexOf(String(r[C.name - 1]).trim().toLowerCase()) >= 0; })
     .map(function (r) { return keys.map(function (k) { return r[C[k] - 1]; }); });
@@ -668,7 +675,7 @@ function buildState_() {
       CCOLS.forEach(function (col, i) {
         const k = col[0], v = r[i];
         if (k === 'updated') o[k] = dateStr_(v);
-        else if (NUMERIC.indexOf(k) >= 0 || k === 'er' || k === 'cpv' || k === 'cpe') o[k] = num_(v);
+        else if (NUMERIC.indexOf(k) >= 0 || k === 'er' || k === 'cpv' || k === 'cpe' || k === 'organicEr' || k === 'sponsoredEr') o[k] = num_(v);
         else o[k] = v instanceof Date ? dateStr_(v) : String(v == null ? '' : v);
       });
       o.platform = o.platform || 'Instagram';
@@ -899,7 +906,7 @@ const MEDIA_FULL = 'like_count,comments_count,view_count,media_type,media_produc
 const MEDIA_BASIC = 'like_count,comments_count,media_type,timestamp,permalink,caption';
 
 function apiUrl_(handle, mediaFields, token, limit) {
-  const fields = 'business_discovery.username(' + handle + '){username,name,biography,website,profile_picture_url,followers_count,media_count,media.limit(' +
+  const fields = 'business_discovery.username(' + handle + '){username,name,biography,website,profile_picture_url,followers_count,follows_count,media_count,media.limit(' +
     limit + '){' + mediaFields + '}}';
   return 'https://graph.facebook.com/' + API_VERSION + '/' + getIgId() +
     '?fields=' + encodeURIComponent(fields) + '&access_token=' + encodeURIComponent(token);
@@ -1104,7 +1111,8 @@ function analyse_(bd, competitorList) {
     avgComments: avg_(withComments.map(function (p) { return p.comments_count; })),
     avgViews: avg_(withViews.map(function (p) { return p.view_count; })),
     competitors: brands.competitors, collabs: brands.collabs, captionsChecked: brands.checked,
-    category: detectCategory_(bd, all), language: detectLanguage_(bd, all), ytLink: findYouTube_(bd, all)
+    category: detectCategory_(bd, all), language: detectLanguage_(bd, all), ytLink: findYouTube_(bd, all),
+    ins: insights_(bd, all)
   };
 }
 
@@ -1219,35 +1227,17 @@ function estimateReach_(a) {
   return a.followers ? Math.round(a.followers * rate) : '';
 }
 
-// A quick audience-quality signal from engagement rate, comment share and views vs followers.
-function estimateCredibility_(a) {
-  if (!a.followers) return '';
-  const eng = (a.avgLikes || 0) + (a.avgComments || 0);
-  const er = eng / a.followers * 100;
-  const st = erStatus_(tierFor_(a.followers), er);
-  let score = st === 'good' ? 2 : st === 'ok' ? 1 : 0;
-  const cr = a.avgLikes ? (a.avgComments || 0) / a.avgLikes * 100 : null;
-  if (cr != null && cr >= 0.5 && cr <= 15) score += 1;
-  if (a.avgViews && a.avgViews >= a.followers * 0.25) score += 1;
-  const label = score >= 3 && st !== 'weak' ? 'High' : score >= 2 && st !== 'weak' ? 'Medium' : 'Low';
-  return label + ' (est.): ER ' + er.toFixed(2) + '%' + (cr != null ? ', comments ' + cr.toFixed(1) + '% of likes' : '') +
-    (a.avgViews ? ', views ' + Math.round(a.avgViews / a.followers * 100) + '% of followers' : '');
-}
-
 // Details that are only filled when the cell is empty, so the team's own entries stay.
 function autoDetails_(a) {
   const price = reelPriceEstimate_(a);
   const big = /Macro|Mega/.test(tierFor_(a.followers));
   return {
-    category: a.category, language: a.language, reach: estimateReach_(a), credibility: estimateCredibility_(a),
+    category: a.category, language: a.language, reach: estimateReach_(a),
     ytLink: a.ytLink || '',
     collab: price ? Math.round(price * 1.4 / 500) * 500 : '',
     adRights: price ? Math.max(500, Math.round(price * 0.3 / 500) * 500) : '',
     sentiment: sentimentEstimate_(a),
-    deliverables: big ? '1 Reel + 3 Stories (with link) + Auto-DM (suggested)' : '1 Reel + 2 Stories (with link) + Auto-DM (suggested)',
-    age: 'Ask creator for insights screenshot',
-    gender: 'Ask creator for insights screenshot',
-    sales: 'No past campaign yet'
+    deliverables: big ? '1 Reel + 3 Stories (with link) + Auto-DM (suggested)' : '1 Reel + 2 Stories (with link) + Auto-DM (suggested)'
   };
 }
 
@@ -1262,11 +1252,152 @@ function postViews_(m, bd) {
   return { views: v ? Math.round(v) : '', est: !!v };
 }
 
+/* =========================================================
+ * Audience quality, sponsored vs organic, and content mix
+ * (worked out from the same recent posts, no extra Instagram calls)
+ * ======================================================= */
+
+function isSponsored_(p) { return COLLAB_MARK.test(String(p.caption || '')); }
+
+function formatOf_(p) {
+  const t = String(p.media_type || ''), pt = String(p.media_product_type || '');
+  if (pt === 'REELS' || t === 'VIDEO') return 'Reels';
+  if (t === 'CAROUSEL_ALBUM') return 'Carousel';
+  return 'Photo';
+}
+
+function engOf_(p) { return (typeof p.like_count === 'number' ? p.like_count : 0) + (p.comments_count || 0); }
+
+function shortNum_(v) {
+  if (v == null || !isFinite(v)) return '—';
+  if (v >= 1e7) return (v / 1e7).toFixed(1).replace(/\.0$/, '') + ' Cr';
+  if (v >= 1e5) return (v / 1e5).toFixed(1).replace(/\.0$/, '') + 'L';
+  if (v >= 1e3) return (v / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(Math.round(v));
+}
+
+// media: recent posts (up to 25). Returns the values for the new sheet columns.
+function insights_(bd, media) {
+  const followers = bd.followers_count || 0;
+  const follows = bd.follows_count;
+  const out = { credibility: '', qualityWhy: '', organicEr: '', sponsoredEr: '', sponsoredLift: '', boosted: '', bestFormat: '', contentMix: '', qualityScore: null };
+  if (!followers || !media || !media.length) return out;
+  const tier = tierFor_(followers);
+  const bench = BENCH[tier] || BENCH.Micro;
+  const withLikes = media.filter(function (p) { return typeof p.like_count === 'number'; });
+  const organic = withLikes.filter(function (p) { return !isSponsored_(p); });
+  const sponsored = withLikes.filter(isSponsored_);
+  const erOf = function (list) { return list.length ? avg_(list.map(engOf_)) / followers * 100 : null; };
+  const orgEr = erOf(organic);
+
+  // Boosted: a sponsored post that got far more than the creator's normal organic numbers (paid promotion).
+  const orgViews = organic.map(function (p) { return p.view_count; }).filter(function (v) { return v > 0; });
+  const orgViewMed = median_(orgViews), orgEngMed = median_(organic.map(engOf_));
+  const boosted = sponsored.filter(function (p) {
+    if (p.view_count > 0 && orgViewMed) return p.view_count > orgViewMed * 3 && p.view_count > followers * 0.5;
+    return orgEngMed ? engOf_(p) > orgEngMed * 3 : false;
+  });
+  out.boosted = sponsored.length ? (boosted.length ? boosted.length + ' of ' + sponsored.length + ' sponsored posts look boosted (paid promotion)' : 'None') : '';
+
+  /* ---- sponsored vs organic: boosted posts are left out so paid reach does not hide the real response ---- */
+  const fair = sponsored.filter(function (p) { return boosted.indexOf(p) < 0; });
+  const sponEr = erOf(fair.length ? fair : sponsored);
+  if (orgEr != null) out.organicEr = round_(orgEr, 2);
+  if (sponEr != null) out.sponsoredEr = round_(sponEr, 2);
+  if (!sponsored.length) out.sponsoredLift = 'No sponsored posts in last ' + media.length;
+  else if (orgEr == null || !organic.length) out.sponsoredLift = 'Only sponsored posts found';
+  else {
+    const lift = (sponEr - orgEr) / orgEr * 100;
+    const word = Math.abs(lift) < 10 ? 'Same as organic' : lift > 0 ? 'Sponsored does better' : 'Sponsored does worse';
+    out.sponsoredLift = (lift >= 0 ? '+' : '') + Math.round(lift) + '% · ' + word + ' (' + sponsored.length + ' sponsored, ' + organic.length + ' organic' +
+      (boosted.length && fair.length ? ', boosted left out' : '') + ')';
+  }
+
+  /* ---- audience quality: organic posts only, so boosted brand posts never count as fake ---- */
+  if (organic.length < 4) {
+    out.credibility = 'Not enough posts';
+    out.qualityWhy = 'Needs at least 4 organic posts with visible likes (found ' + organic.length + ').';
+  } else {
+    let score = 0;
+    const why = [];
+    // Typical (median) engagement, so one viral or bought-likes post cannot lift the score.
+    const qEr = median_(organic.map(engOf_)) / followers * 100;
+    // 1. Engagement for the size (35)
+    if (qEr >= bench[0]) { score += 35; why.push('Typical ER ' + qEr.toFixed(2) + '% is strong for ' + tier); }
+    else if (qEr >= bench[1]) { score += 26; why.push('Typical ER ' + qEr.toFixed(2) + '% is normal for ' + tier); }
+    else if (qEr >= bench[1] * 0.5) { score += 12; why.push('Typical ER ' + qEr.toFixed(2) + '% is low for ' + tier + ' (normal ' + bench[1] + '–' + bench[0] + '%)'); }
+    else why.push('Typical ER ' + qEr.toFixed(2) + '% is very low for ' + tier + ' (normal ' + bench[1] + '–' + bench[0] + '%)');
+    // 2. Comments compared with likes (20)
+    const likes = avg_(organic.map(function (p) { return p.like_count; })), comm = avg_(organic.map(function (p) { return p.comments_count || 0; }));
+    const cr = likes ? comm / likes * 100 : null;
+    if (cr == null) score += 10;
+    else if (cr >= 0.5 && cr <= 15) { score += 20; }
+    else if (cr >= 0.2 && cr <= 30) { score += 10; why.push('Comments are ' + cr.toFixed(1) + '% of likes (a bit unusual)'); }
+    else why.push(cr < 0.2 ? 'Very few comments for the likes (' + cr.toFixed(2) + '%), a sign of bought likes' : 'Comments are ' + Math.round(cr) + '% of likes, a sign of comment pods');
+    // 3. Steady likes, no sudden spikes on normal posts (20)
+    const med = median_(organic.map(function (p) { return p.like_count; }));
+    const spikes = organic.filter(function (p) {
+      const c = p.like_count ? (p.comments_count || 0) / p.like_count * 100 : 0;
+      return med > 0 && p.like_count > med * 4 && c < 0.3;
+    });
+    if (!spikes.length) score += 20;
+    else if (spikes.length === 1) { score += 8; why.push('1 normal post has a sudden like spike with few comments'); }
+    else why.push(spikes.length + ' normal posts have sudden like spikes with few comments');
+    // 4. Views compared with followers, for Reels (25)
+    const vr = orgViews.length ? median_(orgViews) / followers : null;
+    if (vr == null) score += 12;
+    else if (vr >= 0.3) { score += 25; why.push('Reels reach ' + Math.round(vr * 100) + '% of followers'); }
+    else if (vr >= 0.1) { score += 16; }
+    else if (vr >= 0.03) { score += 6; why.push('Reels reach only ' + Math.round(vr * 100) + '% of followers'); }
+    else why.push('Reels reach under 3% of followers');
+    // 5. Follows a lot of accounts (follow-for-follow)
+    if (follows != null && followers >= 5000 && follows > followers * 0.8) { score -= 15; why.push('Follows ' + shortNum_(follows) + ' accounts (follow-for-follow sign)'); }
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    if (spikes.length) score = Math.min(score, 69); // a like spike always needs a human check
+    const label = score >= 70 ? 'Genuine' : score >= 45 ? 'Check' : 'Suspicious';
+    out.qualityScore = score;
+    out.credibility = label + ' · ' + score + '/100';
+    const warn = /\blow\b|spike|\bfew\b|Follows|unusual|\bsign\b|\bonly\b|\bunder\b/;
+    why.sort(function (x, y) { return (warn.test(y) ? 1 : 0) - (warn.test(x) ? 1 : 0); });
+    out.qualityWhy = (why.length ? why.slice(0, 3).join('. ') : 'Engagement, comments and views all look normal') +
+      '. Based on ' + organic.length + ' organic posts; sponsored posts are left out.';
+  }
+
+  /* ---- content mix ---- */
+  const groups = {};
+  media.forEach(function (p) { const f = formatOf_(p); (groups[f] = groups[f] || []).push(p); });
+  const rows = ['Reels', 'Carousel', 'Photo'].filter(function (f) { return groups[f]; }).map(function (f) {
+    const g = groups[f], gl = g.filter(function (p) { return typeof p.like_count === 'number'; });
+    const v = g.map(function (p) { return p.view_count; }).filter(function (x) { return x > 0; });
+    return { f: f, n: g.length, share: Math.round(g.length / media.length * 100),
+      er: gl.length ? avg_(gl.map(engOf_)) / followers * 100 : null, views: v.length ? avg_(v) : null };
+  });
+  out.contentMix = rows.map(function (r) {
+    return r.f + ' ' + r.share + '% (' + r.n + ' posts) · ER ' + (r.er != null ? r.er.toFixed(2) + '%' : '—') + (r.views ? ' · ' + shortNum_(r.views) + ' views' : '');
+  }).join(' | ');
+  const ranked = rows.filter(function (r) { return r.n >= 2 && r.er != null; }).sort(function (a, b) { return b.er - a.er; });
+  if (!ranked.length) out.bestFormat = rows.length ? rows[0].f + ' (only format with enough posts)' : '';
+  else if (ranked.length === 1) out.bestFormat = ranked[0].f + ' (only format with enough posts)';
+  else {
+    const x = ranked[0].er / Math.max(ranked[ranked.length - 1].er, 0.01);
+    out.bestFormat = ranked[0].f + (x >= 1.15 ? ' (' + x.toFixed(1) + 'x the ER of ' + ranked[ranked.length - 1].f + ')' : ' (all formats do about the same)');
+  }
+  return out;
+}
+
+const INSIGHT_KEYS = ['credibility', 'qualityWhy', 'organicEr', 'sponsoredEr', 'sponsoredLift', 'boosted', 'bestFormat', 'contentMix'];
+function insightCells_(a) {
+  const o = {};
+  INSIGHT_KEYS.forEach(function (k) { o[k] = a.ins && a.ins[k] != null ? a.ins[k] : ''; });
+  return o;
+}
+
 function writeCreatorStats_(sh, row, a, cur) {
   cur = cur || sh.getRange(row, 1, 1, HEADERS.length).getValues()[0];
   const extra = {}, auto = autoDetails_(a);
   Object.keys(auto).forEach(function (k) { const v = cur[C[k] - 1]; if ((v === '' || v === null) && auto[k] !== '' && auto[k] != null) extra[k] = auto[k]; });
   setCells_(sh, row, extra);
+  setCells_(sh, row, insightCells_(a));
   setCells_(sh, row, {
     followers: a.followers, posts: a.posts,
     likes: round_(a.avgLikes, 0), comments: round_(a.avgComments, 0), views: round_(a.avgViews, 0),
@@ -1356,14 +1487,7 @@ function ensureSheets_() {
     c = ss.getSheetByName(SHEET_NAME);
   }
   if (!c) c = createCreatorsSheet_(ss);
-  if (String(c.getRange(1, C.collabs).getValue()) !== 'Recent brand collabs') {
-    // Add the competitor columns to an existing team-format sheet.
-    if (c.getMaxColumns() < HEADERS.length) c.insertColumnsAfter(c.getMaxColumns(), HEADERS.length - c.getMaxColumns());
-    c.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    styleHeader_(c, HEADERS.length);
-    c.getRange(2, C.competitors, 500, 2).setWrap(true);
-    c.setColumnWidth(C.competitors, 280); c.setColumnWidth(C.collabs, 240);
-  }
+  if (String(c.getRange(1, HEADERS.length).getValue()) !== HEADERS[HEADERS.length - 1]) upgradeCreatorsSheet_(c);
   let p0 = ss.getSheetByName(POSTS_SHEET);
   if (p0) {
     const h = p0.getRange(1, 1, 1, Math.max(p0.getLastColumn(), 1)).getValues()[0].map(String);
@@ -1401,6 +1525,46 @@ function ensureSheets_() {
   }
 }
 
+// Brings an older Creators tab up to date: removes columns Instagram cannot fill and adds the new ones.
+// Removed columns are taken out by name, so the rest of each row keeps its data.
+function upgradeCreatorsSheet_(c) {
+  const width = Math.max(c.getLastColumn(), 1);
+  const head = c.getRange(1, 1, 1, width).getValues()[0].map(String);
+  const drop = [];
+  head.forEach(function (h, i) { if (DROPPED_HEADERS.indexOf(h) >= 0) drop.push(i); });
+  // Keep a copy of anything the team typed in those columns before they go.
+  const last = c.getLastRow(), nameIdx = head.indexOf('Name');
+  if (drop.length && last >= 2 && nameIdx >= 0) {
+    const vals = c.getRange(2, 1, last - 1, width).getValues();
+    const keep = vals.filter(function (r) { return drop.some(function (i) { const v = String(r[i] || ''); return v && !/Ask creator for insights|No past campaign yet/.test(v); }); })
+      .map(function (r) { return [r[nameIdx]].concat(drop.map(function (i) { return r[i]; })); });
+    if (keep.length) {
+      const ss = c.getParent(), bname = 'Removed columns (backup)';
+      const bk = ss.getSheetByName(bname) || ss.insertSheet(bname);
+      bk.clear();
+      bk.getRange(1, 1, 1, drop.length + 1).setValues([['Name'].concat(drop.map(function (i) { return head[i]; }))]);
+      bk.getRange(2, 1, keep.length, drop.length + 1).setValues(keep);
+    }
+  }
+  for (let k = drop.length - 1; k >= 0; k--) c.deleteColumn(drop[k] + 1);
+  if (c.getMaxColumns() < HEADERS.length) c.insertColumnsAfter(c.getMaxColumns(), HEADERS.length - c.getMaxColumns());
+  c.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  styleHeader_(c, HEADERS.length);
+  const rows = Math.max(c.getMaxRows() - 1, 1);
+  c.getRange(2, C.credibility, rows, 1).setBackground(null);
+  c.getRange(2, C.competitors, rows, 2).setWrap(true);
+  c.setColumnWidth(C.competitors, 280); c.setColumnWidth(C.collabs, 240);
+  formatInsightCols_(c, rows);
+}
+
+function formatInsightCols_(c, rows) {
+  c.getRange(2, C.organicEr, rows, 2).setNumberFormat('0.00"%"');
+  ['qualityWhy', 'sponsoredLift', 'boosted', 'contentMix'].forEach(function (k) { c.getRange(2, C[k], rows, 1).setWrap(true); c.setColumnWidth(C[k], 260); });
+  c.setColumnWidth(C.credibility, 150); c.setColumnWidth(C.bestFormat, 180);
+  c.getRange(1, C.credibility).setNote('Estimated from organic posts only: engagement for the size, comments vs likes, like spikes, Reel views vs followers and follow count. Sponsored and boosted posts are left out.');
+  c.getRange(1, C.boosted).setNote('Sponsored posts that got about 3x or more of the creator\'s normal views or engagement, which usually means the brand paid to promote them.');
+}
+
 function createCreatorsSheet_(ss) {
   const c = ss.insertSheet(SHEET_NAME, 0);
   if (c.getMaxColumns() < HEADERS.length) c.insertColumnsAfter(c.getMaxColumns(), HEADERS.length - c.getMaxColumns());
@@ -1427,6 +1591,7 @@ function createCreatorsSheet_(ss) {
   c.getRange(1, C.engagement).setNote('Average likes + average comments per post');
   c.getRange(1, C.cpv).setNote('Fee ÷ Average Views');
   c.getRange(1, C.cpe).setNote('Fee ÷ Engagement');
+  formatInsightCols_(c, rows);
   return c;
 }
 
