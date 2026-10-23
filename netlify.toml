@@ -1,2 +1,15 @@
 [build]
   publish = "."
+
+# Backend source lives in this repo but is never served by the website.
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/apps-script/*"
+  to = "/404"
+  status = 404
+  force = true
