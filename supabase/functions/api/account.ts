@@ -129,6 +129,19 @@ export const accountActions = {
                                            join public.profiles p on p.id = ${ctx.claims.sub} where c.id = ${companyId}`);
     if (co.status === "pending_approval") throw new ApiError(409, "ALREADY_PAID", "Payment received. Your plan is waiting for approval.");
     if (co.status === "suspended") throw new ApiError(403, "SUSPENDED", "This company is suspended. Please contact us.");
+    // Online payment not switched on yet (Razorpay keys missing): save the plan request so the platform owner
+    // can collect payment by UPI or bank transfer and approve. Nothing is marked as paid.
+    if (!rzp.configured()) {
+      await asServer(async (tx) => {
+        await tx`update public.companies set plan_id = ${plan.id}, billing_cycle = ${cycle},
+                   status = case when status in ('pending_payment', 'cancelled') then 'pending_approval'::public.company_status else status end
+                 where id = ${companyId}`;
+        await tx`insert into public.audit_log (company_id, actor_id, action, details)
+                 values (${companyId}, ${ctx.claims.sub}, 'billing.offline_request', ${tx.json({ plan: plan.id, cycle, amount_paise: amount } as any)})`;
+      });
+      throw new ApiError(409, "OFFLINE_REQUESTED",
+        `Online payment is being set up. We've saved your ${plan.name} plan request and will contact you at ${co.email} to complete payment by UPI or bank transfer, then switch your desk on.`);
+    }
     const order = await rzp.createOrder(amount, `cd_${companyId.slice(0, 8)}_${Date.now().toString(36)}`,
       { company_id: companyId, plan_id: plan.id, cycle });
     await asServer((tx) => tx`insert into public.payments (company_id, plan_id, billing_cycle, amount_paise, razorpay_order_id, created_by)

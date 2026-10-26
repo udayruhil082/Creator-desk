@@ -272,6 +272,25 @@ T("campaign posts: Instagram link fetched, manual post needs views", async () =>
   assertEquals((await must(owner, "work.state", { companyId: ca, scope: "team" })).posts.length, 2);
 });
 
+T("without Razorpay keys: the plan request is saved for offline payment, nothing is marked paid", async () => {
+  const u = await user("owner@brand-offline.in");
+  const c = (await must(u, "company.create", { name: "Brand Offline" })).companyId;
+  const keep = Deno.env.get("RAZORPAY_KEY_ID")!;
+  Deno.env.delete("RAZORPAY_KEY_ID");
+  const before = calls.razorpay;
+  const r = await api(u, "billing.order", { companyId: c, planId: "growth", cycle: "yearly" });
+  Deno.env.set("RAZORPAY_KEY_ID", keep);
+  assertEquals([r.status, r.error.code], [409, "OFFLINE_REQUESTED"]);
+  assert(r.error.message.includes("owner@brand-offline.in"), r.error.message);
+  assertEquals(calls.razorpay, before); // Razorpay never called
+  const [co] = await sql`select status, plan_id, billing_cycle from public.companies where id = ${c}`;
+  assertEquals([co.status, co.plan_id, co.billing_cycle], ["pending_approval", "growth", "yearly"]);
+  assertEquals((await sql`select count(*)::int as n from public.payments where company_id = ${c}`)[0].n, 0);
+  await must(platform, "platform.approve", { companyId: c });
+  const me = await must(u, "me");
+  assertEquals([me.companies[0].status, me.companies[0].seat_limit], ["active", 15]);
+});
+
 T("Razorpay webhook: signature checked, amount checked, repeats ignored", async () => {
   const c = (await must(await user("owner@brand-c.in"), "company.create", { name: "Brand C" })).companyId;
   const [ow] = await sql`select owner_id from public.companies where id = ${c}`;

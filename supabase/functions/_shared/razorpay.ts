@@ -49,3 +49,8 @@ export async function webhookSignatureOk(rawBody: string, signature: string): Pr
 }
 
 export function keyId(): string { return env("RAZORPAY_KEY_ID"); }
+
+// True once both Razorpay keys are set in the Supabase secrets.
+export function configured(): boolean {
+  return !!Deno.env.get("RAZORPAY_KEY_ID") && !!Deno.env.get("RAZORPAY_KEY_SECRET");
+}

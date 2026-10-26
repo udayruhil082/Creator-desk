@@ -1,7 +1,7 @@
-// _shared/auth.ts
+// supabase/functions/_shared/auth.ts
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.9.6";
 
-// _shared/http.ts
+// supabase/functions/_shared/http.ts
 var ApiError = class extends Error {
   status;
   code;
@@ -101,7 +101,7 @@ function numOrNull(v) {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-// _shared/auth.ts
+// supabase/functions/_shared/auth.ts
 var jwks = null;
 async function verifyRequest(req) {
   const h = req.headers.get("authorization") ?? "";
@@ -139,7 +139,7 @@ async function verifyRequest(req) {
   };
 }
 
-// _shared/db.ts
+// supabase/functions/_shared/db.ts
 import postgres from "npm:postgres@3.4.5";
 var sql = null;
 function db() {
@@ -163,7 +163,7 @@ function asServer(fn) {
   return db().begin(fn);
 }
 
-// _shared/crypto.ts
+// supabase/functions/_shared/crypto.ts
 var enc = new TextEncoder();
 var dec = new TextDecoder();
 function b64(bytes) {
@@ -222,7 +222,7 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
-// _shared/graph.ts
+// supabase/functions/_shared/graph.ts
 var API_VERSION = "v26.0";
 var GRAPH = `https://graph.facebook.com/${API_VERSION}`;
 var HOURLY_CAP = 150;
@@ -336,7 +336,7 @@ async function checkConnection(igUserId, token) {
   };
 }
 
-// _shared/razorpay.ts
+// supabase/functions/_shared/razorpay.ts
 var API = "https://api.razorpay.com/v1";
 function auth() {
   return "Basic " + btoa(`${env("RAZORPAY_KEY_ID")}:${env("RAZORPAY_KEY_SECRET")}`);
@@ -387,8 +387,11 @@ async function checkoutSignatureOk(orderId, paymentId, signature) {
 function keyId() {
   return env("RAZORPAY_KEY_ID");
 }
+function configured() {
+  return !!Deno.env.get("RAZORPAY_KEY_ID") && !!Deno.env.get("RAZORPAY_KEY_SECRET");
+}
 
-// api/context.ts
+// supabase/functions/api/context.ts
 async function access(claims, companyId) {
   const [r] = await asUser(claims, (tx) => tx`
     select public.is_company_member(${companyId}) as member,
@@ -414,7 +417,7 @@ async function requireCompany(ctx, opts = {}) {
   };
 }
 
-// api/account.ts
+// supabase/functions/api/account.ts
 var role = (v) => v === "admin" ? "admin" : "member";
 var accountActions = {
   // ---------- who am I ----------
@@ -578,6 +581,20 @@ var accountActions = {
                                            join public.profiles p on p.id = ${ctx.claims.sub} where c.id = ${companyId}`);
     if (co.status === "pending_approval") throw new ApiError(409, "ALREADY_PAID", "Payment received. Your plan is waiting for approval.");
     if (co.status === "suspended") throw new ApiError(403, "SUSPENDED", "This company is suspended. Please contact us.");
+    if (!configured()) {
+      await asServer(async (tx) => {
+        await tx`update public.companies set plan_id = ${plan.id}, billing_cycle = ${cycle},
+                   status = case when status in ('pending_payment', 'cancelled') then 'pending_approval'::public.company_status else status end
+                 where id = ${companyId}`;
+        await tx`insert into public.audit_log (company_id, actor_id, action, details)
+                 values (${companyId}, ${ctx.claims.sub}, 'billing.offline_request', ${tx.json({
+          plan: plan.id,
+          cycle,
+          amount_paise: amount
+        })})`;
+      });
+      throw new ApiError(409, "OFFLINE_REQUESTED", `Online payment is being set up. We've saved your ${plan.name} plan request and will contact you at ${co.email} to complete payment by UPI or bank transfer, then switch your desk on.`);
+    }
     const order = await createOrder(amount, `cd_${companyId.slice(0, 8)}_${Date.now().toString(36)}`, {
       company_id: companyId,
       plan_id: plan.id,
@@ -759,7 +776,7 @@ var accountActions = {
   }
 };
 
-// _shared/analysis.ts
+// supabase/functions/_shared/analysis.ts
 var POSTS_TO_READ = 12;
 var POSTS_FOR_BRANDS = 25;
 var POSTS_TO_SEARCH = 50;
@@ -1812,7 +1829,7 @@ function matchPost_(media, code) {
   return null;
 }
 
-// api/lookups.ts
+// supabase/functions/api/lookups.ts
 var CACHE_HOURS = 6;
 function resetTimeText() {
   const next = new Date((Math.floor(Date.now() / 36e5) + 1) * 36e5);
@@ -1960,7 +1977,7 @@ async function logUsage(companyId, userId, results) {
   await asServer((tx) => tx`insert into public.lookup_usage ${tx(rows)}`);
 }
 
-// api/work.ts
+// supabase/functions/api/work.ts
 var PLATFORMS = [
   "Instagram",
   "Instagram Story",
@@ -2394,7 +2411,7 @@ var workActions = {
   }
 };
 
-// api/handler.ts
+// supabase/functions/api/handler.ts
 var ACTIONS = {
   ...accountActions,
   ...workActions
@@ -2431,5 +2448,5 @@ async function handle(req) {
   }
 }
 
-// api/index.ts
+// supabase/functions/api/index.ts
 Deno.serve(handle);
