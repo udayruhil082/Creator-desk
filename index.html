@@ -4,1593 +4,417 @@
 <meta name="facebook-domain-verification" content="sjq5a9mg0zbil05cfq1m47ld3qiwha" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-</head>
-<body>
 <title>My Creator Desk</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Check Instagram creators before you pay them: real engagement, audience quality, competitor collabs and cost per view. Then track every campaign post and send your manager a PDF report.">
+<meta name="theme-color" content="#0E2E2B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230D6A65'/%3E%3Cpath d='M9 22V10h6.5a4.5 4.5 0 0 1 0 9H12' fill='none' stroke='%23F2B93B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
-/* Layout: a desk with four drawers. Header, sticky tab bar, then one working view at a time: lookup card, shortlist ledger, campaign ledger, summary. */
+/* ===================================================================
+   My Creator Desk — design tokens
+   Paper and ink for the working surface, a deep bottle-green desk
+   (sidebar) and marigold for money and the one thing that matters on
+   each screen. Teal is the brand action colour.
+   =================================================================== */
 :root{
-  --bg:#F1F5F4; --surface:#FFFFFF; --sunk:#E8EEEC; --ink:#15211F; --muted:#586966; --line:#D5DFDC;
-  --accent:#0D6A65; --accent-ink:#FFFFFF; --accent-soft:#DAEDEA;
+  --paper:#F3F6F5; --surface:#FFFFFF; --sunk:#E9EFED; --ink:#13201E; --muted:#56686A; --faint:#8A9A98; --line:#D6E0DD; --line-2:#C3D0CC;
+  --teal:#0D6A65; --teal-ink:#FFFFFF; --teal-soft:#DCEEEA; --teal-deep:#0A4E4A;
+  --desk:#0E2E2B; --desk-2:#14403C; --desk-ink:#E6F0EE; --desk-mut:#93B1AC;
+  --gold:#E3A21A; --gold-soft:#FBEFD2; --gold-ink:#6B4A00;
   --good:#1E7845; --good-bg:#DFF1E5; --warn:#8F5B00; --warn-bg:#FAEED3; --bad:#B13529; --bad-bg:#F8E1DD;
   --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r-s:6px; --r-m:10px; --r-l:16px;
+  --shadow:0 1px 0 rgba(19,32,30,.04),0 8px 24px -12px rgba(19,32,30,.18);
+  --side-w:252px;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E1514; --surface:#15201E; --sunk:#1B2826; --ink:#E4EDEB; --muted:#94A6A2; --line:#283633;
-  --accent:#4DBFB5; --accent-ink:#06211E; --accent-soft:#173430;
+  --paper:#0D1514; --surface:#141F1D; --sunk:#1A2826; --ink:#E4EDEB; --muted:#9AAEAA; --faint:#6F8580; --line:#263431; --line-2:#33443F;
+  --teal:#4DBFB5; --teal-ink:#05211E; --teal-soft:#16332F; --teal-deep:#7AD3CA;
+  --desk:#09130F; --desk-2:#12221F; --desk-ink:#DCEAE7; --desk-mut:#7E9893;
+  --gold:#F2B93B; --gold-soft:#33280E; --gold-ink:#F6D58A;
   --good:#63C98B; --good-bg:#15301F; --warn:#E2B04D; --warn-bg:#33280E; --bad:#EF8175; --bad-bg:#3A1C18;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -12px rgba(0,0,0,.6);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0E1514; --surface:#15201E; --sunk:#1B2826; --ink:#E4EDEB; --muted:#94A6A2; --line:#283633;
-  --accent:#4DBFB5; --accent-ink:#06211E; --accent-soft:#173430;
+  --paper:#0D1514; --surface:#141F1D; --sunk:#1A2826; --ink:#E4EDEB; --muted:#9AAEAA; --faint:#6F8580; --line:#263431; --line-2:#33443F;
+  --teal:#4DBFB5; --teal-ink:#05211E; --teal-soft:#16332F; --teal-deep:#7AD3CA;
+  --desk:#09130F; --desk-2:#12221F; --desk-ink:#DCEAE7; --desk-mut:#7E9893;
+  --gold:#F2B93B; --gold-soft:#33280E; --gold-ink:#F6D58A;
   --good:#63C98B; --good-bg:#15301F; --warn:#E2B04D; --warn-bg:#33280E; --bad:#EF8175; --bad-bg:#3A1C18;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -12px rgba(0,0,0,.6);
   color-scheme:dark;
 }
+
+/* ---------- base ---------- */
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-.gut{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-.wrap{max-width:1180px;margin:0 auto}
-h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-0.01em}
-h1{font-size:clamp(28px,4.4vw,40px);font-weight:700;line-height:1.05}
-h2{font-size:22px;font-weight:600}
-h3{font-size:17px;font-weight:600}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;font-feature-settings:"tnum" 0}
+h1,h2,h3,h4{font-family:var(--f-display);margin:0;letter-spacing:-.015em;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(30px,4vw,42px);font-weight:700}
+h2{font-size:24px;font-weight:600}
+h3{font-size:18px;font-weight:600}
+h4{font-size:15px;font-weight:600;letter-spacing:0}
 p{margin:0}
-.muted{color:var(--muted)}
-.small{font-size:13px}
-.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+a{color:var(--teal)}
+.muted{color:var(--muted)} .faint{color:var(--faint)} .small{font-size:13.5px} .tiny{font-size:12.5px}
+.num{font-variant-numeric:tabular-nums}
 .stack{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.spread{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between}
+.grow{flex:1 1 auto;min-width:0}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
-/* header */
-header.top{padding-block:24px 18px}
-.top .wrap{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
-.top p{max-width:60ch}
-.pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
-.pill .d{width:8px;height:8px;border-radius:50%}
-.pill.live .d{background:var(--good)} .pill.demo .d{background:var(--warn)}
-
-/* tabs */
-nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.tabs .wrap::-webkit-scrollbar{display:none}
-.tab{all:unset;cursor:pointer;padding:12px 14px;font-weight:500;font-size:15px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;display:inline-flex;gap:8px;align-items:center}
-.tab:hover{color:var(--ink)}
-.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.count{font-family:var(--f-mono);font-size:11px;background:var(--sunk);color:var(--muted);padding:1px 7px;border-radius:99px}
-
-main{padding-block:24px 72px}
-main .wrap{display:flex;flex-direction:column;gap:24px}
-section.view{display:flex;flex-direction:column;gap:22px}
-
-.banner{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;border-radius:10px;padding:12px 16px;font-size:14px}
-.banner.info{background:var(--accent-soft)}
-.banner.warn{background:var(--warn-bg);color:var(--ink)}
-
-/* forms */
-label.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.02em;min-width:0}
-input,select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-input[type=number]{font-variant-numeric:tabular-nums}
-.form{display:grid;gap:12px;align-items:end}
-.form.lookup{grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto}
-.form.post{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.form.post .btn{grid-column:1/-1;justify-self:start}
-@media (max-width:640px){.form.lookup{grid-template-columns:1fr}}
-
-button{font:inherit;cursor:pointer}
-.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 15px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.primary:hover{filter:brightness(1.07)}
-.btn[disabled]{opacity:.6;cursor:progress}
-.btn.armed{border-color:var(--bad);color:var(--bad)}
+/* ---------- controls ---------- */
+button{font:inherit;cursor:pointer;color:inherit}
+.btn{border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:var(--r-s);padding:9px 15px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;text-decoration:none;line-height:1.2;min-height:38px;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--teal)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:var(--teal-ink)}
+.btn.primary:hover{background:var(--teal-deep);border-color:var(--teal-deep)}
+:root[data-theme="dark"] .btn.primary:hover{background:var(--teal);filter:brightness(1.1)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary:hover{background:var(--teal);filter:brightness(1.1)}}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1D00;font-weight:600}
+.btn.gold:hover{filter:brightness(1.06)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--sunk)}
+.btn.danger{color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad)}
+.btn.sm{padding:6px 11px;min-height:32px;font-size:13px}
+.btn.lg{padding:12px 20px;min-height:46px;font-size:15.5px}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn.armed{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
 .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .x{border:none;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:6px 8px;border-radius:6px}
 .x:hover{color:var(--bad);background:var(--bad-bg)}
 .x.armed{color:var(--bad);background:var(--bad-bg);font-size:12px;font-weight:600}
+.link{all:unset;cursor:pointer;color:var(--teal);font-weight:500;text-underline-offset:3px}
+.link:hover{text-decoration:underline}
+.link:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
 
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
-.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
-.sec-head p{max-width:72ch}
+label.field{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted);font-weight:500;min-width:0}
+label.field .hint{font-weight:400;color:var(--faint);font-size:12.5px;margin-left:4px}
+label.field>.lt{display:block}
+input,select,textarea{font:inherit;font-size:14.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-s);padding:9px 11px;width:100%;min-width:0;min-height:40px}
+textarea{min-height:80px;resize:vertical;line-height:1.45}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:0;border-color:var(--teal)}
+input[type=number]{font-variant-numeric:tabular-nums}
+input[type=checkbox],input[type=radio]{width:17px;height:17px;min-height:0;accent-color:var(--teal);cursor:pointer;padding:0}
+.form{display:grid;gap:12px;align-items:end}
+.form.cols-2{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.form.cols-4{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.form .full{grid-column:1/-1}
+.form .btn{justify-self:start}
 
-/* creator card */
-.card-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
-.handle{font-family:var(--f-display);font-size:26px;font-weight:600;overflow-wrap:anywhere}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.stat{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.stat .k{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.03em;text-transform:uppercase}
-.stat .v{font-family:var(--f-display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
-.stat .s{font-size:12.5px;color:var(--muted)}
-.value-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:stretch}
-.vbox{background:var(--sunk);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.vbox .k{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
-.vbox .v{font-family:var(--f-display);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
-.empty{border:1px dashed var(--line);border-radius:12px;padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:6px;align-items:center}
-.empty strong{color:var(--ink)}
+.seg{display:inline-flex;background:var(--sunk);border-radius:99px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:99px;padding:6px 14px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 
-.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
-.chip.good{background:var(--good-bg);color:var(--good)}
-.chip.warn{background:var(--warn-bg);color:var(--warn)}
-.chip.bad{background:var(--bad-bg);color:var(--bad)}
-.chip.neutral{background:var(--sunk);color:var(--muted)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.dot.good{background:var(--good)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+/* ---------- surfaces ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel.tight{padding:16px;gap:12px}
+.panel.flat{background:var(--sunk);border-color:transparent}
+.empty{border:1px dashed var(--line-2);border-radius:var(--r-m);padding:32px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center}
+.empty strong{color:var(--ink);font-family:var(--f-display);font-size:18px;font-weight:600}
+.empty .btn{margin-top:6px}
+.note{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-radius:var(--r-m);padding:12px 16px;font-size:14px;background:var(--teal-soft)}
+.note.warn{background:var(--warn-bg)}
+.note.bad{background:var(--bad-bg)}
+.note.gold{background:var(--gold-soft)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap;line-height:1.6}
+.chip.good{background:var(--good-bg);color:var(--good)} .chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)}
+.chip.neutral{background:var(--sunk);color:var(--muted)} .chip.teal{background:var(--teal-soft);color:var(--teal)} .chip.gold{background:var(--gold-soft);color:var(--gold-ink)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+.dot.good{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.neutral{background:var(--faint)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.skel{background:linear-gradient(90deg,var(--sunk),var(--line),var(--sunk));background-size:200% 100%;animation:sk 1.4s ease infinite;border-radius:6px;min-height:14px}
+@keyframes sk{to{background-position:-200% 0}}
 
-/* KPIs */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.kpi{background:var(--surface);padding:15px 17px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.kpi .k{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.03em;text-transform:uppercase}
-.kpi .v{font-family:var(--f-display);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
-.kpi .s{font-size:12.5px;color:var(--muted)}
-.budget{display:flex;flex-direction:column;gap:8px}
-.budget-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:14px}
-.track{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden;position:relative}
-.fill{height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
-.fill.over{background:var(--bad)}
-.tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
-.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+/* stats + kpis: a ledger strip, hairline-divided */
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.ledger>div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ledger .k{font-size:13px;color:var(--muted);font-weight:500}
+.ledger .v{font-family:var(--f-display);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2;overflow-wrap:anywhere}
+.ledger .s{font-size:12.5px;color:var(--muted)}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px;align-items:stretch}
+.box{background:var(--sunk);border-radius:var(--r-m);padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.box .k{font-size:13px;color:var(--muted);font-weight:500}
+.box .v{font-family:var(--f-display);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.box.hit{background:var(--warn-bg)}
+.box.money{background:var(--gold-soft)}
+.box.money .v{color:var(--gold-ink)}
 
 /* tables */
-.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top}
 tbody tr:last-child td{border-bottom:none}
-th{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;background:var(--sunk)}
+th{font-size:12.5px;font-weight:600;color:var(--muted);background:var(--sunk);position:sticky;top:0;z-index:1}
 th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:color-mix(in srgb,var(--teal-soft) 35%,transparent)}
 .sort{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
-.sort:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sort:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .sort .arr{font-size:10px;opacity:.35}
-.sort.on .arr{opacity:1;color:var(--accent)}
-td.hi{background:var(--accent-soft)}
-.cname{font-weight:600}
+.sort.on{color:var(--teal)} .sort.on .arr{opacity:1}
+td.hi{background:color-mix(in srgb,var(--gold-soft) 70%,transparent)!important}
+.cname{font-weight:600;color:var(--ink);text-align:left}
+button.cname{all:unset;cursor:pointer;font-weight:600}
+button.cname:hover{color:var(--teal);text-decoration:underline;text-underline-offset:3px}
+button.cname:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .csub{font-size:12px;color:var(--muted)}
-.why{font-size:12px;color:var(--muted);margin-top:3px;white-space:normal;min-width:180px;max-width:240px}
-.t-short{min-width:3250px}
-.t-short .stick{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line)}
-.t-short th.stick{background:var(--sunk);z-index:2}
-.t-short td.stick.hi{background:var(--accent-soft)}
-.form.details{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-.form.details .wide{grid-column:1/-1}
-.form.details textarea{resize:vertical;min-height:56px}
-.form.details .btn{justify-self:start}
-.t-posts{min-width:1040px}
-.cell-in{width:96px;padding:6px 8px;font-size:13px;text-align:right}
-.cell-in.fee{width:110px}
-a.lnk{color:var(--accent);text-decoration:none}
-a.lnk:hover{text-decoration:underline}
-.stat-note{font-size:12px;color:var(--muted);white-space:normal;max-width:220px}
+.why{font-size:12.5px;color:var(--muted);margin-top:3px;white-space:normal;min-width:180px;max-width:260px;line-height:1.4}
+.t-short{min-width:3300px}
+.t-short .stick{position:sticky;left:0;z-index:2;background:var(--surface);box-shadow:1px 0 0 var(--line)}
+.t-short th.stick{background:var(--sunk);z-index:3}
+.t-short td.stick.hi{background:var(--gold-soft)!important}
+.t-posts{min-width:1080px}
+.cell-in{width:100px;padding:5px 8px;font-size:13.5px;text-align:right;min-height:32px}
+.cell-in.fee{width:112px}
+.lnk{color:var(--teal);text-decoration:none;font-weight:500}
+.lnk:hover{text-decoration:underline}
+.status-note{font-size:12px;color:var(--muted);white-space:normal;max-width:240px}
 
-/* chart */
-.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.chart-card svg{width:100%;max-width:760px;height:auto;display:block}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.track{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden;position:relative}
+.fill{height:100%;background:var(--teal);border-radius:99px;transition:width .4s}
+.fill.over{background:var(--bad)} .fill.gold{background:var(--gold)}
+.tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+
+/* charts */
 svg text{font-family:var(--f-body);font-size:12px}
-.t-ink{fill:var(--ink)}.t-mut{fill:var(--muted)}
+.t-ink{fill:var(--ink)} .t-mut{fill:var(--muted)}
 .g-line{stroke:var(--line);stroke-width:1}
-.m-line{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 4;opacity:.7}
-.b-good{fill:var(--good)}.b-warn{fill:var(--warn)}.b-bad{fill:var(--bad)}.b-neutral{fill:var(--muted)}
+.m-line{stroke:var(--gold);stroke-width:2;stroke-dasharray:4 4}
+.b-good{fill:var(--good)} .b-warn{fill:var(--warn)} .b-bad{fill:var(--bad)} .b-neutral{fill:var(--faint)} .b-teal{fill:var(--teal)} .b-gold{fill:var(--gold)} .b-sunk{fill:var(--line-2)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
 
-/* summary */
-.summary{font-family:var(--f-mono);font-size:13.5px;line-height:1.65;white-space:pre-wrap;background:var(--sunk);border-radius:10px;padding:16px 18px;margin:0;overflow-wrap:anywhere}
-.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;align-items:start}
+/* insights */
+.split{display:flex;gap:22px}.split>div{display:flex;flex-direction:column}.split strong{font-family:var(--f-display);font-size:21px}
+.mix{display:flex;flex-direction:column;gap:7px}.mixrow{display:grid;grid-template-columns:100px 1fr;gap:2px 10px;align-items:center}.mixrow .muted{grid-column:2}
+.bar{display:block;height:8px;background:var(--surface);border-radius:4px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--teal);border-radius:4px}
+.drop{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:center;text-align:center;border:1.5px dashed var(--line-2);border-radius:var(--r-m);padding:28px 18px;cursor:pointer;background:var(--sunk);font-size:15px}
+.drop:hover,.drop.over{border-color:var(--teal);background:var(--teal-soft)}
+.drop strong{color:var(--teal)}
+.drop:focus-within{outline:2px solid var(--teal);outline-offset:2px}
+.summary{font-family:var(--f-body);font-size:14px;line-height:1.7;white-space:pre-wrap;background:var(--sunk);border-radius:var(--r-m);padding:16px 18px;margin:0;overflow-wrap:anywhere}
 dl.formulas{margin:0;display:grid;grid-template-columns:auto 1fr;gap:9px 16px;font-size:14px}
 dl.formulas dt{font-weight:600;white-space:nowrap}
-dl.formulas dd{margin:0;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
-#copy-fallback{font-family:var(--f-mono);font-size:12.5px;min-height:120px}
+dl.formulas dd{margin:0;color:var(--muted);font-size:13.5px;min-width:0;overflow-wrap:anywhere}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;align-items:start}
+.paste{font-size:13px;min-height:110px}
 
-textarea.paste{font-family:var(--f-mono);font-size:12.5px;min-height:110px;resize:vertical}
-.est-out{background:var(--sunk);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.est-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-.est-row div{display:flex;flex-direction:column}
-.est-row .k{font-size:12px;color:var(--muted)}
-.est-row .v{font-family:var(--f-display);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
-.form.manual{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.form.manual .btn{grid-column:1/-1;justify-self:start}
-a.btn{text-decoration:none}
-.drop{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:center;text-align:center;border:1.5px dashed var(--line);border-radius:12px;padding:26px 18px;cursor:pointer;background:var(--sunk);font-size:15px}
-.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
-.drop strong{color:var(--accent)}
-.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
-.t-short input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
-.comp-hit{display:block;white-space:normal;max-width:260px;font-size:12.5px}
-.split{display:flex;gap:18px}.split>div{display:flex;flex-direction:column}.split strong{font-family:var(--f-display);font-size:20px}
-.mix{display:flex;flex-direction:column;gap:6px}.mixrow{display:grid;grid-template-columns:96px 1fr;gap:2px 10px;align-items:center}.mixrow .muted{grid-column:2}
-.bar{display:block;height:8px;background:var(--surface);border-radius:4px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
-.brand-box{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.brand-box.hit{background:var(--warn-bg)}
-.brand-box.clear{background:var(--sunk)}
-.form.post input::placeholder{font-size:13px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.18)}
+/* toast + dialog */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:var(--r-m);font-size:14px;z-index:60;max-width:min(560px,calc(100% - 32px));box-shadow:0 10px 30px rgba(0,0,0,.25);animation:tin .25s ease}
 .toast.err{background:var(--bad);color:#fff}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion: reduce){.fill{transition:none}.spin{animation-duration:2s}}
-footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
-.login{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}
-.login-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 28px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
-.login-card h1{margin:0}
-.login-card ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
-#gbtn{min-height:44px}
-.login-err{background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
-body.locked header.top,body.locked nav.tabs,body.locked main{visibility:hidden}
-.g-btn{gap:10px;padding:10px 18px;font-size:15px;border-radius:99px;background:#fff;color:#1f1f1f;border-color:#dadce0}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}
+dialog{border:none;border-radius:var(--r-l);padding:0;background:var(--surface);color:var(--ink);width:min(520px,calc(100% - 32px));max-height:calc(100% - 48px);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(9,19,17,.55)}
+dialog .d-body{padding:24px;display:flex;flex-direction:column;gap:16px}
+dialog .d-foot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid var(--line);background:var(--sunk)}
+
+/* ===================================================================
+   Public pages
+   =================================================================== */
+.pub{min-height:100vh;display:flex;flex-direction:column}
+.pub-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent;padding-top:env(safe-area-inset-top,0px)}
+.pub-nav.scrolled{border-bottom-color:var(--line)}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1160px;margin:0 auto;width:100%}
+.pub-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:700;font-size:18px;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+.brand .mk{width:30px;height:30px;flex:none}
+.pub-nav nav{display:flex;align-items:center;gap:4px}
+.pub-nav nav a.navl{color:var(--muted);text-decoration:none;font-weight:500;font-size:14.5px;padding:8px 12px;border-radius:6px}
+.pub-nav nav a.navl:hover{color:var(--ink);background:var(--sunk)}
+@media (max-width:640px){.pub-nav nav a.navl{display:none}}
+
+.hero{padding-block:56px 72px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;align-items:center}
+@media (max-width:920px){.hero .wrap{grid-template-columns:1fr;gap:40px}.hero{padding-block:32px 48px}}
+.hero h1{font-size:clamp(40px,6vw,68px);line-height:.98;letter-spacing:-.035em;font-weight:700;max-width:12ch}
+.hero .lede{font-size:18px;color:var(--muted);max-width:46ch;margin-top:22px;line-height:1.55}
+.hero .btns{margin-top:30px;gap:12px}
+.hero .fine{margin-top:16px;font-size:13.5px;color:var(--faint)}
+
+/* the verdict slip: the one memorable object on the landing page */
+.slip-wrap{position:relative;padding:18px 0 18px 18px}
+.slip-wrap::before{content:"";position:absolute;inset:0 0 0 0;background:var(--desk);border-radius:22px;transform:rotate(-2.2deg);z-index:0}
+.slip{position:relative;z-index:1;background:var(--surface);border-radius:14px;box-shadow:0 30px 60px -28px rgba(0,0,0,.45);padding:22px 22px 18px;display:flex;flex-direction:column;gap:16px;transform:rotate(1deg);animation:slip-in .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slip-in{from{opacity:0;transform:rotate(4deg) translateY(28px)}}
+.slip-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.slip .who{display:flex;gap:12px;align-items:center}
+.slip .av{width:44px;height:44px;border-radius:50%;background:conic-gradient(from 200deg,#F2B93B,#E0566B,#7A4CE0,#F2B93B);padding:2.5px;flex:none}
+.slip .av i{display:block;width:100%;height:100%;border-radius:50%;background:var(--teal-soft);border:2px solid var(--surface)}
+.slip .h{font-family:var(--f-display);font-size:20px;font-weight:600;letter-spacing:-.01em}
+.slip .verdict{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--good);background:var(--good-bg);padding:6px 12px;border-radius:99px;white-space:nowrap}
+.slip-nums{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.slip-nums div{padding:12px 0;display:flex;flex-direction:column}
+.slip-nums div+div{padding-left:14px;border-left:1px solid var(--line)}
+.slip-nums span{font-size:12.5px;color:var(--muted)}
+.slip-nums b{font-family:var(--f-display);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.slip-cpv{display:flex;flex-direction:column;gap:8px}
+.slip-cpv .ln{display:grid;grid-template-columns:96px 1fr 58px;gap:10px;align-items:center;font-size:13px}
+.slip-cpv .ln span:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.slip-cpv .tr{height:10px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.slip-cpv .tr i{display:block;height:100%;border-radius:99px;animation:grow 1.1s .5s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+@keyframes grow{from{transform:scaleX(0)}}
+.slip-foot{display:flex;flex-wrap:wrap;gap:6px}
+.stamp{position:absolute;right:-6px;bottom:-14px;z-index:2;background:var(--gold);color:#2A1D00;font-family:var(--f-display);font-weight:700;font-size:14px;padding:10px 14px;border-radius:12px;transform:rotate(-5deg);box-shadow:0 12px 24px -10px rgba(0,0,0,.4);animation:slip-in .9s .25s cubic-bezier(.2,.8,.2,1) both;line-height:1.25}
+.stamp small{display:block;font-weight:500;font-size:12px;opacity:.8}
+
+.band{padding-block:72px}
+.band.desk{background:var(--desk);color:var(--desk-ink)}
+.band.desk .muted{color:var(--desk-mut)}
+.band h2{font-size:clamp(28px,3.4vw,40px);letter-spacing:-.025em;max-width:22ch}
+.band .intro{max-width:60ch;margin-top:12px;font-size:16.5px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:36px 40px;margin-top:44px}
+.feat h3{font-size:19px;margin-bottom:8px}
+.feat p{color:var(--desk-mut);font-size:15px}
+.feat .ic{width:36px;height:36px;border-radius:9px;background:var(--desk-2);display:grid;place-items:center;margin-bottom:16px;color:var(--gold)}
+
+.steps{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:0;counter-reset:st;border-top:2px solid var(--ink)}
+.steps li{counter-increment:st;padding:18px 18px 0 0;display:flex;flex-direction:column;gap:6px}
+.steps li::before{content:counter(st);font-family:var(--f-display);font-weight:700;font-size:30px;color:var(--teal);line-height:1}
+.steps strong{font-family:var(--f-display);font-size:16.5px}
+.steps span{font-size:14px;color:var(--muted)}
+
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px;margin-top:36px;align-items:stretch}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:26px;display:flex;flex-direction:column;gap:18px;position:relative}
+.plan.pick{border:2px solid var(--teal);box-shadow:var(--shadow)}
+.plan.sel{border:2px solid var(--gold);box-shadow:0 0 0 4px var(--gold-soft)}
+.plan .tag{position:absolute;top:-12px;left:24px;background:var(--teal);color:var(--teal-ink);font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:99px}
+.plan h3{font-size:21px}
+.price{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.price b{font-family:var(--f-display);font-size:40px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.price span{color:var(--muted);font-size:14px}
+.plan ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:14.5px}
+.plan li{display:flex;gap:10px;align-items:flex-start}
+.plan li svg{flex:none;margin-top:3px;color:var(--teal)}
+.plan .btn{margin-top:auto}
+.save{font-size:13px;color:var(--good);font-weight:600}
+
+.pub-foot{border-top:1px solid var(--line);padding-block:28px;font-size:14px;color:var(--muted);margin-top:auto}
+.pub-foot .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
+.pub-foot a{color:var(--muted)}
+
+/* sign-in and setup screens: one calm card in the middle */
+.center{flex:1;display:grid;place-items:center;padding:32px 20px 64px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:34px 30px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+.card.wide{max-width:640px}
+.card.xwide{max-width:1040px;background:transparent;border:none;box-shadow:none;padding:0}
+.g-btn{gap:12px;padding:12px 20px;font-size:15.5px;border-radius:99px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;min-height:48px;font-weight:500;width:100%}
 .g-btn:hover{border-color:#a8c7fa;background:#f8fafd}
-.user-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:3px 4px 3px 4px;background:var(--surface);max-width:100%}
-.user-chip img,.user-chip .av{width:26px;height:26px;border-radius:50%;flex:none;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
-.user-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
-.user-chip button{border:0;background:var(--sunk);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12.5px;cursor:pointer}
-.user-chip button:hover{background:var(--accent-soft)}
-.btn.danger{color:var(--bad)}
-.ig-chip{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px solid var(--line);border-radius:99px;padding:4px 4px 4px 12px;background:var(--surface)}
-.ig-chip .ig-dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
-.ig-chip .ig-dot.team{background:var(--muted)}
-.ig-chip button{border:0;background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
-.ig-chip button.ghost{background:var(--sunk);color:var(--ink);font-weight:500}
+.progress-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0;font-size:13px;color:var(--muted)}
+.progress-steps li{flex:1;display:flex;flex-direction:column;gap:6px}
+.progress-steps li::before{content:"";height:4px;border-radius:99px;background:var(--line)}
+.progress-steps li.done::before{background:var(--teal)}
+.progress-steps li.now{color:var(--ink);font-weight:600}
+.progress-steps li.now::before{background:var(--gold)}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.checklist li{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start}
+.checklist .ck{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--sunk);color:var(--muted)}
+.checklist li.done .ck{background:var(--good-bg);color:var(--good)}
+.checklist li.now .ck{background:var(--gold-soft);color:var(--gold-ink)}
+.pulse{width:72px;height:72px;border-radius:50%;background:var(--gold-soft);display:grid;place-items:center;position:relative;color:var(--gold-ink)}
+.pulse::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--gold);opacity:.45;animation:pl 2.4s ease-out infinite}
+@keyframes pl{from{transform:scale(.85);opacity:.6}to{transform:scale(1.25);opacity:0}}
+
+/* preview personas */
+.persona{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:center;text-align:left;border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-m);padding:12px 14px;width:100%}
+.persona:hover{border-color:var(--teal);background:var(--teal-soft)}
+.persona .pi{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-family:var(--f-display);background:var(--sunk);color:var(--teal)}
+.persona b{display:block;font-size:15px}
+.persona span{font-size:13px;color:var(--muted)}
+
+/* ===================================================================
+   The desk (signed-in app)
+   =================================================================== */
+.desk-app{display:grid;grid-template-columns:var(--side-w) minmax(0,1fr);min-height:100vh;background:linear-gradient(to right,var(--desk) var(--side-w),transparent 0)}
+td .track{min-width:110px}
+.side{background:var(--desk);color:var(--desk-ink);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:18px 14px calc(14px + env(safe-area-inset-bottom,0px));gap:18px;overflow-y:auto;scrollbar-width:thin}
+.side .brand{color:var(--desk-ink);padding:2px 8px}
+.co-switch{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:34px 1fr 16px;gap:10px;align-items:center;background:var(--desk-2);border-radius:var(--r-m);padding:10px 12px;width:100%}
+.co-switch:hover{filter:brightness(1.12)}
+.co-switch:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.co-switch .co-mark{width:34px;height:34px;border-radius:8px;background:var(--gold);color:#2A1D00;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:15px}
+.co-switch b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-switch span{display:block;font-size:12.5px;color:var(--desk-mut)}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side .grp{font-size:12.5px;color:var(--desk-mut);padding:14px 10px 6px;font-weight:500}
+.side a.nl{display:flex;align-items:center;gap:11px;color:var(--desk-ink);text-decoration:none;padding:9px 10px;border-radius:8px;font-size:14.5px;font-weight:500;opacity:.88}
+.side a.nl svg{flex:none;opacity:.75}
+.side a.nl:hover{background:var(--desk-2);opacity:1}
+.side a.nl[aria-current="page"]{background:var(--desk-2);opacity:1;box-shadow:inset 3px 0 0 var(--gold)}
+.side a.nl[aria-current="page"] svg{opacity:1;color:var(--gold)}
+.side a.nl .cnt{margin-left:auto;font-size:12px;background:rgba(255,255,255,.08);padding:0 8px;border-radius:99px;font-variant-numeric:tabular-nums}
+.side a.nl .cnt.gold{background:var(--gold);color:#2A1D00;font-weight:600}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.cap{background:var(--desk-2);border-radius:var(--r-m);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.cap .track{background:rgba(255,255,255,.08);height:6px}
+.cap .fill{background:var(--gold)}
+.cap span{color:var(--desk-mut)}
+.me{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:4px 6px}
+.me img,.me .av{width:32px;height:32px;border-radius:50%;background:var(--desk-2);display:grid;place-items:center;font-weight:600;font-size:13px;color:var(--gold)}
+.me b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.me span{display:block;font-size:12px;color:var(--desk-mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me button{border:0;background:transparent;color:var(--desk-mut);padding:6px;border-radius:6px}
+.me button:hover{color:var(--desk-ink);background:var(--desk-2)}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:12px;padding:20px 32px 0;padding-top:max(20px,env(safe-area-inset-top,0px))}
+.topbar .menu{display:none}
+.page{padding:20px 32px 72px;display:flex;flex-direction:column;gap:22px;max-width:1240px;width:100%}
+.page-head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.page-head .stack{gap:6px}
+.page-head p{max-width:68ch}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+.sec-head p{max-width:72ch}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{all:unset;cursor:pointer;padding:10px 14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;display:inline-flex;gap:8px;align-items:center;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold);font-weight:600}
+.tabs button:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.tabs .count{font-size:12px;background:var(--sunk);color:var(--muted);padding:0 8px;border-radius:99px}
+
+.handle-big{font-family:var(--f-display);font-size:30px;font-weight:600;overflow-wrap:anywhere;letter-spacing:-.02em;line-height:1.1}
+.lookup-bar{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+@media (max-width:640px){.lookup-bar{grid-template-columns:1fr}}
+
+.co-menu{position:absolute;z-index:40;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:0 20px 50px rgba(0,0,0,.3);padding:6px;min-width:250px;display:flex;flex-direction:column}
+.co-menu button,.co-menu a{all:unset;cursor:pointer;padding:9px 12px;border-radius:7px;font-size:14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.co-menu button:hover,.co-menu a:hover,.co-menu button:focus-visible{background:var(--sunk)}
+.co-menu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+
+.scrim{display:none}
+@media (max-width:920px){
+  .desk-app{grid-template-columns:1fr;background:none}
+  .side{position:fixed;inset:0 auto 0 0;width:min(300px,86vw);z-index:50;transform:translateX(-102%);transition:transform .25s ease;box-shadow:20px 0 60px rgba(0,0,0,.3)}
+  .desk-app.open .side{transform:none}
+  .desk-app.open .scrim{display:block;position:fixed;inset:0;background:rgba(9,19,17,.5);z-index:45}
+  .topbar{padding:12px 16px 0;padding-top:max(12px,env(safe-area-inset-top,0px));position:sticky;top:0;z-index:30;background:var(--paper);padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .topbar .menu{display:inline-flex}
+  .page{padding:18px 16px 64px}
+}
+@media print{.side,.topbar{display:none}}
 </style>
-<div class="login" id="login" hidden>
-  <div class="login-card">
-    <span class="eyebrow">Influencer marketing desk</span>
-    <h1>My Creator Desk</h1>
-    <p class="muted" style="margin:0">Sign in with your Google account to open your own desk.</p>
-    <ul>
-      <li>Your shortlist, campaign and uploads are kept separate from everyone else's.</li>
-      <li>On your first sign-in, a private Google Sheet is made just for you.</li>
-      <li>Nobody else on the team can see your sheet.</li>
-    </ul>
-    <div id="gbtn"><span class="muted small">Loading Google sign-in…</span></div>
-    <div class="login-err" id="login-err" hidden role="alert"></div>
-  </div>
-</div>
-
-<header class="top gut">
-  <div class="wrap">
-    <div class="stack">
-      <span class="eyebrow">Influencer marketing desk</span>
-      <h1>My Creator Desk</h1>
-      <p class="muted">Upload your creator sheet or look up any Instagram handle. Fill the blanks from Instagram, spot competitor collabs, shortlist and share with your manager, then track every campaign post's CPV, CPE and budget.</p>
-    </div>
-    <div class="btns">
-      <span class="pill" id="mode-pill"><span class="d"></span><span id="mode-text">Loading…</span></span>
-      <a class="btn" id="open-sheet" href="#" target="_blank" rel="noopener" hidden>Open my Google Sheet ↗</a>
-      <span class="ig-chip" id="ig-chip" hidden></span>
-      <span class="user-chip" id="user-chip" hidden></span>
-    </div>
-  </div>
-</header>
-
-<nav class="tabs gut" aria-label="Sections">
-  <div class="wrap" role="tablist">
-    <button class="tab" role="tab" id="tab-lookup" data-view="lookup" aria-selected="true">Creator lookup</button>
-    <button class="tab" role="tab" id="tab-shortlist" data-view="shortlist" aria-selected="false">Shortlist <span class="count" id="c-short">0</span></button>
-    <button class="tab" role="tab" id="tab-campaign" data-view="campaign" aria-selected="false">Campaign <span class="count" id="c-posts">0</span></button>
-    <button class="tab" role="tab" id="tab-summary" data-view="summary" aria-selected="false">Manager summary</button>
-    <button class="tab" role="tab" id="tab-team" data-view="team" aria-selected="false" hidden>Team</button>
-  </div>
-</nav>
-
-<main class="gut">
-  <div class="wrap">
-    <div class="banner info" id="demo-banner" hidden>
-      <span><strong>Demo version with sample creators.</strong> Lookups here use made-up numbers. In the team version, every lookup pulls live data from Instagram and saves it to the shared Google Sheet.</span>
-      <button class="btn" id="demo-reset">Reset sample data</button>
-    </div>
-    <div class="banner warn" id="load-banner" hidden>
-      <span><strong>Connection problem.</strong> <span id="load-msg"></span> Your data is safe in your Google Sheet.</span>
-      <button class="btn" id="load-retry">Try again</button>
-    </div>
-    <div class="banner warn" id="token-banner" hidden>
-      <span><strong>Instagram access token missing or expired.</strong> Open the Google Sheet and use Creator Tracker → Save access token. Saved data still shows below.</span>
-    </div>
-
-    <!-- LOOKUP -->
-    <section class="view" id="view-lookup" role="tabpanel" aria-labelledby="tab-lookup">
-      <div class="panel">
-        <div class="stack">
-          <h2>Look up a creator</h2>
-          <p class="muted small">Type the handle without @, or paste their profile link. Add the fee they quoted to see cost per view and a verdict. The creator is saved to the shortlist.</p>
-        </div>
-        <form class="form lookup" id="lookup-form">
-          <label class="field">Instagram handle or profile link<input id="lk-handle" type="text" autocomplete="off" spellcheck="false" placeholder="itss.vanshikaaa"></label>
-          <label class="field">Quoted fee (₹, optional)<input id="lk-fee" type="number" min="0" step="any" inputmode="numeric" placeholder="25000"></label>
-          <button class="btn primary" id="lk-btn" type="submit">Look up creator</button>
-        </form>
-      </div>
-      <div id="lookup-result"></div>
-      <div class="panel">
-        <div class="stack">
-          <h3>Before you book a creator</h3>
-          <p class="muted small">Estimates what a new creator would deliver, based on how creators of the same tier in your shortlist perform. Useful for YouTube, Moj or any creator you can't look up.</p>
-        </div>
-        <div class="grid4">
-          <label class="field">Quoted fee (₹)<input id="est-fee" type="number" min="0" step="any" value="60000"></label>
-          <label class="field">Followers or subscribers<input id="est-fol" type="number" min="0" step="any" value="150000"></label>
-          <label class="field">Average views per post (optional)<input id="est-views" type="number" min="0" step="any" placeholder="Leave blank to estimate"></label>
-        </div>
-        <div class="est-out" id="est-out"></div>
-      </div>
-    </section>
-
-    <!-- SHORTLIST -->
-    <section class="view" id="view-shortlist" role="tabpanel" aria-labelledby="tab-shortlist" hidden>
-      <div class="panel upload" id="upload-panel">
-        <div class="sec-head">
-          <div class="stack">
-            <h2>Upload a creator sheet</h2>
-            <p class="muted small">Any Excel or CSV file works: a full sheet, a half-filled one, or just a list of creators. Every Instagram handle or profile link is looked up, and only the empty cells are filled. Whatever is already in your file stays as it is.</p>
-          </div>
-        </div>
-        <label class="drop" id="drop" for="up-file">
-          <input id="up-file" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
-          <strong>Choose a file</strong> <span class="muted">or drag it here · .xlsx, .xls or .csv</span>
-        </label>
-        <div id="up-preview" hidden></div>
-        <div id="up-progress" hidden>
-          <div class="budget-top"><span id="up-prog-l">Fetching…</span><span class="muted" id="up-prog-r"></span></div>
-          <div class="track"><div class="fill" id="up-fill" style="width:0%"></div></div>
-        </div>
-        <div id="up-result" hidden></div>
-        <p class="small muted">Instagram only finds creators by their exact handle (like itss.vanshikaaa) or profile link, not by display name. Rows with only a display name are added so you can fill them in.</p>
-      </div>
-      <div class="sec-head">
-        <div class="stack">
-          <h2>Shortlist</h2>
-          <p class="muted small">Your team's columns, in the same order as your sheet. Followers, views, comments and likes come from Instagram; ER%, Engagement, CPV and CPE are calculated from the Fee. Click a name to fill in the other columns. Scroll sideways to see everything.</p>
-        </div>
-        <div class="btns">
-          <button class="btn" id="csv-creators">Copy as CSV</button>
-          <button class="btn" id="refresh-creators">Refresh all from Instagram</button>
-          <button class="btn danger" id="clear-creators">Remove all</button>
-        </div>
-      </div>
-      <div class="tbl-wrap"><table class="t-short" id="short-table"></table></div>
-      <div class="panel" id="share-panel">
-        <div class="sec-head">
-          <div class="stack">
-            <h3>Share the shortlist with your manager</h3>
-            <p class="muted small">Tick creators in the first column of the table. A new Google Sheet is made with just those creators, in your team's format, and shared with the email you enter.</p>
-          </div>
-          <span class="chip neutral" id="sel-count">0 selected</span>
-        </div>
-        <div class="grid4">
-          <label class="field">Sheet name<input id="sh-title" type="text" placeholder="Brand shortlist, Oct 2026"></label>
-          <label class="field">Manager's email (optional)<input id="sh-email" type="email" autocomplete="off" placeholder="manager@company.com"></label>
-          <label class="field">Access<select id="sh-access"><option value="view">Can view</option><option value="edit">Can edit</option></select></label>
-          <button class="btn primary" id="sh-btn" type="button">Create Google Sheet</button>
-        </div>
-        <div id="sh-result" class="small" hidden></div>
-      </div>
-      <div class="chart-card">
-        <div class="sec-head">
-          <h3>Estimated cost per view</h3>
-          <div class="legend"><span><span class="dot good"></span>Good value</span><span><span class="dot warn"></span>Negotiate</span><span><span class="dot bad"></span>Avoid</span></div>
-        </div>
-        <div id="short-chart"></div>
-      </div>
-      <div class="two">
-        <div class="panel">
-          <div class="stack">
-            <h3>Add a creator manually</h3>
-            <p class="muted small">For YouTube, Moj, Stories or anyone whose numbers you already have. Type averages from their recent posts.</p>
-          </div>
-          <form class="form manual" id="manual-form">
-            <label class="field" style="grid-column:1/-1">Creator name or handle<input id="mf-name" type="text" autocomplete="off" placeholder="Beauty with Riya"></label>
-            <label class="field">Category<input id="mf-category" type="text" list="cat-list" placeholder="Beauty"></label>
-            <label class="field">Language<input id="mf-language" type="text" list="lang-list" placeholder="Hindi"></label>
-            <label class="field">Platform<select id="mf-platform"></select></label>
-            <label class="field">Followers<input id="mf-fol" type="number" min="0" step="any"></label>
-            <label class="field">Fee (₹)<input id="mf-fee" type="number" min="0" step="any"></label>
-            <label class="field">Avg views<input id="mf-views" type="number" min="0" step="any"></label>
-            <label class="field">Avg likes<input id="mf-likes" type="number" min="0" step="any"></label>
-            <label class="field">Avg comments<input id="mf-comments" type="number" min="0" step="any"></label>
-            <button class="btn primary" id="mf-btn" type="submit">Add to shortlist</button>
-          </form>
-        </div>
-        <div class="panel">
-          <div class="stack">
-            <h3>Paste creators from Excel or Google Sheets</h3>
-            <p class="muted small">Copy rows straight from your team sheet, columns Category to 1 Month Ad Rights, plus Fee as the 22nd column if you have it. A header row is skipped. Instagram handles can then be refreshed with live numbers.</p>
-          </div>
-          <textarea class="paste" id="paste-creators" placeholder="Beauty	Hindi	itss.vanshikaaa	https://www.instagram.com/itss.vanshikaaa/	452	…"></textarea>
-          <div class="btns"><button class="btn primary" id="paste-creators-btn">Add these creators</button><span class="small muted" id="paste-creators-msg" role="status"></span></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="stack">
-          <h3>Competitor brands</h3>
-          <p class="muted small">Each creator's last 25 captions are checked for these brands (names, @handles and hashtags), and for posts marked as ads or collabs. Separate brands with commas. After changing the list, press Refresh all from Instagram to check again.</p>
-        </div>
-        <textarea class="paste" id="comp-list" rows="3" style="min-height:70px" placeholder="Your competitor brands, separated by commas. For example: Nivea, Mamaearth, Plum"></textarea>
-        <div class="btns"><button class="btn primary" id="comp-save">Save competitor list</button><span class="small muted" id="comp-msg" role="status"></span></div>
-      </div>
-    </section>
-
-    <!-- CAMPAIGN -->
-    <section class="view" id="view-campaign" role="tabpanel" aria-labelledby="tab-campaign" hidden>
-      <div class="panel">
-        <div class="sec-head">
-          <h2>Campaign details</h2>
-          <button class="btn" id="save-settings">Save details</button>
-        </div>
-        <div class="grid4">
-          <label class="field">Campaign name<input id="cs-name" type="text"></label>
-          <label class="field">Total budget (₹)<input id="cs-budget" type="number" min="0" step="any"></label>
-          <label class="field">Start date<input id="cs-start" type="date"></label>
-          <label class="field">End date<input id="cs-end" type="date"></label>
-        </div>
-      </div>
-
-      <div class="kpis" id="kpis"></div>
-      <div class="budget">
-        <div class="budget-top"><span id="budget-l"></span><span class="muted" id="budget-r"></span></div>
-        <div class="track"><div class="fill" id="budget-fill"></div><div class="tick" id="time-tick"></div></div>
-        <span class="small muted">The dark marker shows how far through the campaign dates you are.</span>
-      </div>
-
-      <div class="panel">
-        <div class="stack">
-          <h3>Add a campaign post</h3>
-          <p class="muted small">For an Instagram post or Reel, paste the link and views, likes and comments are fetched for you. For YouTube, Moj or Stories, type the views, likes and comments from the creator's insights.</p>
-        </div>
-        <form class="form post" id="post-form">
-          <label class="field">Creator handle or name<input id="pf-handle" type="text" list="handles" autocomplete="off" spellcheck="false" placeholder="itss.vanshikaaa"></label>
-          <label class="field">Platform<select id="pf-platform"></select></label>
-          <label class="field" style="grid-column:span 2">Post link<input id="pf-link" type="url" spellcheck="false" placeholder="https://www.instagram.com/reel/…"></label>
-          <label class="field">Fee paid (₹)<input id="pf-fee" type="number" min="0" step="any"></label>
-          <label class="field">Views<input id="pf-views" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
-          <label class="field">Likes<input id="pf-likes" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
-          <label class="field">Comments<input id="pf-comments" type="number" min="0" step="any" placeholder="Auto from Instagram"></label>
-          <button class="btn primary" id="pf-btn" type="submit">Add post and fetch numbers</button>
-        </form>
-        <datalist id="handles"></datalist>
-      </div>
-
-      <div class="sec-head">
-        <div class="stack">
-          <h2>Campaign posts</h2>
-          <p class="muted small">Edit any number in the table and it saves automatically. Rebook, Watch and Review compare each post's CPV and engagement with the campaign median.</p>
-        </div>
-        <div class="btns"><button class="btn" id="csv-posts">Copy as CSV</button><button class="btn" id="refresh-posts">Refresh numbers from Instagram</button></div>
-      </div>
-      <div class="tbl-wrap"><table class="t-posts" id="post-table"></table></div>
-      <div class="panel">
-        <div class="stack">
-          <h3>Paste campaign posts from Excel or Google Sheets</h3>
-          <p class="muted small">Copy cells in this order: Creator, Platform, Post link, Fee, Views, Likes, Comments. A header row is skipped. For Instagram links, press Refresh afterwards to fetch live numbers.</p>
-        </div>
-        <textarea class="paste" id="paste-posts" placeholder="itss.vanshikaaa	Instagram	https://www.instagram.com/reel/ABC123/	15000	22000	1800	90"></textarea>
-        <div class="btns"><button class="btn primary" id="paste-posts-btn">Add these posts</button><span class="small muted" id="paste-posts-msg" role="status"></span></div>
-      </div>
-    </section>
-
-    <!-- SUMMARY -->
-    <section class="view" id="view-summary" role="tabpanel" aria-labelledby="tab-summary" hidden>
-      <div class="two">
-        <div class="panel">
-          <div class="sec-head">
-            <h2>Update for your manager</h2>
-            <div class="btns"><button class="btn" id="dl-report">Download report (PDF)</button><button class="btn primary" id="copy-summary">Copy text</button></div>
-          </div>
-          <pre class="summary" id="summary-text"></pre>
-          <textarea id="copy-fallback" hidden readonly aria-label="Text to copy"></textarea>
-          <p class="small muted">Paste it into WhatsApp, Slack or email. It updates whenever the numbers change.</p>
-        </div>
-        <div class="panel" style="grid-column:1/-1;order:1">
-          <div class="stack"><h3>All metrics</h3><p class="small muted">Shortlist values use creators with a fee. Campaign values use every tracked post.</p></div>
-          <div class="tbl-wrap"><table id="metrics-table"></table></div>
-        </div>
-        <div class="panel">
-          <h3>How the numbers are worked out</h3>
-          <dl class="formulas">
-            <dt>Engagement</dt><dd>likes + comments</dd>
-            <dt>ER (followers)</dt><dd>avg engagements ÷ followers × 100</dd>
-            <dt>ER (views)</dt><dd>engagements ÷ views × 100</dd>
-            <dt>CPV</dt><dd>fee ÷ views</dd>
-            <dt>CPE</dt><dd>fee ÷ engagements</dd>
-            <dt>CPM</dt><dd>fee ÷ views × 1,000</dd>
-            <dt>CPR</dt><dd>fee ÷ average reach</dd>
-            <dt>Avg CPV / CPE / CPR</dt><dd>average of each creator’s value</dd>
-            <dt>Blended CPV / CPR</dt><dd>total fees ÷ total views (or reach)</dd>
-            <dt>Cost per 1K followers</dt><dd>fee ÷ followers × 1,000</dd>
-            <dt>ER (reach)</dt><dd>engagements ÷ reach × 100</dd>
-            <dt>Reach rate</dt><dd>reach ÷ followers × 100</dd>
-            <dt>View rate</dt><dd>avg views ÷ followers × 100</dd>
-            <dt>Budget used</dt><dd>spend ÷ budget × 100</dd>
-            <dt>Audience quality</dt><dd>score out of 100 from organic posts: ER for the size, comments vs likes, like spikes, Reel views vs followers, follow count</dd>
-            <dt>Sponsored vs organic</dt><dd>(sponsored ER − organic ER) ÷ organic ER × 100, boosted posts left out</dd>
-            <dt>Likely boosted</dt><dd>sponsored post with about 3× the creator’s normal views</dd>
-          </dl>
-          <p class="small muted">Average Reach is not public on Instagram. When the team hasn’t entered it from the creator’s insights, it is estimated as 80% of average views (or a typical reach rate for the tier), so CPR is an estimate too.</p>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Tier</th><th>Followers</th><th class="n">Strong ER</th><th class="n">Okay ER</th></tr></thead>
-            <tbody id="bench-body"></tbody>
-          </table></div>
-          <p class="small muted">Benchmarks are common rules of thumb for Instagram. Looked-up creators use their last 12 posts; only Reels and videos have views. Verdicts compare creators with each other, so they work for any brand's budget.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- TEAM (admin only) -->
-    <section class="view" id="view-team" role="tabpanel" aria-labelledby="tab-team" hidden>
-      <div class="panel">
-        <div class="sec-head">
-          <div class="stack">
-            <h2>Team members</h2>
-            <p class="muted small">Everyone who has signed in, with a link to their own sheet. Blocking someone stops them from using My Creator Desk; their sheet is kept.</p>
-          </div>
-          <button class="btn" id="team-reload">Refresh list</button>
-        </div>
-        <div class="tbl-wrap"><table id="team-table"></table></div>
-      </div>
-    </section>
-
-    <footer id="footer"></footer>
-  </div>
-</main>
-
+</head>
+<body>
+<div id="root" aria-live="polite"></div>
 <div class="toast" id="toast" hidden role="status"></div>
-<datalist id="cat-list"></datalist><datalist id="lang-list"></datalist>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-(function(){
-'use strict';
-/* ---------------- backend bridge ---------------- */
-var LIVE = !!(window.google && google.script && google.script.run);
-var API_URL = 'https://script.google.com/macros/s/AKfycbxdN5FK3nEmL_HlBt6FAjKIvq-tTNEoernAvO8jaaox1v_e4557f0Cy_AKHKjQqHZOe/exec'; // set on the hosted website: the Apps Script web app URL ending in /exec
-var REMOTE = !LIVE && /^https:\/\/script\.google\.com\//.test(API_URL);
-var GOOGLE_CLIENT_ID = '655428813505-ftd9c22rvrduhe3udiv32j2gn69njqa6.apps.googleusercontent.com';
-var TOK_KEY='creator-desk-idt';
-function jwtExp(t){ try{ var p=JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); return (p.exp||0)*1000; }catch(e){ return 0; } }
-function getTok(){ try{ var t=localStorage.getItem(TOK_KEY)||''; return t&&jwtExp(t)>Date.now()+60000?t:''; }catch(e){ return ''; } }
-function setTok(t){ try{ if(t) localStorage.setItem(TOK_KEY,t); else localStorage.removeItem(TOK_KEY); }catch(e){} }
-function call(fn){
-  var args = Array.prototype.slice.call(arguments,1);
-  if (REMOTE) {
-    return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',redirect:'follow',
-        body:JSON.stringify({fn:fn,args:args,idToken:getTok()})})
-      .then(function(r){ return r.json(); }, function(){ throw new Error('Could not reach the My Creator Desk server. Check your internet and try again.'); })
-      .then(function(j){ if(j&&j.ok) return j.result; var er=j&&j.error;
-        if(er==='LOGIN_REQUIRED'||er==='LOGIN_EXPIRED'){ setTok('');
-          var em='', last=0; try{ em=localStorage.getItem('cd-email')||''; last=+sessionStorage.getItem('cd-silent-at')||0; }catch(x){}
-          if(em&&Date.now()-last>120000){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(x){} signIn(true); throw new Error('Signing you back in…'); }
-          showLogin(er==='LOGIN_EXPIRED'?'Your sign-in has expired. Please sign in again.':''); throw new Error('Please sign in to continue.'); }
-        if(er==='ACCESS_BLOCKED'){ setTok(''); showLogin('Your access to My Creator Desk has been turned off. Ask your team lead to turn it back on.'); throw new Error('Access turned off.'); } throw new Error((j&&j.error)||'Something went wrong. Try again.'); });
-  }
-  if (LIVE) {
-    return new Promise(function(res, rej){
-      var r = google.script.run.withSuccessHandler(res).withFailureHandler(function(e){ rej(new Error(e && e.message ? e.message : String(e))); });
-      r[fn].apply(r, args);
-    });
-  }
-  return new Promise(function(res, rej){
-    setTimeout(function(){ try { res(Demo[fn].apply(null, args)); } catch(e){ rej(e); } }, fn==='api_getState'?0:550);
-  });
-}
-
-/* ---------------- demo backend (used only outside Apps Script) ---------------- */
-var DKEY='creator-desk-demo-v5';
-function demoSeed(){
-  var c=function(o){ var d={category:'',language:'',name:'',link:'',followers:null,ytLink:'',views:null,reach:null,comments:null,sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:null,likes:null,updated:new Date(Date.now()-864e5*2).toISOString(),status:'Sample numbers',source:'Instagram API'};
-    Object.keys(o).forEach(function(k){d[k]=o[k]}); if(d.source!=='Manual'&&d.followers&&!d.credibility){ var rr=rng(hashStr(d.name)); Object.assign(d,demoInsights(rr,d.followers,((d.likes||0)+(d.comments||0))/d.followers)); } if(d.platform==='Instagram'&&!d.link) d.link='https://www.instagram.com/'+d.name+'/'; return d; };
-  return {
-    live:false, tokenOk:true,
-    creators:[
-      c({competitors:'None found',collabs:'@demo.serumbrand, @demo.sunscreen',category:'Skincare',language:'Hindi, English',name:'demo.skin.pune',followers:64000,views:72000,likes:4100,comments:160,posts:412,fee:28000,collab:28000,adRights:8000,reach:51000,sentiment:'Asks about routine, positive',deliverables:'1 Reel + 2 Stories with link'}),
-      c({competitors:'Dove (2 posts, 1 marked as ad/collab, latest 3 Oct 2026)',collabs:'@doveindia, @demo.lipstick',category:'Beauty',language:'Hindi',name:'demo.beauty.mumbai',followers:480000,views:410000,likes:9800,comments:300,posts:1320,fee:180000,collab:180000,adRights:45000,reach:330000,sentiment:'Mostly positive',deliverables:'Collab Reel + Story + Autodm'}),
-      c({competitors:'None found',collabs:'None found',category:'Campus',language:'Hindi',name:'demo.campus.jaipur',followers:9200,views:14500,likes:520,comments:40,posts:188,fee:6000,collab:6000,adRights:1500,deliverables:'1 Reel'}),
-      c({competitors:'Mamaearth (1 post, 1 marked as ad/collab, latest 18 Sep 2026); Nivea (1 post)',collabs:'@mamaearth.in, @demo.watches',category:'Lifestyle',language:'English',name:'demo.lifestyle.delhi',followers:1900000,views:820000,likes:14000,comments:380,posts:2410,fee:450000,collab:450000,adRights:120000,sentiment:'Mixed, some bot comments',deliverables:'Collab Reel + 3 Stories'}),
-      c({competitors:'None found',collabs:'@demo.trimmer',category:'Grooming',language:'Kannada, English',name:'demo.grooming.blr',followers:88000,views:41000,likes:1200,comments:45,posts:530,fee:35000,collab:35000,adRights:10000}),
-      c({competitors:'None found',collabs:'None found',category:'Wellness',language:'Telugu',name:'demo.wellness.hyd',followers:310000,views:260000,likes:6900,comments:210,posts:960,fee:120000,collab:120000,adRights:30000}),
-      c({category:'Food',language:'Hindi',name:'Demo Kitchen Diaries',platform:'YouTube',link:'',ytLink:'youtube.com/@demokitchen',followers:240000,views:90000,likes:5200,comments:310,fee:45000,collab:45000,source:'Manual',status:'Entered manually',deliverables:'1 integrated video'})
-    ],
-    posts:[
-      {id:'DEMO01',handle:'demo.skin.pune',link:'',fee:28000,views:98000,likes:6200,comments:410,type:'REELS',posted:'2026-10-14T10:00:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'},
-      {id:'DEMO02',handle:'demo.beauty.mumbai',link:'',fee:180000,views:620000,likes:21400,comments:860,type:'REELS',posted:'2026-10-15T12:30:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'},
-      {id:'DEMO03',handle:'demo.campus.jaipur',link:'',fee:6000,views:21000,likes:1800,comments:190,type:'REELS',posted:'2026-10-16T09:15:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'},
-      {id:'DEMO04',handle:'demo.grooming.blr',link:'',fee:35000,views:71000,likes:3100,comments:140,type:'REELS',posted:'2026-10-17T18:45:00Z',updated:new Date().toISOString(),status:'Sample numbers',platform:'Instagram'}
-    ],
-    settings:{name:'Festive launch (example)',budget:400000,start:'2026-10-12',end:'2026-11-10',competitors:'Dove, Mamaearth, Pears, Lux, Nivea, Palmolive, Mamaearth, Plum, The Body Shop, Bath & Body Works, Dettol, Lifebuoy, Santoor, Cinthol, Medimix, Biotique, Hamam, Liril'}
-  };
-}
-var DS;
-function demoLoad(){ try{ var raw=localStorage.getItem(DKEY); if(raw){ var s=JSON.parse(raw); if(s&&s.creators&&s.posts){DS=s;return;} } }catch(e){} DS=demoSeed(); }
-function demoSave(){ try{ localStorage.setItem(DKEY, JSON.stringify(DS)); }catch(e){} }
-function clone(o){ return JSON.parse(JSON.stringify(o)); }
-function hashStr(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
-function rng(seed){ return function(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }; }
-var Demo = {
-  api_getState:function(){ if(!DS) demoLoad(); return clone(DS); },
-  api_lookup:function(h,fee){
-    var handle=cleanHandle(h); if(!handle) throw new Error('Type an Instagram handle, like itss.vanshikaaa');
-    var c=DS.creators.find(function(x){return x.name===handle});
-    if(!c){
-      var r=rng(hashStr(handle)); var f=Math.round(Math.pow(10, 3.6+r()*2.6));
-      var er=(f<1e4?3+r()*4:f<1e5?1.2+r()*3.5:f<1e6?0.8+r()*2.2:0.4+r()*1.4)/100;
-      var eng=f*er; var views=Math.round(f*(0.4+r()*1.4));
-      c={competitors:r()<0.3?'Pears (1 post, 1 marked as ad/collab)':'None found',collabs:r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found',category:'',language:'',name:handle,link:'https://www.instagram.com/'+handle+'/',followers:f,ytLink:'',views:views,reach:null,comments:Math.round(eng*0.04),sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:'Instagram',posts:Math.round(80+r()*1500),likes:Math.round(eng*0.96),updated:new Date().toISOString(),status:'Made-up sample numbers (demo)',source:'Instagram API'};
-      Object.assign(c,demoInsights(r,f,er));
-      DS.creators.push(c);
-    } else { c.updated=new Date().toISOString(); }
-    if(num(fee)) c.fee=num(fee);
-    demoSave(); return {state:clone(DS), handle:handle};
-  },
-  api_saveCreator:function(name,f){ var c=DS.creators.find(function(x){return x.name===name}); if(!c) throw new Error('Creator not found in the shortlist.');
-    var allowed=EDITABLE.concat(c.source==='Manual'?MANUAL_NUMBERS:[]);
-    Object.keys(f||{}).forEach(function(k){ if(allowed.indexOf(k)<0) return; c[k]=NUMERIC.indexOf(k)>=0?num(f[k]):String(f[k]==null?'':f[k]).trim(); });
-    if(f.engagement&&c.source==='Manual'&&!num(f.likes)) c.likes=Math.max(0,(num(f.engagement)||0)-(c.comments||0))||null;
-    demoSave(); return clone(DS); },
-  api_setFee:function(name,fee){ return Demo.api_saveCreator(name,{fee:fee}); },
-  api_removeCreator:function(name){ DS.creators=DS.creators.filter(function(x){return x.name!==name}); demoSave(); return clone(DS); },
-  api_clearCreators:function(){ DS.creators=[]; demoSave(); return clone(DS); },
-  api_refreshCreators:function(){ DS.creators.forEach(function(c){c.updated=new Date().toISOString()}); demoSave(); return {state:clone(DS),errors:[]}; },
-  api_saveSettings:function(s){ ['name','start','end','competitors'].forEach(function(k){ if(s[k]!==undefined) DS.settings[k]=s[k]||''; }); if(s.budget!==undefined) DS.settings.budget=num(s.budget); demoSave(); return clone(DS); },
-  api_fillCreators:function(names){ var out=[]; names.forEach(function(n){ var h=cleanHandle(n); var c=DS.creators.find(function(x){return x.name.toLowerCase()===String(n).toLowerCase()||x.name===h});
-      if(!/^[a-z0-9._]{1,30}$/.test(h)){ out.push({name:n,ok:false,msg:'Needs an Instagram handle, not a display name'}); return; }
-      var r=rng(hashStr(h)); var f=Math.round(Math.pow(10,3.6+r()*2.6)); var er=(f<1e4?3+r()*4:f<1e5?1.2+r()*3.5:f<1e6?0.8+r()*2.2:0.4+r()*1.4)/100; var eng=f*er;
-      if(!c){ c={name:h,platform:'Instagram'}; DS.creators.push(c); }
-      var fill={link:'https://www.instagram.com/'+h+'/',followers:f,views:Math.round(f*(0.4+r()*1.4)),comments:Math.round(eng*0.04),likes:Math.round(eng*0.96),posts:Math.round(80+r()*1500)};
-      Object.keys(fill).forEach(function(k){ if(c[k]==null||c[k]==='') c[k]=fill[k]; });
-      var comps=['Dove','Mamaearth','Pears','Nivea']; c.competitors=r()<0.3?comps[Math.floor(r()*4)]+' (1 post, 1 marked as ad/collab)':'None found'; c.collabs=r()<0.5?'@demo.brand'+Math.floor(r()*9):'None found';
-      Object.assign(c,demoInsights(r,f,er));
-      c.source='Instagram API'; c.updated=new Date().toISOString(); c.status='Made-up sample numbers (demo)'; out.push({name:n,ok:true,msg:'Filled'}); });
-    demoSave(); return {results:out}; },
-  api_addPost:function(p){
-    var plat=PLATFORMS.indexOf(p.platform)>=0?p.platform:'Instagram';
-    var code=shortcode(p.link); var isIg=!!code&&plat.indexOf('Instagram')===0&&plat!=='Instagram Story';
-    var handle=isIg?cleanHandle(p.handle):String(p.handle||'').trim(); if(!handle) throw new Error('Add the creator’s name or Instagram handle.');
-    if(!isIg&&!num(p.views)) throw new Error('For posts without an Instagram post link, type the views yourself.');
-    var id=code||('M'+Date.now().toString(36).toUpperCase());
-    var c=DS.creators.find(function(x){return x.handle===handle});
-    var views=num(p.views), likes=num(p.likes), comments=num(p.comments), status='Entered manually';
-    if(isIg){ var r=rng(hashStr(code)); var base=c&&c.avgViews?c.avgViews:20000+r()*80000;
-      views=Math.round(base*(0.7+r()*0.8)); likes=Math.round(views*(0.03+r()*0.05)); comments=Math.round(likes*0.05); status='Made-up sample numbers (demo)'; }
-    var post={id:id,handle:handle,link:code?'https://www.instagram.com/p/'+code+'/':String(p.link||''),fee:num(p.fee)||(c&&c.fee)||null,views:views,likes:likes,comments:comments,
-      type:'',posted:new Date().toISOString(),updated:new Date().toISOString(),status:status,platform:plat};
-    DS.posts=DS.posts.filter(function(x){return x.id!==id}); DS.posts.push(post); demoSave();
-    return {state:clone(DS), status:isIg?'Added with sample numbers (demo)':'Post added'};
-  },
-  api_bulkPosts:function(rows){ var n=0; rows.forEach(function(p){ var h=String(p.handle||'').trim(); if(!h) return; var code=shortcode(p.link);
-      var id=code||('M'+Date.now().toString(36).toUpperCase()+n); DS.posts=DS.posts.filter(function(x){return x.id!==id});
-      DS.posts.push({id:id,handle:code?cleanHandle(h):h,link:p.link||'',fee:num(p.fee),views:num(p.views),likes:num(p.likes),comments:num(p.comments),type:'',posted:new Date().toISOString(),updated:new Date().toISOString(),status:'Imported from paste',platform:PLATFORMS.indexOf(p.platform)>=0?p.platform:(code?'Instagram':'Other')}); n++; });
-    demoSave(); return {state:clone(DS), added:n}; },
-  api_addCreatorManual:function(c){ Demo._upsert(c,true); demoSave(); return clone(DS); },
-  api_bulkCreators:function(rows){ var n=0; rows.forEach(function(c){ if(Demo._upsert(c,false)) n++; }); demoSave(); return {state:clone(DS), added:n}; },
-  _upsert:function(c,forceManual){ var name=String(c.name||'').trim(); var lh=/instagram\.com\//i.test(String(c.link||''))?cleanHandle(c.link):'';
-    if(/instagram\.com\//i.test(name)||/^@/.test(name)) name=cleanHandle(name); if(!name&&lh) name=lh; if(!name) return false;
-    var hl=/^[a-z0-9._]{2,30}$/i.test(name); var plat=PLATFORMS.indexOf(c.platform)>=0?c.platform:((lh||hl)?'Instagram':'Other');
-    var ig=!forceManual&&plat==='Instagram'&&(lh||hl); if(ig&&hl) name=name.toLowerCase();
-    var ex=DS.creators.find(function(x){return x.name.toLowerCase()===name.toLowerCase()});
-    var o=ex||{category:'',language:'',name:name,link:'',followers:null,ytLink:'',views:null,reach:null,comments:null,credibility:'',sentiment:'',deliverables:'',collab:null,adRights:null,fee:null,platform:plat,posts:null,likes:null};
-    TEAM_KEYS.concat(['likes','posts']).forEach(function(k){ if(k==='name'||k==='er'||k==='cpv'||k==='cpe'||k==='engagement') return; var v=c[k]; if(v==null||String(v).trim()==='') return; o[k]=NUMERIC.indexOf(k)>=0?num(v):String(v).trim(); });
-    if(!num(c.likes)&&num(c.engagement)) o.likes=Math.max(0,num(c.engagement)-(o.comments||0))||null;
-    o.platform=plat; if(!o.link&&plat==='Instagram'&&hl) o.link='https://www.instagram.com/'+name+'/';
-    o.updated=new Date().toISOString(); o.source=ig?'Instagram API':'Manual'; o.status=ig?'Added from paste (demo)':'Entered manually';
-    if(!ex) DS.creators.push(o); return true; },
-  api_updatePost:function(id,f){ var p=DS.posts.find(function(x){return x.id===id}); if(p){ Object.keys(f).forEach(function(k){p[k]=num(f[k]);}); p.updated=new Date().toISOString(); } demoSave(); return clone(DS); },
-  api_removePost:function(id){ DS.posts=DS.posts.filter(function(x){return x.id!==id}); demoSave(); return clone(DS); },
-  api_refreshPosts:function(){ return {state:clone(DS),errors:[]}; }
-};
-
-/* ---------------- helpers ---------------- */
-var BENCH={Nano:[4,2],Micro:[3,1.5],Macro:[2,1],Mega:[1.5,0.7]};
-var TIERS=['Nano','Micro','Macro','Mega'];
-var TEAM_COLS=[
-  ['category','Category','text'],['language','Language','text'],['name','Name','name'],['link','Link','url'],['followers','Followers','int'],
-  ['ytLink','YT Link','url'],['er','ER%','er'],['views','Average Views','int'],
-  ['reach','Average Reach','int'],['comments','Average Comments','int'],['credibility','Audience Quality','quality'],['sentiment','Sentiments & Comments','long'],
-  ['engagement','Engagement','eng'],['cpv','CPV','rs2'],['cpe','CPE','rs2'],['deliverables','Deliverables','long'],
-  ['collab','Collab Reel + Story w link + Autodm','rs'],['adRights','1 Month Ad Rights','rs'],['fee','Fee (₹)','fee']
-];
-var TEAM_KEYS=TEAM_COLS.map(function(c){return c[0]});
-var DEFAULT_COMP='';
-function hasComp(c){ return !!(c.competitors&&c.competitors!=='None found'); }
-var EDITABLE=['category','language','link','ytLink','reach','sentiment','deliverables','collab','adRights','fee','platform'];
-var MANUAL_NUMBERS=['followers','views','comments','likes','posts','engagement'];
-var NUMERIC=['followers','views','reach','comments','engagement','collab','adRights','fee','posts','likes'];
-function normalize(s){ (s.creators||[]).forEach(function(c){ c.handle=c.name; c.avgViews=c.views; c.avgLikes=c.likes; c.avgComments=c.comments; }); return s; }
-
-var PLATFORMS=['Instagram','Instagram Story','YouTube','YouTube Shorts','Moj / Josh','Other'];
-function isApi(c){ return (c.platform||'Instagram')==='Instagram' && c.source!=='Manual'; }
-function dn(c){ return isApi(c)?'@'+c.handle:c.handle; }
-function pdn(p){ return /^[a-z0-9._]+$/.test(p.handle||'')&&(p.platform||'Instagram').indexOf('Instagram')===0?'@'+p.handle:p.handle; }
-var TIER_RANGE={Nano:'1K–10K',Micro:'10K–1L',Macro:'1L–10L',Mega:'10L+'};
-function $(id){ return document.getElementById(id); }
-function ok(v){ return v!=null && isFinite(v); }
-function num(v){ if(typeof v==='number') return isFinite(v)&&v>0?v:null; var n=parseFloat(String(v==null?'':v).replace(/[₹,\s]/g,'')); return isFinite(n)&&n>0?n:null; }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-function cleanHandle(v){ var h=String(v||'').trim(); if(!h) return ''; var m=h.match(/instagram\.com\/([^/?#\s]+)/i); if(m) h=m[1]; return h.replace(/^@/,'').replace(/[/?#].*$/,'').toLowerCase(); }
-function shortcode(l){ var m=String(l||'').match(/instagram\.com\/(?:[^/]+\/)?(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i); return m?m[1]:''; }
-function tierFor(f){ if(!f) return ''; return f<1e4?'Nano':f<1e5?'Micro':f<1e6?'Macro':'Mega'; }
-function median(a){ if(!a.length) return null; var s=a.slice().sort(function(x,y){return x-y}); var m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
-function short(v){ if(!ok(v)) return '—'; var a=Math.abs(v);
-  if(a>=1e7) return (v/1e7).toFixed(2).replace(/\.?0+$/,'')+' Cr';
-  if(a>=1e5) return (v/1e5).toFixed(2).replace(/\.?0+$/,'')+' L';
-  if(a>=1e3) return (v/1e3).toFixed(1).replace(/\.0$/,'')+'K';
-  return String(Math.round(v)); }
-function n0(v){ return ok(v)?Math.round(v).toLocaleString('en-IN'):'—'; }
-function rs(v,d){ d=d||0; return ok(v)?'₹'+v.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'; }
-function rShort(v){ return ok(v)?'₹'+short(v):'—'; }
-function pct(v,d){ return ok(v)?v.toFixed(d==null?1:d)+'%':'—'; }
-function ago(iso){ if(!iso) return ''; var t=new Date(iso); if(isNaN(t)) return ''; var m=Math.round((Date.now()-t)/6e4);
-  if(m<1) return 'just now'; if(m<60) return m+' min ago'; var h=Math.round(m/60); if(h<24) return h+' hr ago'; var d=Math.round(h/24); return d+' day'+(d>1?'s':'')+' ago'; }
-function niceMax(v){ if(!(v>0)) return 1; var p=Math.pow(10,Math.floor(Math.log10(v))); var f=v/p; return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p; }
-
-/* ---------------- metrics ---------------- */
-function erStatus(tier,er){ if(!ok(er)) return null; var b=BENCH[tier]||BENCH.Micro; return er>=b[0]?'good':er>=b[1]?'ok':'weak'; }
-function creatorRows(){
-  var list=(S.creators||[]).map(function(c){
-    var eng=(c.avgLikes||c.avgComments)?(c.avgLikes||0)+(c.avgComments||0):(c.engagement||0); var tier=tierFor(c.followers)||c.tier||'';
-    var reach=+c.reach||null, price=+c.fee||+c.collab||0;
-    return {c:c, tier:tier, eng:eng, price:price, priceEst:!c.fee&&!!price, er:c.followers&&eng?eng/c.followers*100:null,
-      cpv:price&&c.avgViews?price/c.avgViews:null, cpe:price&&eng?price/eng:null,
-      cpm:price&&c.avgViews?price/c.avgViews*1000:null, cpr:price&&reach?price/reach:null,
-      cpf:price&&c.followers?price/c.followers*1000:null, erR:reach&&eng?eng/reach*100:null,
-      erV:c.avgViews&&eng?eng/c.avgViews*100:null, reachRate:reach&&c.followers?reach/c.followers*100:null,
-      viewRate:c.avgViews&&c.followers?c.avgViews/c.followers*100:null};
-  });
-  var cpvs=list.map(function(x){return x.cpv}).filter(ok); var med=median(cpvs);
-  list.forEach(function(x){
-    var st=erStatus(x.tier,x.er); x.st=st;
-    var erTxt=(st==='good'?'ER strong':st==='ok'?'ER okay':'ER weak')+' for '+x.tier;
-    if(!x.c.followers&&!x.c.avgViews){ x.v={cls:'neutral',label:'Not fetched',why:x.c.status||'Look this creator up again.'}; }
-    else if(!ok(x.cpv)){ x.v={cls:st==='good'?'good':st==='ok'?'warn':'bad',label:st==='good'?'Good engagement':st==='ok'?'Average engagement':'Low engagement',why:erTxt+'. '+(x.price?'No video views, so CPV can’t be estimated.':'Add the fee to judge value.')}; }
-    else if(cpvs.length<2){ x.v={cls:st==='weak'?'bad':'warn',label:st==='weak'?'Low engagement':'Add more creators',why:erTxt+'. Add one more creator with a fee to compare prices.'}; }
-    else {
-      var diff=(x.cpv-med)/med*100; var cpvTxt=Math.abs(diff)<1?'CPV at median':'CPV '+Math.abs(diff).toFixed(0)+'% '+(diff<0?'below':'above')+' median';
-      if(st==='weak'||x.cpv>med*1.4) x.v={cls:'bad',label:'Avoid or renegotiate',why:cpvTxt+'; '+erTxt+'.'};
-      else if((st==='good'&&x.cpv<=med)||(st==='ok'&&x.cpv<=med*0.7)) x.v={cls:'good',label:'Good value',why:cpvTxt+'; '+erTxt+'.'};
-      else x.v={cls:'warn',label:'Negotiate',why:cpvTxt+'; '+erTxt+'.'};
-    }
-  });
-  return {list:list, med:med, n:cpvs.length};
-}
-function postRows(){
-  var list=(S.posts||[]).map(function(p){
-    var eng=(p.likes||0)+(p.comments||0);
-    return {p:p, eng:eng, erV:p.views?eng/p.views*100:null, cpv:p.fee&&p.views?p.fee/p.views:null, cpe:p.fee&&eng?p.fee/eng:null,
-      cpm:p.fee&&p.views?p.fee/p.views*1000:null};
-  });
-  var medC=median(list.map(function(x){return x.cpv}).filter(ok)); var medE=median(list.map(function(x){return x.erV}).filter(ok));
-  list.forEach(function(x){
-    if(!ok(x.cpv)||!ok(medC)){ x.v={cls:'neutral',label:'Need data',why:'Add fee and views to judge this post.'}; return; }
-    var d=(x.cpv-medC)/medC*100; var t=Math.abs(d)<1?'CPV at median':'CPV '+Math.abs(d).toFixed(0)+'% '+(d<0?'below':'above')+' median';
-    var e=ok(x.erV)&&ok(medE)?(x.erV>=medE?'engagement above median':'engagement below median'):'no engagement data';
-    if(x.cpv>medC*1.4||(ok(x.erV)&&ok(medE)&&x.erV<medE*0.6)) x.v={cls:'bad',label:'Review',why:t+'; '+e+'.'};
-    else if(x.cpv<=medC&&ok(x.erV)&&ok(medE)&&x.erV>=medE) x.v={cls:'good',label:'Rebook',why:t+'; '+e+'.'};
-    else x.v={cls:'warn',label:'Watch',why:t+'; '+e+'.'};
-  });
-  var t={fee:0,views:0,eng:0};
-  list.forEach(function(x){ t.fee+=x.p.fee||0; t.views+=x.p.views||0; t.eng+=x.eng; });
-  return {list:list, medC:medC, t:t};
-}
-function dayInfo(){
-  var s=S.settings||{}; if(!s.start||!s.end) return null;
-  var a=new Date(s.start+'T00:00:00'), b=new Date(s.end+'T00:00:00'); var total=Math.round((b-a)/864e5)+1; if(!(total>0)) return null;
-  var today=new Date(); today.setHours(0,0,0,0); var day=Math.round((today-a)/864e5)+1;
-  return {total:total, day:day, frac:Math.min(1,Math.max(0,day/total))};
-}
-
-/* ---------------- state + UI plumbing ---------------- */
-var LOGIN_URI=location.origin+location.pathname;
-function signIn(silent){
-  var n=Math.random().toString(36).slice(2)+Date.now().toString(36);
-  try{ sessionStorage.setItem('cd-nonce',n); sessionStorage.setItem('cd-view',view); }catch(e){}
-  var q={client_id:GOOGLE_CLIENT_ID, redirect_uri:LOGIN_URI, response_type:'id_token', scope:'openid email profile', nonce:n,
-    prompt:silent?'none':'select_account'};
-  var hint=''; try{ hint=localStorage.getItem('cd-email')||''; }catch(e){} if(hint) q.login_hint=hint;
-  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
-}
-// Reads the sign-in answer Google sends back in the address (#id_token=…), then cleans the address.
-function readLoginReturn(){
-  var h=location.hash||''; if(!/id_token=|error=/.test(h)) return '';
-  var p={}; h.slice(1).split('&').forEach(function(kv){ var a=kv.split('='); p[decodeURIComponent(a[0])]=decodeURIComponent((a[1]||'').replace(/\+/g,' ')); });
-  var v='lookup', n=''; try{ v=sessionStorage.getItem('cd-view')||'lookup'; n=sessionStorage.getItem('cd-nonce')||''; sessionStorage.removeItem('cd-nonce'); }catch(e){}
-  try{ history.replaceState(null,'',location.pathname+(v&&v!=='lookup'?'#'+v:'')); }catch(e){}
-  if(p.id_token){
-    var pl={}; try{ pl=JSON.parse(decodeURIComponent(escape(atob(p.id_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){}
-    if(!n||pl.nonce!==n) return 'Sign-in could not be confirmed. Please try again.';
-    setTok(p.id_token); try{ if(pl.email) localStorage.setItem('cd-email',pl.email); }catch(e){}
-    if(['lookup','shortlist','campaign','summary','team'].indexOf(v)>=0) view=v;
-    return 'ok';
-  }
-  return p.error==='interaction_required'||p.error==='login_required'||p.error==='consent_required'?'':'Google sign-in was cancelled. Try again.';
-}
-function showLogin(msg){
-  document.body.classList.add('locked'); $('login').hidden=false;
-  var e=$('login-err'); e.hidden=!msg; e.textContent=msg||'';
-  $('gbtn').innerHTML='<button class="btn g-btn" type="button" id="g-signin"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Sign in with Google</button>';
-  $('g-signin').onclick=function(){ signIn(false); };
-}
-function hideLogin(){ document.body.classList.remove('locked'); $('login').hidden=true; }
-function signOut(){ setTok(''); try{ localStorage.removeItem('cd-email'); }catch(e){} S={live:true,tokenOk:true,creators:[],posts:[],settings:{}}; SEL={}; current=null; renderAll(); showLogin(''); }
-function loadState(tries){ tries=tries==null?2:tries; var lb=$('load-banner');
-  return call('api_getState').then(function(s){ if(lb) lb.hidden=true; setState(s); if(view==='team') loadTeam(); }).catch(function(e){
-    if(/sign in|Signing you|Access turned off/i.test(e.message)) return;
-    if(tries>0) return new Promise(function(r){ setTimeout(r,1500); }).then(function(){ return loadState(tries-1); });
-    if(lb){ $('load-msg').textContent='Could not load your data ('+e.message+').'; lb.hidden=false; } else toast('Could not load data: '+e.message,true); }); }
-function renderUser(){ var u=S.user, el=$('user-chip');
-  if(!REMOTE||!u){ el.hidden=true; $('tab-team').hidden=true; return; }
-  var ini=esc(((u.name||u.email||'?').trim()[0]||'?').toUpperCase());
-  el.innerHTML=(u.picture?'<img src="'+esc(u.picture)+'" alt="" referrerpolicy="no-referrer">':'<span class="av">'+ini+'</span>')+'<span class="nm" title="'+esc(u.email)+'">'+esc(u.name||u.email)+'</span><button type="button" id="sign-out">Sign out</button>';
-  el.hidden=false; $('sign-out').onclick=signOut;
-  $('tab-team').hidden=!u.isAdmin; if(!u.isAdmin&&view==='team') showView('lookup'); }
-var FB_APP_ID='1113383891047813', FB_CONFIG_ID='';
-function connectInstagram(){
-  var st=Math.random().toString(36).slice(2)+Date.now().toString(36);
-  try{ sessionStorage.setItem('cd-fb-state',st); sessionStorage.setItem('cd-view',view); }catch(e){}
-  var q={client_id:FB_APP_ID, redirect_uri:LOGIN_URI, state:st, response_type:'code'};
-  if(FB_CONFIG_ID) q.config_id=FB_CONFIG_ID; else q.scope='instagram_basic,pages_show_list,pages_read_engagement,business_management';
-  location.href='https://www.facebook.com/'+'v26.0/dialog/oauth?'+Object.keys(q).map(function(k){return k+'='+encodeURIComponent(q[k])}).join('&');
-}
-// Facebook sends the person back with ?code=…&state=… after they allow access.
-function readFacebookReturn(){
-  var sp=new URLSearchParams(location.search); var code=sp.get('code'), st=sp.get('state'), err=sp.get('error_description')||sp.get('error');
-  if(!code&&!err) return null;
-  var want=''; try{ want=sessionStorage.getItem('cd-fb-state')||''; sessionStorage.removeItem('cd-fb-state'); }catch(e){}
-  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-  if(err) return {error:'Instagram was not connected: '+err};
-  if(!want||st!==want) return {error:'Instagram connection could not be confirmed. Please try again.'};
-  return {code:code};
-}
-function renderIg(){ var el=$('ig-chip'); if(!REMOTE||!S.user){ el.hidden=true; return; } var g=S.ig||{};
-  if(g.own){ el.innerHTML='<span class="ig-dot"></span><span>Instagram: <strong>@'+esc(g.username||'connected')+'</strong></span><button type="button" class="ghost" id="ig-off">Disconnect</button>'; }
-  else { el.innerHTML='<span class="ig-dot team"></span><span>'+(g.team?'Using team Instagram':'Instagram not connected')+'</span><button type="button" id="ig-on">Connect Instagram</button>'; }
-  el.hidden=false;
-  var on=$('ig-on'); if(on) on.onclick=connectInstagram;
-  var off=$('ig-off'); if(off) off.onclick=function(){ var b=this; armOnce(b,'Click again',function(){ call('api_disconnectInstagram').then(function(s){ S.ig=s; renderIg(); toast('Instagram disconnected'); }).catch(function(e){ toast(e.message,true); }); }); };
-}
-var TEAM=[];
-function niceDate(v){ if(!v) return '—'; var d=new Date(v); if(isNaN(d)) return String(v); return d.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}); }
-function loadTeam(){ if(!(S.user&&S.user.isAdmin)) return; $('team-table').innerHTML='<tbody><tr><td class="muted"><span class="spin"></span> Loading…</td></tr></tbody>';
-  call('api_adminUsers').then(function(u){ TEAM=u||[]; renderTeam(); }).catch(function(e){ toast(e.message,true); }); }
-function renderTeam(){
-  var head='<thead><tr><th>Name</th><th>Email</th><th>Their sheet</th><th>Joined</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>';
-  var body=TEAM.length?TEAM.map(function(u){ var bl=u.status==='blocked';
-    return '<tr><td>'+esc(u.name||'—')+(u.isAdmin?' <span class="chip neutral">Admin</span>':'')+'</td><td>'+esc(u.email)+'</td><td>'+urlCell(u.sheetUrl)+'</td><td>'+esc(niceDate(u.joined))+'</td><td>'+esc(niceDate(u.lastLogin))+'</td><td><span class="chip '+(bl?'bad':'good')+'">'+(bl?'Blocked':'Active')+'</span></td><td>'+
-      (u.isAdmin?'':'<button class="btn" data-st="'+esc(u.email)+'" data-to="'+(bl?'active':'blocked')+'">'+(bl?'Unblock':'Block')+'</button>')+'</td></tr>'; }).join('')
-    :'<tr><td colspan="7" class="muted">Nobody has signed in yet.</td></tr>';
-  var t=$('team-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
-  t.querySelectorAll('[data-st]').forEach(function(b){ b.onclick=function(){ var go=function(){ busy(b,true,'Saving…');
-      call('api_adminSetStatus',b.dataset.st,b.dataset.to).then(function(u){ TEAM=u||[]; renderTeam(); toast(b.dataset.to==='blocked'?'Blocked '+b.dataset.st:'Unblocked '+b.dataset.st); }).catch(function(e){ busy(b,false); toast(e.message,true); }); };
-    if(b.dataset.to==='blocked') armOnce(b,'Click again to block',go); else go(); }; }); }
-var S={live:LIVE||REMOTE,tokenOk:true,creators:[],posts:[],settings:{}}; var current=null; var view='lookup';
-function setState(s){ if(s){ S=normalize(s); } renderAll(); }
-var toastT;
-function toast(msg,err){ var t=$('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){t.hidden=true},err?7000:3500); }
-function busy(btn,on,label){ if(!btn) return; if(on){ btn.dataset.l=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spin"></span> '+esc(label||'Working…'); } else { btn.disabled=false; if(btn.dataset.l) btn.innerHTML=btn.dataset.l; } }
-function armOnce(btn,label,fn){ // two-click confirm, no browser dialogs
-  if(btn.dataset.armed){ clearTimeout(+btn.dataset.armed); delete btn.dataset.armed; btn.classList.remove('armed'); fn(); return; }
-  var orig=btn.innerHTML; btn.innerHTML=label; btn.classList.add('armed');
-  btn.dataset.armed=String(setTimeout(function(){ delete btn.dataset.armed; btn.classList.remove('armed'); btn.innerHTML=orig; },3500));
-}
-
-function showView(v){
-  view=v;
-  ['lookup','shortlist','campaign','summary','team'].forEach(function(k){
-    $('view-'+k).hidden = k!==v; $('tab-'+k).setAttribute('aria-selected', k===v?'true':'false');
-  });
-  if(v==='team') loadTeam();
-  try{ if(!LIVE && location.hash!=='#'+v) history.replaceState(null,'','#'+v); }catch(e){}
-}
-
-function renderAll(){
-  var live=!!S.live;
-  $('mode-pill').className='pill '+(live?'live':'demo');
-  $('mode-text').textContent=live?'Live Instagram data':'Demo with sample data';
-  $('demo-banner').hidden=live;
-  $('token-banner').hidden=!(live && !S.tokenOk);
-  $('c-short').textContent=(S.creators||[]).length;
-  $('c-posts').textContent=(S.posts||[]).length;
-  $('refresh-creators').hidden=!live; $('refresh-posts').hidden=!live;
-  var os=$('open-sheet'); if(live&&S.sheetUrl){ os.href=S.sheetUrl; os.hidden=false; } else os.hidden=true;
-  $('handles').innerHTML=(S.creators||[]).map(function(c){return '<option value="'+esc(c.handle)+'">'}).join('');
-  renderLookup(); renderShortlist(); renderCampaign(); renderSummary(); renderEstimator(); fillComp(); updateSelCount(); renderUser(); renderIg();
-  $('clear-creators').hidden=!(S.creators||[]).length;
-  $('footer').textContent=REMOTE?'Your data is saved in your own Google Sheet. Other team members cannot see it.':live?'Data is saved in the team’s Google Sheet.':'Demo data is kept in this browser only. Use “Reset sample data” to start over.';
-}
-
-/* ---------------- audience quality, sponsored vs organic, content mix ---------------- */
-function qualityInfo(c){ var t=String(c&&c.credibility||''); var m=t.match(/^(Genuine|Check|Suspicious) · (\d+)\/100/);
-  if(m) return {label:m[1], score:+m[2], cls:m[1]==='Genuine'?'good':m[1]==='Check'?'warn':'bad', icon:m[1]==='Genuine'?'🟢':m[1]==='Check'?'🟡':'🔴'};
-  if(/Not enough posts/.test(t)) return {label:'Not enough posts', score:null, cls:'neutral', icon:''};
-  return null; }
-function parseMix(t){ return String(t||'').split(' | ').map(function(s){ var m=s.match(/^(Reels|Carousel|Photo) (\d+)% \((\d+) posts?\) · ER ([\d.]+%|—)(?: · (.+) views)?$/);
-  return m?{f:m[1],share:+m[2],n:+m[3],er:m[4],views:m[5]||''}:null; }).filter(Boolean); }
-function liftCls(t){ var m=String(t||'').match(/^([+-]\d+)%/); if(!m) return ''; var v=+m[1]; return Math.abs(v)<10?'':v>0?'good':'bad'; }
-function insightRow(c){
-  var q=qualityInfo(c), mix=parseMix(c.contentMix), none='<span class="small muted">Refresh this creator to see this.</span>';
-  var lab=function(t){ return '<span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">'+t+'</span>'; };
-  var qBox='<div class="vbox">'+lab('Audience quality (fake follower check)')+
-    (q?(q.score!=null?'<span class="v">'+q.score+'<span class="small muted">/100</span></span>':'')+'<span><span class="chip '+q.cls+'">'+esc((q.icon?q.icon+' ':'')+q.label)+'</span></span><span class="small">'+esc(c.qualityWhy||'')+'</span><span class="small muted">Estimate. Sponsored and boosted posts are left out, so paid promotion is never counted as fake.</span>':none)+'</div>';
-  var lc=liftCls(c.sponsoredLift);
-  var sBox='<div class="vbox">'+lab('Sponsored vs organic')+
-    (c.sponsoredLift?'<div class="split"><div><span class="small muted">Organic ER</span><strong>'+pct(num(c.organicEr),2)+'</strong></div><div><span class="small muted">Sponsored ER</span><strong>'+pct(num(c.sponsoredEr),2)+'</strong></div></div>'+
-      '<span class="small">'+(lc?'<span class="chip '+lc+'">'+esc(c.sponsoredLift.split(' · ')[0])+'</span> ':'')+esc(lc?c.sponsoredLift.replace(/^[+-]\d+% · /,''):c.sponsoredLift)+'</span>'+
-      (c.boosted&&c.boosted!=='None'?'<span class="small">⚡ '+esc(c.boosted)+'</span>':'')+
-      '<span class="small muted">Sponsored = captions with #ad, #collab, paid partnership and similar tags.</span>':none)+'</div>';
-  var mBox='<div class="vbox">'+lab('Content mix')+
-    (mix.length?'<div class="mix">'+mix.map(function(r){ return '<div class="mixrow"><span class="small"><strong>'+r.f+'</strong> '+r.share+'%</span><span class="bar"><i style="width:'+Math.max(4,r.share)+'%"></i></span><span class="small muted">ER '+esc(r.er)+(r.views?' · '+esc(r.views)+' views':'')+'</span></div>'; }).join('')+'</div>'+
-      (c.bestFormat?'<span class="small">Best format: <strong>'+esc(c.bestFormat)+'</strong></span>':''):none)+'</div>';
-  return '<div class="value-row">'+qBox+sBox+mBox+'</div>';
-}
-function demoInsights(r,f,er){
-  var score=Math.round(35+r()*62), label=score>=70?'Genuine':score>=45?'Check':'Suspicious';
-  var reels=Math.round(45+r()*40), car=Math.round((100-reels)*0.6), ph=100-reels-car;
-  var e=er*100, re=e*(1.1+r()*0.6), ce=e*(0.8+r()*0.3), pe=e*(0.6+r()*0.3), lift=Math.round(-45+r()*60);
-  var sp=Math.round(r()*5);
-  return {credibility:label+' · '+score+'/100',
-    qualityWhy:(label==='Genuine'?'ER '+e.toFixed(2)+'% is normal for the size. Reels reach '+Math.round(30+r()*40)+'% of followers':label==='Check'?'1 normal post has a sudden like spike with few comments. ER '+e.toFixed(2)+'% is normal for the size':'ER '+e.toFixed(2)+'% is low for the size. Very few comments for the likes')+'. Based on '+(25-sp)+' organic posts; sponsored posts are left out. (demo)',
-    organicEr:+e.toFixed(2), sponsoredEr:sp?+(e*(1+lift/100)).toFixed(2):null,
-    sponsoredLift:sp?(lift>=0?'+':'')+lift+'% · '+(Math.abs(lift)<10?'Same as organic':lift>0?'Sponsored does better':'Sponsored does worse')+' ('+sp+' sponsored, '+(25-sp)+' organic)':'No sponsored posts in last 25',
-    boosted:sp?(r()<0.4?'1 of '+sp+' sponsored posts look boosted (paid promotion)':'None'):'',
-    bestFormat:'Reels ('+(re/pe).toFixed(1)+'x the ER of Photo)',
-    contentMix:'Reels '+reels+'% ('+Math.round(reels/4)+' posts) · ER '+re.toFixed(2)+'% · '+short(f*(0.3+r()*0.6))+' views | Carousel '+car+'% ('+Math.round(car/4)+' posts) · ER '+ce.toFixed(2)+'% | Photo '+ph+'% ('+Math.max(1,Math.round(ph/4))+' posts) · ER '+pe.toFixed(2)+'%'};
-}
-
-/* ---------------- lookup view ---------------- */
-var DETAILS=[['category','Category','text'],['language','Language','text'],['platform','Platform','platform'],['fee','Fee (₹)','num'],
-  ['collab','Collab Reel + Story w link + Autodm (₹)','num'],['adRights','1 Month Ad Rights (₹)','num'],['link','Link','text'],['ytLink','YT Link','text'],
-  ['reach','Average Reach','num'],['sentiment','Sentiments & Comments','long'],['deliverables','Deliverables','long']];
-var CATEGORIES=['Beauty','Skincare','Haircare','Fashion','Lifestyle','Travel','Food','Fitness','Health & Wellness','Parenting','Tech','Gaming','Comedy','Entertainment','Music','Dance','Education','Finance','Business','Home & Decor','Pets','Automotive','Photography','Art & DIY','Sports','Spirituality','Books','Motivation','Other'];
-var LANGUAGES=['Hindi','English','Hindi, English','Marathi','Bengali','Punjabi','Gujarati','Tamil','Telugu','Kannada','Malayalam','Odia','Urdu','Assamese','Bhojpuri'];
-var DETAIL_HINT={reach:'Auto estimate, or from insights',ytLink:'Auto from bio, or paste link',collab:'Auto estimate, or quoted price',adRights:'Auto estimate, or quoted price'};
-var MANUAL_DETAILS=[['followers','Followers','num'],['views','Average Views','num'],['likes','Average Likes','num'],['comments','Average Comments','num'],['posts','Posts','num']];
-function renderLookup(){
-  var R=creatorRows(); var box=$('lookup-result');
-  var pick=null;
-  if(current) pick=R.list.find(function(x){return x.c.handle===current});
-  if(!pick && R.list.length){ pick=R.list.slice().sort(function(a,b){return String(b.c.updated).localeCompare(String(a.c.updated))})[0]; }
-  if(!pick){ box.innerHTML='<div class="empty"><strong>No creators yet</strong><span>Type a handle above to see followers, engagement rate and cost per view.</span></div>'; return; }
-  var c=pick.c, b=BENCH[pick.tier]||BENCH.Micro;
-  var stCls=pick.st==='good'?'good':pick.st==='ok'?'warn':'bad';
-  var stTxt=pick.st==='good'?'Strong':pick.st==='ok'?'Okay':'Weak';
-  var link=S.live&&isApi(c)?'<a class="lnk small" href="https://www.instagram.com/'+encodeURIComponent(c.handle)+'/" target="_blank" rel="noopener">Open on Instagram ↗</a>':'';
-  var fields=DETAILS.concat(isApi(c)?[]:MANUAL_DETAILS);
-  var form=fields.map(function(f){ var v=c[f[0]]; var id='cd-'+f[0];
-    if(f[2]==='platform') return '<label class="field">'+f[1]+'<select id="'+id+'" data-d="'+f[0]+'">'+PLATFORMS.map(function(p){return '<option'+(p===(c.platform||'Instagram')?' selected':'')+'>'+p+'</option>'}).join('')+'</select></label>';
-    if(f[2]==='long') return '<label class="field wide">'+f[1]+'<textarea id="'+id+'" data-d="'+f[0]+'" rows="2">'+esc(v||'')+'</textarea></label>';
-    var extra=f[0]==='category'?' list="cat-list" placeholder="Auto from Instagram"':f[0]==='language'?' list="lang-list" placeholder="Auto from Instagram"':DETAIL_HINT[f[0]]?' placeholder="'+DETAIL_HINT[f[0]]+'"':'';
-    return '<label class="field">'+f[1]+'<input id="'+id+'" data-d="'+f[0]+'" type="'+(f[2]==='num'?'number" min="0" step="any':'text')+'"'+extra+' value="'+esc(v==null?'':v)+'"></label>';
-  }).join('');
-  box.innerHTML=
-   '<div class="panel">'+
-    '<div class="card-head"><div class="stack" style="gap:2px"><span class="handle">'+esc(dn(c))+'</span>'+
-      '<span class="small muted">'+esc([c.category,c.language,c.platform||'Instagram'].filter(Boolean).join(' · '))+' · '+esc(pick.tier||'')+' creator · updated '+esc(ago(c.updated))+(c.status?' · '+esc(c.status):'')+'</span></div>'+
-      '<div class="btns">'+link+'<span class="chip '+pick.v.cls+'">'+esc(pick.v.label)+'</span></div></div>'+
-    '<div class="stats">'+
-      stat('Followers',short(c.followers),pick.tier+' tier')+
-      stat('Average Views',short(c.avgViews),c.avgViews?(isApi(c)?'Reels and videos':'entered manually'):'no videos found')+
-      stat('Average Comments',short(c.avgComments),isApi(c)?'last 12 posts':'entered manually')+
-      stat('Average Likes',short(c.avgLikes),isApi(c)?'last 12 posts':'entered manually')+
-      stat('Engagement',short(pick.eng),'avg likes + comments')+
-      stat('ER%',pct(pick.er,2),'<span class="dot '+stCls+'"></span>'+stTxt+' · '+pick.tier+' strong ≥ '+b[0]+'%')+
-    '</div>'+
-    '<div class="value-row">'+
-      '<div class="vbox"><span class="k">CPV</span><span class="v">'+rs(pick.cpv,2)+'</span><span class="small muted">'+(c.fee?'Fee '+rs(c.fee)+' ÷ average views':c.collab?'Collab price '+rs(+c.collab)+' (est.) ÷ average views':'Add the fee below')+'</span></div>'+
-      '<div class="vbox"><span class="k">CPE</span><span class="v">'+rs(pick.cpe,2)+'</span><span class="small muted">Fee ÷ engagement</span></div>'+
-      '<div class="vbox"><span class="k">Shortlist median CPV</span><span class="v">'+rs(R.med,2)+'</span><span class="small muted">'+(R.n>1?'Across '+R.n+' creators with fee and views':'Add more creators with fees to compare')+'</span></div>'+
-      '<div class="vbox"><span class="k">Verdict</span><span><span class="chip '+pick.v.cls+'">'+esc(pick.v.label)+'</span></span><span class="small muted">'+esc(pick.v.why)+'</span></div>'+
-    '</div>'+
-    (isApi(c)?'<div class="value-row">'+
-      '<div class="brand-box '+(hasComp(c)?'hit':'clear')+'"><span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">Competitor mentions</span>'+
-        (hasComp(c)?'<span><span class="chip warn">⚠ Worked with a competitor</span></span><span class="small">'+esc(c.competitors)+'</span>':'<span class="small">'+(c.competitors?'No competitor brands found in the last 25 captions.':'Refresh this creator to check.')+'</span>')+'</div>'+
-      '<div class="brand-box clear"><span class="k small muted" style="text-transform:uppercase;letter-spacing:.03em;font-weight:500">Recent brand collabs</span><span class="small">'+esc(c.collabs&&c.collabs!=='None found'?c.collabs:(c.collabs?'No posts marked as ads or collabs in the last 25 captions.':'Refresh this creator to check.'))+'</span><span class="small muted">From captions with #ad, #collab, paid partnership and similar tags. Collabs not written in captions won’t show.</span></div>'+
-    '</div>'+insightRow(c):'')+
-    '<div class="stack"><h3>Creator details</h3><p class="small muted">The columns your team fills in. '+(isApi(c)?'Followers, views, likes and comments come from Instagram.':'This creator was entered manually, so you can edit every number.')+'</p></div>'+
-    '<form class="form details" id="details-form">'+form+'<button class="btn primary" type="submit" id="cd-save">Save details</button></form>'+
-   '</div>';
-  $('details-form').addEventListener('submit',function(e){ e.preventDefault(); var btn=$('cd-save'); var out={};
-    this.querySelectorAll('[data-d]').forEach(function(el){ out[el.dataset.d]=el.value; });
-    busy(btn,true,'Saving…');
-    call('api_saveCreator',c.handle,out).then(function(s){ current=c.handle; setState(s); toast('Details saved'+(S.live?' to the Google Sheet':'')); })
-    .catch(function(err){toast(err.message,true)}).then(function(){busy(btn,false)}); });
-}
-function stat(k,v,s){ return '<div class="stat"><span class="k">'+k+'</span><span class="v">'+v+'</span><span class="s">'+s+'</span></div>'; }
-
-$('lookup-form').addEventListener('submit',function(e){
-  e.preventDefault();
-  var h=$('lk-handle').value, fee=$('lk-fee').value, btn=$('lk-btn');
-  if(!cleanHandle(h)){ toast('Type an Instagram handle first.',true); $('lk-handle').focus(); return; }
-  busy(btn,true,'Fetching…');
-  call('api_lookup',h,fee).then(function(r){ current=r.handle; setState(r.state); $('lk-handle').value=''; $('lk-fee').value=''; toast('Saved @'+r.handle+' to the shortlist'); })
-  .catch(function(err){ toast(err.message,true); })
-  .then(function(){ busy(btn,false); });
-});
-function saveFee(handle,fee){
-  call('api_setFee',handle,fee).then(function(s){ current=handle; setState(s); toast('Fee saved'); }).catch(function(e){ toast(e.message,true); });
-}
-
-/* ---------------- shortlist view ---------------- */
-var sKey='cpv', sDir=1;
-var VORD={'Good value':0,'Good engagement':1,'Negotiate':2,'Average engagement':3,'Add more creators':4,'Not fetched':5,'Low engagement':6,'Avoid or renegotiate':7};
-var NUMSORT={followers:1,views:1,reach:1,comments:1,collab:1,adRights:1,fee:1};
-function sval(x,k){ if(k==='name') return x.c.handle.toLowerCase(); if(k==='competitors') return hasComp(x.c)?0:(x.c.competitors?1:null); if(k==='verdict') return VORD[x.v.label]; if(k==='engagement') return x.eng;
-  if(k==='er'||k==='cpv'||k==='cpe'||k==='cpm'||k==='cpr') return x[k]; if(k==='credibility'){ var qq=qualityInfo(x.c); return qq?qq.score:null; } if(k==='sponsoredLift'){ var lm=String(x.c.sponsoredLift||'').match(/^([+-]\d+)%/); return lm?+lm[1]:null; } if(NUMSORT[k]) return x.c[k]; var v=x.c[k]; return v?String(v).toLowerCase():null; }
-function sortList(list,key,dir,fn){
-  return list.slice().sort(function(a,b){ var va=fn(a,key), vb=fn(b,key); var na=va==null||va===''||(typeof va==='number'&&!isFinite(va)), nb=vb==null||vb===''||(typeof vb==='number'&&!isFinite(vb));
-    if(na&&nb) return 0; if(na) return 1; if(nb) return -1; return (va<vb?-1:va>vb?1:0)*dir; });
-}
-function urlCell(u){ if(!u) return '<span class="muted">—</span>'; if(/\s/.test(String(u).trim())||!/[.\/]/.test(u)) return '<span class="muted small">'+esc(u)+'</span>'; var href=/^https?:/i.test(u)?u:'https://'+u; return '<a class="lnk" href="'+esc(href)+'" target="_blank" rel="noopener">Open ↗</a>'; }
-function renderShortlist(){
-  var R=creatorRows(); var list=sortList(R.list,sKey,sDir,sval);
-  var cols=TEAM_COLS.concat([['cpm','CPM','rs2'],['cpr','CPR','rs2'],['platform','Platform','text'],['tier','Tier','text'],['sponsoredLift','Sponsored vs organic','lift'],['bestFormat','Best format','long'],['verdict','Verdict','verdict'],['competitors','Competitor mentions','comp'],['collabs','Recent brand collabs','long']]);
-  var allSel=list.length&&list.every(function(x){return SEL[x.c.handle]});
-  var head='<thead><tr><th><input type="checkbox" id="sel-all" aria-label="Select all creators"'+(allSel?' checked':'')+'></th>'+cols.map(function(c){ var n=['int','er','eng','rs2','rs','fee'].indexOf(c[2])>=0;
-    return '<th class="'+(n?'n':'')+(c[0]==='name'?' stick':'')+'"><button class="sort '+(sKey===c[0]?'on':'')+'" data-k="'+c[0]+'">'+esc(c[1])+'<span class="arr">'+(sKey===c[0]&&sDir<0?'▼':'▲')+'</span></button></th>'; }).join('')+'<th><span class="small">Remove</span></th></tr></thead>';
-  var hi=function(k){return sKey===k?' hi':''};
-  var body=list.length?list.map(function(x){ var c=x.c; var stc=x.st==='good'?'good':x.st==='ok'?'warn':x.st?'bad':'';
-    return '<tr><td><input type="checkbox" data-sel="'+esc(c.handle)+'" aria-label="Select '+esc(c.handle)+'"'+(SEL[c.handle]?' checked':'')+'></td>'+cols.map(function(col){ var k=col[0], t=col[2], v=c[k];
-      if(t==='name') return '<td class="stick'+hi(k)+'"><button class="sort cname" data-open="'+esc(c.handle)+'">'+esc(dn(c))+'</button><div class="csub">'+esc(ago(c.updated))+'</div></td>';
-      if(t==='url') return '<td class="'+hi(k).trim()+'">'+urlCell(v)+'</td>';
-      if(t==='int') return '<td class="n'+hi(k)+'">'+(ok(v)?short(v):'—')+'</td>';
-      if(t==='er') return '<td class="n'+hi(k)+'">'+(stc?'<span class="dot '+stc+'"></span>':'')+pct(x.er,2)+'</td>';
-      if(t==='eng') return '<td class="n'+hi(k)+'">'+(ok(x.eng)&&x.eng?short(x.eng):'—')+'</td>';
-      if(t==='rs2') return '<td class="n'+hi(k)+'"><strong>'+rs(x[k],2)+'</strong></td>';
-      if(t==='rs') return '<td class="n'+hi(k)+'">'+rs(v)+'</td>';
-      if(t==='fee') return '<td class="n'+hi(k)+'"><input class="cell-in fee" type="number" min="0" step="any" data-fee="'+esc(c.handle)+'" value="'+(c.fee||'')+'" placeholder="Add fee" aria-label="Fee for '+esc(c.handle)+'"></td>';
-      if(t==='long') return '<td class="'+hi(k).trim()+'"><div class="why" style="margin:0">'+(v?esc(v):'<span class="muted">—</span>')+'</div></td>';
-      if(t==='verdict') return '<td class="'+hi(k).trim()+'"><span class="chip '+x.v.cls+'">'+esc(x.v.label)+'</span><div class="why">'+esc(x.v.why)+'</div></td>';
-      if(t==='quality'){ var qi=qualityInfo(c); return '<td class="'+hi(k).trim()+'">'+(qi?'<span class="chip '+qi.cls+'">'+esc(qi.label+(qi.score!=null?' · '+qi.score:''))+'</span><div class="why">'+esc(String(c.qualityWhy||'').replace(/ Based on.*$/,''))+'</div>':'<span class="muted">—</span>')+'</td>'; }
-      if(t==='lift'){ var lc2=liftCls(v); return '<td class="'+hi(k).trim()+'">'+(v?(lc2?'<span class="chip '+lc2+'">'+esc(String(v).split(' · ')[0])+'</span><div class="why">'+esc(String(v).replace(/^[+-]\d+% · /,''))+'</div>':'<span class="small muted">'+esc(v)+'</span>'):'<span class="muted">—</span>')+'</td>'; }
-      if(t==='comp') return '<td class="'+hi(k).trim()+'">'+(hasComp(c)?'<span class="chip warn">⚠ Competitor</span><span class="comp-hit">'+esc(v)+'</span>':(v?'<span class="muted small">None found</span>':'<span class="muted">—</span>'))+'</td>';
-      if(k==='tier') return '<td class="'+hi(k).trim()+'">'+esc(x.tier||'—')+'</td>';
-      return '<td class="'+hi(k).trim()+'">'+(v?esc(v):'<span class="muted">—</span>')+'</td>';
-    }).join('')+'<td><button class="x" data-rm="'+esc(c.handle)+'" aria-label="Remove '+esc(c.handle)+'">×</button></td></tr>';
-  }).join(''):'<tr><td colspan="'+(cols.length+2)+'" class="muted" style="white-space:normal">No creators yet. Look one up in the Creator lookup tab, or add one below.</td></tr>';
-  var t=$('short-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
-  t.querySelectorAll('.sort[data-k]').forEach(function(b){ b.onclick=function(){ var k=b.dataset.k; if(sKey===k) sDir*=-1; else { sKey=k; sDir=1; } renderShortlist(); }; });
-  t.querySelectorAll('[data-open]').forEach(function(b){ b.onclick=function(){ current=b.dataset.open; renderLookup(); showView('lookup'); }; });
-  t.querySelectorAll('[data-fee]').forEach(function(i){ i.onchange=function(){ saveFee(i.dataset.fee,i.value); }; });
-  t.querySelectorAll('[data-sel]').forEach(function(i){ i.onchange=function(){ SEL[i.dataset.sel]=i.checked; updateSelCount(); var a=$('sel-all'); if(a) a.checked=list.every(function(x){return SEL[x.c.handle]}); }; });
-  var sa=$('sel-all'); if(sa) sa.onchange=function(){ list.forEach(function(x){ SEL[x.c.handle]=sa.checked; }); renderShortlist(); updateSelCount(); };
-  t.querySelectorAll('[data-rm]').forEach(function(b){ b.onclick=function(){ armOnce(b,'Remove?',function(){
-    call('api_removeCreator',b.dataset.rm).then(function(s){ if(current===b.dataset.rm) current=null; setState(s); toast('Removed '+b.dataset.rm); }).catch(function(e){toast(e.message,true)}); }); }; });
-  renderShortChart(R);
-}
-function renderShortChart(R){
-  var rows=R.list.filter(function(x){return ok(x.cpv)}).sort(function(a,b){return a.cpv-b.cpv});
-  var el=$('short-chart');
-  if(!rows.length){ el.innerHTML='<p class="muted small">Add fees to creators with video views to compare their cost per view.</p>'; return; }
-  var W=660,L=190,Rm=72,top=34,rowH=32,H=top+rows.length*rowH+30;
-  var max=niceMax(Math.max.apply(null,rows.map(function(x){return x.cpv}).concat([R.med||0])));
-  var X=function(v){return L+(v/max)*(W-L-Rm)}; var dec=max<1?2:max<10?1:0;
-  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Estimated cost per view by creator">';
-  [0,max/2,max].forEach(function(t){ s+='<line class="g-line" x1="'+X(t)+'" x2="'+X(t)+'" y1="'+(top-6)+'" y2="'+(H-24)+'"/><text class="t-mut" x="'+X(t)+'" y="'+(H-8)+'" text-anchor="middle">₹'+t.toFixed(dec)+'</text>'; });
-  rows.forEach(function(r,i){ var y=top+i*rowH; var nm=dn(r.c); if(nm.length>24) nm=nm.slice(0,23)+'…';
-    var cls=r.v.cls==='neutral'?'neutral':r.v.cls;
-    s+='<text class="t-ink" x="'+(L-10)+'" y="'+(y+rowH/2+4)+'" text-anchor="end">'+esc(nm)+'</text>';
-    s+='<rect class="b-'+cls+'" x="'+L+'" y="'+(y+7)+'" width="'+Math.max(2,X(r.cpv)-L)+'" height="'+(rowH-14)+'" rx="3"/>';
-    s+='<text class="t-ink" x="'+(X(r.cpv)+6)+'" y="'+(y+rowH/2+4)+'" font-weight="600">₹'+r.cpv.toFixed(2)+'</text>'; });
-  if(ok(R.med)){ var mx=X(R.med), lx=Math.min(W-60,Math.max(L+40,mx));
-    s+='<line class="m-line" x1="'+mx+'" x2="'+mx+'" y1="'+(top-4)+'" y2="'+(H-24)+'"/><text class="t-mut" x="'+lx+'" y="'+(top-12)+'" text-anchor="middle">Median ₹'+R.med.toFixed(2)+'</text>'; }
-  el.innerHTML=s+'</svg>';
-}
-$('refresh-creators').addEventListener('click',function(){ var b=this; busy(b,true,'Refreshing…');
-  call('api_refreshCreators').then(function(r){ setState(r.state); toast(r.errors.length?r.errors.length+' creators could not be refreshed':'Shortlist refreshed', !!r.errors.length); })
-  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-
-/* ---------------- campaign view ---------------- */
-var settingsDirty=false;
-function fillSettings(){
-  if(settingsDirty) return; var s=S.settings||{};
-  $('cs-name').value=s.name||''; $('cs-budget').value=s.budget||''; $('cs-start').value=s.start||''; $('cs-end').value=s.end||'';
-}
-['cs-name','cs-budget','cs-start','cs-end'].forEach(function(id){ $(id).addEventListener('input',function(){ settingsDirty=true; S.settings=readSettings(); renderKPIs(postRows()); renderBudget(postRows()); renderSummary(); }); });
-function readSettings(){ return {name:$('cs-name').value.trim(), budget:num($('cs-budget').value), start:$('cs-start').value, end:$('cs-end').value}; }
-$('save-settings').addEventListener('click',function(){ var b=this; busy(b,true,'Saving…');
-  call('api_saveSettings',readSettings()).then(function(s){ settingsDirty=false; setState(s); toast('Campaign details saved'); }).catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-
-function renderCampaign(){ fillSettings(); var P=postRows(); renderKPIs(P); renderBudget(P); renderPosts(P); }
-function renderKPIs(P){
-  var t=P.t, budget=(S.settings||{}).budget;
-  var tiles=[
-    ['Spend',rShort(t.fee),budget?pct(t.fee/budget*100,0)+' of '+rShort(budget)+' budget':'Set a budget above'],
-    ['Views',short(t.views),(S.posts||[]).length+' post'+((S.posts||[]).length===1?'':'s')],
-    ['Blended CPV',t.views?rs(t.fee/t.views,2):'—',t.views?'CPM '+rs(t.fee/t.views*1000,0):'Needs views'],
-    ['Engagement rate',t.views?pct(t.eng/t.views*100,2):'—','Engagement ÷ views'],
-    ['Engagement',short(t.eng),'Likes + comments on all posts'],
-    ['CPE',t.eng?rs(t.fee/t.eng,2):'—','Spend ÷ engagement']
-  ];
-  $('kpis').innerHTML=tiles.map(function(x){return '<div class="kpi"><span class="k">'+x[0]+'</span><span class="v">'+x[1]+'</span><span class="s">'+x[2]+'</span></div>'}).join('');
-}
-function renderBudget(P){
-  var budget=(S.settings||{}).budget, spent=P.t.fee, p=budget?spent/budget*100:0;
-  $('budget-fill').style.width=Math.min(100,p)+'%'; $('budget-fill').classList.toggle('over',p>100);
-  $('budget-l').innerHTML=budget?'<strong>'+rs(spent)+'</strong> spent of '+rs(budget)+' · '+(p>100?'<span style="color:var(--bad)">'+rs(spent-budget)+' over budget</span>':rs(budget-spent)+' left'):'Set a total budget to track spend';
-  var di=dayInfo();
-  if(di){ $('time-tick').hidden=false; $('time-tick').style.left='calc('+(di.frac*100)+'% - 1px)';
-    $('budget-r').textContent=di.day<1?'Starts in '+(1-di.day)+' day'+(1-di.day===1?'':'s'):di.day>di.total?'Ended · ran '+di.total+' days':'Day '+di.day+' of '+di.total; }
-  else { $('time-tick').hidden=true; $('budget-r').textContent='Add start and end dates'; }
-}
-var EDIT=['fee','views','likes','comments'];
-function renderPosts(P){
-  var head='<thead><tr><th>Creator · post</th><th class="n">Fee</th><th class="n">Views</th><th class="n">Likes</th><th class="n">Comments</th><th class="n">ER (views)</th><th class="n">CPV</th><th class="n">CPE</th><th class="n">CPM</th><th>Verdict</th><th><span class="small">Remove</span></th></tr></thead>';
-  var list=P.list.slice().sort(function(a,b){ return String(a.p.posted||'').localeCompare(String(b.p.posted||'')); });
-  var body=list.length?list.map(function(x){ var p=x.p;
-    var lk=/^https?:/.test(p.link||'')&&S.live?'<a class="lnk" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+esc(p.id)+' ↗</a>':(/^M/.test(p.id)?'manual entry':esc(p.id));
-    return '<tr><td><div class="cname">'+esc(pdn(p))+'</div><div class="csub">'+esc(p.platform||'Instagram')+' · '+lk+(p.posted?' · '+esc(new Date(p.posted).toLocaleDateString('en-IN',{day:'numeric',month:'short'})):'')+'</div><div class="stat-note">'+esc(p.status||'')+'</div></td>'+
-      EDIT.map(function(k){ return '<td class="n"><input class="cell-in'+(k==='fee'?' fee':'')+'" type="number" min="0" step="any" data-post="'+esc(p.id)+'" data-k="'+k+'" value="'+(p[k]||'')+'" placeholder="—" aria-label="'+k+' for '+esc(p.id)+'"></td>'; }).join('')+
-      '<td class="n">'+pct(x.erV,2)+'</td><td class="n"><strong>'+rs(x.cpv,2)+'</strong></td><td class="n">'+rs(x.cpe,2)+'</td><td class="n">'+rs(x.cpm,0)+'</td>'+
-      '<td><span class="chip '+x.v.cls+'">'+esc(x.v.label)+'</span><div class="why">'+esc(x.v.why)+'</div></td>'+
-      '<td><button class="x" data-rmp="'+esc(p.id)+'" aria-label="Remove post '+esc(p.id)+'">×</button></td></tr>';
-  }).join(''):'<tr><td colspan="11" class="muted" style="white-space:normal">No campaign posts yet. Add the first one with the form above.</td></tr>';
-  var t=$('post-table'); t.innerHTML=head+'<tbody>'+body+'</tbody>';
-  t.querySelectorAll('input[data-post]').forEach(function(i){ i.onchange=function(){ var f={}; f[i.dataset.k]=i.value;
-    call('api_updatePost',i.dataset.post,f).then(function(s){ setState(s); toast('Saved'); }).catch(function(e){toast(e.message,true)}); }; });
-  t.querySelectorAll('[data-rmp]').forEach(function(b){ b.onclick=function(){ armOnce(b,'Remove?',function(){
-    call('api_removePost',b.dataset.rmp).then(function(s){ setState(s); toast('Post removed'); }).catch(function(e){toast(e.message,true)}); }); }; });
-}
-$('pf-handle').addEventListener('change',function(){ var h=cleanHandle(this.value); var c=(S.creators||[]).find(function(x){return x.handle===h}); if(c&&c.fee&&!$('pf-fee').value) $('pf-fee').value=c.fee; });
-$('post-form').addEventListener('submit',function(e){
-  e.preventDefault(); var btn=$('pf-btn');
-  var p={handle:$('pf-handle').value, link:$('pf-link').value, fee:$('pf-fee').value, platform:$('pf-platform').value, views:$('pf-views').value, likes:$('pf-likes').value, comments:$('pf-comments').value};
-  var igLink=!!shortcode(p.link)&&p.platform.indexOf('Instagram')===0&&p.platform!=='Instagram Story';
-  if(!String(p.handle).trim()){ toast('Add the creator’s handle or name.',true); $('pf-handle').focus(); return; }
-  if(!igLink&&!num(p.views)){ toast(p.platform.indexOf('Instagram')===0&&p.platform!=='Instagram Story'?'Paste the Instagram post link, or type the views yourself.':'Type the views from the creator’s insights.',true); $('pf-views').focus(); return; }
-  busy(btn,true,'Fetching numbers…');
-  call('api_addPost',p).then(function(r){ setState(r.state); $('post-form').reset(); $('pf-platform').value='Instagram'; toast(/^Entered manually$/i.test(r.status||'')?'Post added':r.status, /^✗|not found/i.test(r.status)); })
-  .catch(function(err){ toast(err.message,true); }).then(function(){ busy(btn,false); });
-});
-$('refresh-posts').addEventListener('click',function(){ var b=this; busy(b,true,'Refreshing…');
-  call('api_refreshPosts').then(function(r){ setState(r.state); toast(r.errors.length?r.errors.length+' posts could not be refreshed':'Post numbers refreshed', !!r.errors.length); })
-  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-
-/* ---------------- summary ---------------- */
-function summaryText(){
-  var P=postRows(), R=creatorRows(), t=P.t, s=S.settings||{}, di=dayInfo(), L=[];
-  L.push((s.name||'Campaign')+' update'+(di&&di.day>=1&&di.day<=di.total?' (day '+di.day+' of '+di.total+')':''));
-  if((S.posts||[]).length){
-    L.push('');
-    L.push('Spend: '+rs(t.fee)+(s.budget?' of '+rs(s.budget)+' ('+pct(t.fee/s.budget*100,0)+')':''));
-    L.push('Views: '+n0(t.views)+' across '+S.posts.length+' posts');
-    L.push('Blended CPV: '+(t.views?rs(t.fee/t.views,2):'—')+' | CPM: '+(t.views?rs(t.fee/t.views*1000,0):'—'));
-    L.push('Engagement rate: '+(t.views?pct(t.eng/t.views*100,2):'—')+' by views | CPE: '+(t.eng?rs(t.fee/t.eng,2):'—'));
-    var best=P.list.filter(function(x){return ok(x.cpv)}).sort(function(a,b){return a.cpv-b.cpv})[0];
-    if(best) L.push('Best value post: '+pdn(best.p)+' at '+rs(best.cpv,2)+' per view');
-    var reb=P.list.filter(function(x){return x.v.label==='Rebook'}).map(function(x){return pdn(x.p)});
-    var rev=P.list.filter(function(x){return x.v.label==='Review'}).map(function(x){return pdn(x.p)});
-    if(reb.length) L.push('Rebook: '+reb.join(', '));
-    if(rev.length) L.push('Needs review: '+rev.join(', '));
-  } else { L.push(''); L.push('No campaign posts tracked yet.'); }
-  var good=R.list.filter(function(x){return x.v.label==='Good value'});
-  var neg=R.list.filter(function(x){return x.v.label==='Negotiate'});
-  var avoid=R.list.filter(function(x){return x.v.label==='Avoid or renegotiate'});
-  if(R.list.length){
-    var withFee=R.list.filter(function(x){return x.price});
-    if(withFee.length){ L.push(''); L.push('Shortlist averages ('+withFee.length+' creators with fee or est. price):');
-      L.push('Avg CPV '+rs(avgOf(withFee,'cpv'),2)+' | Avg CPE '+rs(avgOf(withFee,'cpe'),2)+' | Avg CPM '+rs(avgOf(withFee,'cpm'),0)+' | Avg CPR '+rs(avgOf(withFee,'cpr'),2)+' (est.)');
-      L.push('Avg ER '+pct(avgOf(withFee,'er'),2)+' | Total price '+rs(withFee.reduce(function(a,x){return a+(x.price||0)},0))); }
-    L.push(''); L.push('Shortlist for next booking ('+R.list.length+' creators checked):');
-    good.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): good value, ER '+pct(x.er,2)+', est. CPV '+rs(x.cpv,2)); });
-    neg.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): negotiate ('+x.v.why.replace(/\.$/,'')+')'); });
-    avoid.forEach(function(x){ L.push('• '+dn(x.c)+' ('+(x.c.platform||'Instagram')+'): avoid or renegotiate ('+x.v.why.replace(/\.$/,'')+')'); });
-    if(!good.length&&!neg.length&&!avoid.length) L.push('• Add fees to compare prices.');
-    var qs=R.list.map(function(x){return {x:x,q:qualityInfo(x.c)}}).filter(function(o){return o.q&&o.q.score!=null});
-    if(qs.length){ var cnt=function(l){return qs.filter(function(o){return o.q.label===l}).length};
-      L.push(''); L.push('Audience quality (est.): '+cnt('Genuine')+' genuine, '+cnt('Check')+' to check, '+cnt('Suspicious')+' suspicious');
-      qs.filter(function(o){return o.q.label!=='Genuine'}).forEach(function(o){ L.push('• '+dn(o.x.c)+': '+o.q.label.toLowerCase()+' ('+o.q.score+'/100). '+String(o.x.c.qualityWhy||'').replace(/\. Based on.*$/,'')); }); }
-    var comp=R.list.filter(function(x){return hasComp(x.c)});
-    if(comp.length){ L.push(''); L.push('Worked with competitors recently:'); comp.forEach(function(x){ L.push('• '+dn(x.c)+': '+x.c.competitors); }); }
-  }
-  return L.join('\n');
-}
-function avgOf(list,k){ var v=list.map(function(x){return x[k]}).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
-function metricData(){
-  var R=creatorRows(), P=postRows(), L=R.list.filter(function(x){return x.price}), t=P.t, s=S.settings||{};
-  var sum=function(k){ return L.reduce(function(a,x){ return a+(+x.c[k]||0); },0); };
-  var fees=L.reduce(function(a,x){ return a+(x.price||0); },0), views=sum('avgViews'), reach=sum('reach'), fol=sum('followers'), eng=L.reduce(function(a,x){return a+(x.eng||0)},0);
-  return {n:L.length, posts:(S.posts||[]).length, rows:[
-    ['Total fees / spend','sum of fees',rs(fees),rs(t.fee)],
-    ['Budget used','spend ÷ budget × 100','—',s.budget?pct(t.fee/s.budget*100,1):'—'],
-    ['Budget left','budget − spend','—',s.budget?rs(s.budget-t.fee):'—'],
-    ['Avg ER (followers)','engagement ÷ followers × 100',pct(avgOf(L,'er'),2),'—'],
-    ['Avg ER (views)','engagement ÷ views × 100',pct(avgOf(L,'erV'),2),t.views?pct(t.eng/t.views*100,2):'—'],
-    ['Avg ER (reach)','engagement ÷ reach × 100',pct(avgOf(L,'erR'),2),'—'],
-    ['Avg CPV','average of CPV',rs(avgOf(L,'cpv'),2),rs(avgOf(P.list,'cpv'),2)],
-    ['Blended CPV','total fees ÷ total views',views?rs(fees/views,2):'—',t.views?rs(t.fee/t.views,2):'—'],
-    ['Avg CPE','average of CPE',rs(avgOf(L,'cpe'),2),rs(avgOf(P.list,'cpe'),2)],
-    ['Blended CPE','total fees ÷ total engagement',eng?rs(fees/eng,2):'—',t.eng?rs(t.fee/t.eng,2):'—'],
-    ['Avg CPM','average of fee ÷ views × 1,000',rs(avgOf(L,'cpm'),0),rs(avgOf(P.list,'cpm'),0)],
-    ['Blended CPM','total fees ÷ total views × 1,000',views?rs(fees/views*1000,0):'—',t.views?rs(t.fee/t.views*1000,0):'—'],
-    ['Avg CPR','average of fee ÷ reach',rs(avgOf(L,'cpr'),2),'—'],
-    ['Blended CPR','total fees ÷ total reach',reach?rs(fees/reach,2):'—','—'],
-    ['Cost per 1K followers','fee ÷ followers × 1,000',rs(avgOf(L,'cpf'),0),'—'],
-    ['Avg reach rate','reach ÷ followers × 100',pct(avgOf(L,'reachRate'),1),'—'],
-    ['Avg view rate','views ÷ followers × 100',pct(avgOf(L,'viewRate'),1),'—'],
-    ['Total views','sum of views',short(views),short(t.views)],
-    ['Total engagement','likes + comments',short(eng),short(t.eng)],
-    ['Total followers reached','sum of followers',short(fol),'—']
-  ]};
-}
-function renderSummary(){ $('summary-text').textContent=summaryText();
-  var M=metricData();
-  $('metrics-table').innerHTML='<thead><tr><th>Metric</th><th>Formula</th><th class="n">Shortlist ('+M.n+' with fee or est. price)</th><th class="n">Campaign ('+M.posts+' posts)</th></tr></thead><tbody>'+
-    M.rows.map(function(r){ return '<tr><td><strong>'+esc(r[0])+'</strong></td><td class="small muted" style="font-family:var(--f-mono)">'+esc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[3]+'</td></tr>'; }).join('')+'</tbody>'; }
-$('dl-report').addEventListener('click',function(){ downloadReport(this); });
-$('copy-summary').addEventListener('click',function(){ var b=this, text=summaryText();
-  var done=function(){ var o=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=o},1600); };
-  var fb=function(){ var ta=$('copy-fallback'); ta.hidden=false; ta.value=text; ta.focus(); ta.select(); toast('Select all and copy the text below'); };
-  try{ navigator.clipboard.writeText(text).then(done,fb); }catch(e){ fb(); } });
-
-/* ---------------- campaign report (PDF) ---------------- */
-var H2P_URL='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-function loadScript(src){ return new Promise(function(res,rej){ if(window.html2pdf) return res(); var s=document.createElement('script'); s.src=src; s.onload=function(){res()}; s.onerror=function(){rej(new Error('Could not load the PDF maker. Check your internet and try again.'))}; document.head.appendChild(s); }); }
-function rpSum(list,f){ return list.reduce(function(a,x){ var v=f(x); return a+(ok(v)?v:0); },0); }
-function rpAvg(list,f){ var v=list.map(f).filter(ok); return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null; }
-function reportHTML(){
-  var P=postRows(), R=creatorRows(), s=S.settings||{}, user=(S.user&&S.user.name)||'', posts=P.list, cr=R.list;
-  var today=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-  var dates=s.start&&s.end?new Date(s.start).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' – '+new Date(s.end).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
-  var A='#0D6A65', INK='#15211F', MU='#586966', LN='#D5DFDC', SK='#EEF3F1';
-  var th='style="text-align:left;padding:6px 7px;font-size:9.5px;color:#fff;background:'+A+';font-weight:600"', thn='style="text-align:right;padding:6px 7px;font-size:9.5px;color:#fff;background:'+A+';font-weight:600"';
-  var td=function(v,n,b){ return '<td style="padding:5px 7px;font-size:9.5px;border-bottom:1px solid '+LN+';'+(n?'text-align:right;':'')+(b?'font-weight:700;':'')+'">'+v+'</td>'; };
-  var h2=function(t,sub){ return '<div class="avoid" style="margin:22px 0 8px"><div style="font-size:15px;font-weight:700;color:'+INK+'">'+t+'</div>'+(sub?'<div style="font-size:9.5px;color:'+MU+'">'+sub+'</div>':'')+'</div>'; };
-  var tile=function(k,v,sub){ return '<div style="flex:1;background:'+SK+';border-radius:8px;padding:10px 12px"><div style="font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:'+MU+'">'+k+'</div><div style="font-size:18px;font-weight:700;color:'+INK+';margin-top:2px">'+v+'</div><div style="font-size:8.5px;color:'+MU+'">'+(sub||'')+'</div></div>'; };
-  var out=[];
-  out.push('<div style="border-bottom:3px solid '+A+';padding-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">'+
-    '<div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+A+';font-weight:600">Campaign report</div>'+
-    '<div style="font-size:24px;font-weight:700;color:'+INK+';margin-top:2px">'+esc(s.name||'Influencer campaign')+'</div>'+
-    '<div style="font-size:10px;color:'+MU+'">'+[dates,s.budget?'Budget '+rs(s.budget):'',posts.length+' posts · '+cr.length+' creators on the shortlist'].filter(Boolean).map(esc).join(' · ')+'</div></div>'+
-    '<div style="text-align:right;font-size:9px;color:'+MU+'">'+esc(today)+(user?'<br>Prepared by '+esc(user):'')+'<br><strong style="color:'+A+'">My Creator Desk</strong></div></div>');
-
-  if(posts.length){
-    var t=P.t, likes=rpSum(posts,function(x){return x.p.likes}), comm=rpSum(posts,function(x){return x.p.comments}), n=posts.length;
-    out.push('<div class="avoid" style="display:flex;gap:8px;margin-top:14px">'+
-      tile('Total spend',rs(t.fee),s.budget?pct(t.fee/s.budget*100,0)+' of budget':'avg '+rs(t.fee/n)+' per post')+
-      tile('Total views',short(t.views),'avg '+short(t.views/n)+' per post')+
-      tile('Blended CPV',t.views?rs(t.fee/t.views,2):'—','avg of posts '+rs(rpAvg(posts,function(x){return x.cpv}),2))+
-      tile('ER by views',t.views?pct(t.eng/t.views*100,2):'—','avg of posts '+pct(rpAvg(posts,function(x){return x.erV}),2))+'</div>');
-    out.push(h2('Totals and averages','Total = everything added up. Average = per post. Blended = total cost ÷ total result.'));
-    var rows=[
-      ['Spend',rs(t.fee),rs(t.fee/n)],
-      ['Views',n0(t.views),n0(t.views/n)],
-      ['Likes',n0(likes),n0(likes/n)],
-      ['Comments',n0(comm),n0(comm/n)],
-      ['Engagement (likes + comments)',n0(t.eng),n0(t.eng/n)],
-      ['CPV (cost per view)',t.views?rs(t.fee/t.views,2)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpv}),2)],
-      ['CPE (cost per engagement)',t.eng?rs(t.fee/t.eng,2)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpe}),2)],
-      ['CPM (cost per 1,000 views)',t.views?rs(t.fee/t.views*1000,0)+' blended':'—',rs(rpAvg(posts,function(x){return x.cpm}),0)],
-      ['ER by views',t.views?pct(t.eng/t.views*100,2)+' blended':'—',pct(rpAvg(posts,function(x){return x.erV}),2)]];
-    if(s.budget) rows.push(['Budget used',pct(t.fee/s.budget*100,1)+' ('+rs(s.budget-t.fee)+' left)','—']);
-    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Metric</th><th '+thn+'>Total</th><th '+thn+'>Average per post</th></tr></thead><tbody>'+
-      rows.map(function(r){ return '<tr>'+td('<strong>'+r[0]+'</strong>')+td(r[1],1)+td(r[2],1)+'</tr>'; }).join('')+'</tbody></table>');
-
-    // spend vs views chart
-    var top=posts.slice().sort(function(a,b){return (b.p.fee||0)-(a.p.fee||0)}).slice(0,10);
-    var mf=Math.max.apply(null,top.map(function(x){return x.p.fee||0}).concat([1])), mv=Math.max.apply(null,top.map(function(x){return x.p.views||0}).concat([1]));
-    out.push(h2('Spend vs views','Top '+top.length+' posts by spend. A long green bar with a short grey bar means good value.'));
-    out.push('<div class="avoid">'+top.map(function(x){ var p=x.p;
-      return '<div style="display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;margin:3px 0"><div style="font-size:9px;color:'+INK+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(pdn(p))+'</div>'+
-        '<div><div style="display:flex;align-items:center;gap:6px"><div style="height:7px;border-radius:3px;background:#9AA9A6;width:'+Math.max(1,(p.fee||0)/mf*75)+'%"></div><span style="font-size:8px;color:'+MU+'">'+rs(p.fee)+'</span></div>'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><div style="height:7px;border-radius:3px;background:'+A+';width:'+Math.max(1,(p.views||0)/mv*75)+'%"></div><span style="font-size:8px;color:'+MU+'">'+short(p.views)+' views</span></div></div></div>'; }).join('')+
-      '<div style="font-size:8.5px;color:'+MU+';margin-top:4px"><span style="display:inline-block;width:9px;height:7px;background:#9AA9A6;border-radius:2px"></span> Spend &nbsp; <span style="display:inline-block;width:9px;height:7px;background:'+A+';border-radius:2px"></span> Views</div></div>');
-
-    out.push(h2('Every post','Sorted by cost per view, best first.'));
-    var ps=posts.slice().sort(function(a,b){ return (ok(a.cpv)?a.cpv:1e9)-(ok(b.cpv)?b.cpv:1e9); });
-    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Creator</th><th '+th+'>Platform</th><th '+thn+'>Fee</th><th '+thn+'>Views</th><th '+thn+'>Likes</th><th '+thn+'>Comments</th><th '+thn+'>ER views</th><th '+thn+'>CPV</th><th '+thn+'>CPE</th><th '+thn+'>CPM</th><th '+th+'>Verdict</th></tr></thead><tbody>'+
-      ps.map(function(x){ var p=x.p; return '<tr>'+td(esc(pdn(p)))+td(esc(p.platform||'Instagram'))+td(rs(p.fee),1)+td(n0(p.views),1)+td(n0(p.likes),1)+td(n0(p.comments),1)+td(pct(x.erV,2),1)+td(rs(x.cpv,2),1)+td(rs(x.cpe,2),1)+td(rs(x.cpm,0),1)+td(esc(x.v.label))+'</tr>'; }).join('')+
-      '<tr style="background:'+SK+'">'+td('Total',0,1)+td('')+td(rs(t.fee),1,1)+td(n0(t.views),1,1)+td(n0(likes),1,1)+td(n0(comm),1,1)+td(t.views?pct(t.eng/t.views*100,2):'—',1,1)+td(t.views?rs(t.fee/t.views,2):'—',1,1)+td(t.eng?rs(t.fee/t.eng,2):'—',1,1)+td(t.views?rs(t.fee/t.views*1000,0):'—',1,1)+td('')+'</tr>'+
-      '<tr style="background:'+SK+'">'+td('Average',0,1)+td('')+td(rs(t.fee/n),1,1)+td(n0(t.views/n),1,1)+td(n0(likes/n),1,1)+td(n0(comm/n),1,1)+td(pct(rpAvg(posts,function(x){return x.erV}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpv}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpe}),2),1,1)+td(rs(rpAvg(posts,function(x){return x.cpm}),0),1,1)+td('')+'</tr>'+
-      '</tbody></table>');
-    var ranked=posts.filter(function(x){return ok(x.cpv)}).sort(function(a,b){return a.cpv-b.cpv});
-    if(ranked.length>=2){
-      var k=Math.min(3,Math.floor(ranked.length/2)||1);
-      var li=function(x){ return '<li style="font-size:9.5px;margin:2px 0">'+esc(pdn(x.p))+': '+rs(x.cpv,2)+' per view, '+short(x.p.views)+' views for '+rs(x.p.fee)+'</li>'; };
-      out.push('<div class="avoid" style="display:flex;gap:10px;margin-top:16px">'+
-        '<div style="flex:1;border-left:3px solid #1E7845;padding:6px 10px;background:#F2FAF5"><div style="font-size:10.5px;font-weight:700;color:#1E7845">Best value (top '+k+')</div><ul style="margin:4px 0 0;padding-left:14px">'+ranked.slice(0,k).map(li).join('')+'</ul></div>'+
-        '<div style="flex:1;border-left:3px solid #B13529;padding:6px 10px;background:#FCF3F1"><div style="font-size:10.5px;font-weight:700;color:#B13529">Costliest per view (bottom '+k+')</div><ul style="margin:4px 0 0;padding-left:14px">'+ranked.slice(-k).reverse().map(li).join('')+'</ul></div></div>');
-    }
-  }
-
-  if(cr.length){
-    var priced=cr.filter(function(x){return x.price});
-    out.push(h2('Creator shortlist',cr.length+' creators. Prices marked (est.) are estimates when no fee was typed.'));
-    var ths='style="text-align:left;padding:5px 5px;font-size:8.5px;color:#fff;background:'+A+';font-weight:600"', thns='style="text-align:right;padding:5px 5px;font-size:8.5px;color:#fff;background:'+A+';font-weight:600"';
-    var tds=function(v,n,b){ return '<td style="padding:4px 5px;font-size:8.5px;border-bottom:1px solid '+LN+';'+(n?'text-align:right;':'')+(b?'font-weight:700;':'')+'">'+v+'</td>'; };
-    out.push('<table style="width:100%;border-collapse:collapse"><thead><tr><th '+ths+'>Creator</th><th '+thns+'>Followers</th><th '+thns+'>Avg views</th><th '+thns+'>ER</th><th '+ths+'>Audience quality</th><th '+ths+'>Best format</th><th '+thns+'>Sponsored vs organic</th><th '+thns+'>Price</th><th '+thns+'>CPV</th><th '+ths+'>Verdict</th></tr></thead><tbody>'+
-      cr.map(function(x){ var c=x.c, q=qualityInfo(c); return '<tr>'+tds(esc(dn(c)))+tds(short(c.followers),1)+tds(short(c.avgViews),1)+tds(pct(x.er,2),1)+tds(q?esc(q.label+(q.score!=null?' '+q.score:'')):'—')+tds(esc(String(c.bestFormat||'—').replace(/ \(.*$/,'')))+tds(esc((String(c.sponsoredLift||'').match(/^[+-]\d+%/)||[c.sponsoredLift?'None':'—'])[0]))+tds(x.price?rs(x.price)+(x.priceEst?' (est.)':''):'—',1)+tds(rs(x.cpv,2),1)+tds(esc(x.v.label))+'</tr>'; }).join('')+
-      '<tr style="background:'+SK+'">'+tds('Total',0,1)+tds(short(rpSum(cr,function(x){return x.c.followers})),1,1)+tds(short(rpSum(cr,function(x){return x.c.avgViews})),1,1)+tds('')+tds('')+tds('')+tds('')+tds(rs(rpSum(priced,function(x){return x.price})),1,1)+tds('')+tds('')+'</tr>'+
-      '<tr style="background:'+SK+'">'+tds('Average',0,1)+tds(short(rpAvg(cr,function(x){return x.c.followers})),1,1)+tds(short(rpAvg(cr,function(x){return x.c.avgViews})),1,1)+tds(pct(rpAvg(cr,function(x){return x.er}),2),1,1)+tds(ok(rpAvg(cr,function(x){var q=qualityInfo(x.c);return q&&q.score}))?Math.round(rpAvg(cr,function(x){var q=qualityInfo(x.c);return q&&q.score}))+'/100':'',0,1)+tds('')+tds('')+tds(priced.length?rs(rpAvg(priced,function(x){return x.price})):'—',1,1)+tds(rs(rpAvg(cr,function(x){return x.cpv}),2),1,1)+tds('')+'</tr>'+
-      '</tbody></table>');
-    var flags=cr.filter(function(x){ var q=qualityInfo(x.c); return q&&(q.label==='Suspicious'||q.label==='Check'); });
-    var comp=cr.filter(function(x){return hasComp(x.c)});
-    if(flags.length||comp.length){
-      out.push(h2('Things to check before booking'));
-      out.push('<ul class="avoid" style="margin:0;padding-left:16px">'+flags.map(function(x){ var q=qualityInfo(x.c); return '<li style="font-size:9.5px;margin:3px 0"><strong>'+esc(dn(x.c))+'</strong>: audience quality '+esc(q.label.toLowerCase())+(q.score!=null?' ('+q.score+'/100)':'')+'. '+esc(String(x.c.qualityWhy||'').replace(/\. Based on.*$/,''))+'</li>'; }).join('')+
-        comp.map(function(x){ return '<li style="font-size:9.5px;margin:3px 0"><strong>'+esc(dn(x.c))+'</strong>: worked with a competitor: '+esc(x.c.competitors)+'</li>'; }).join('')+'</ul>');
-    }
-  }
-  if(!posts.length&&!cr.length) out.push('<p style="font-size:11px;color:'+MU+';margin-top:20px">No creators or campaign posts yet.</p>');
-  out.push('<div class="avoid" style="margin-top:22px;padding-top:8px;border-top:1px solid '+LN+';font-size:8px;color:'+MU+';line-height:1.5">Views, likes, comments and followers come from Instagram. Audience quality, boosted posts and estimated prices are estimates worked out from public numbers. Instagram views for photo posts are estimated. Generated with My Creator Desk · mycreatordesk.co.in</div>');
-  return '<div style="font-family:\'IBM Plex Sans\',Arial,sans-serif;color:'+INK+';background:#fff;width:718px;padding:4px 2px">'+out.join('')+'</div>';
-}
-function downloadReport(btn){
-  busy(btn,true,'Making PDF…');
-  loadScript(H2P_URL).then(function(){
-    var holder=document.createElement('div'); holder.style.cssText='position:fixed;left:-10000px;top:0;background:#fff'; holder.innerHTML=reportHTML(); document.body.appendChild(holder);
-    var d0=new Date(), name=((S.settings&&S.settings.name)||'Campaign')+' report '+d0.getFullYear()+'-'+('0'+(d0.getMonth()+1)).slice(-2)+'-'+('0'+d0.getDate()).slice(-2);
-    return html2pdf().set({margin:[10,10,12,10], filename:name.replace(/[\\/:*?"<>|]+/g,'-')+'.pdf', image:{type:'jpeg',quality:0.96},
-      html2canvas:{scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy'], avoid:['tr','.avoid']}}).from(holder.firstChild).save().then(function(){ holder.remove(); toast('Report downloaded'); }, function(e){ holder.remove(); throw e; });
-  }).catch(function(e){ toast(e.message||'Could not make the PDF',true); }).then(function(){ busy(btn,false); });
-}
-
-/* ---------------- estimator ---------------- */
-function renderEstimator(){
-  var fee=num($('est-fee').value), fol=num($('est-fol').value), given=num($('est-views').value), out=$('est-out');
-  if(!fee||(!fol&&!given)){ out.innerHTML='<p class="small muted">Enter the quoted fee and follower count.</p>'; return; }
-  var tier=tierFor(fol)||'Micro';
-  var R=creatorRows();
-  var withViews=R.list.filter(function(x){return x.c.followers&&x.c.avgViews});
-  var peers=withViews.filter(function(x){return x.tier===tier}); var pool=peers.length?peers:withViews;
-  if(!pool.length&&!given){ out.innerHTML='<p class="small muted">Add at least one creator with followers and views to the shortlist, or type this creator’s average views.</p>'; return; }
-  var avg=function(f){ return pool.length?pool.reduce(function(s,x){return s+(f(x)||0)},0)/pool.length:0; };
-  var views=given||fol*avg(function(x){return x.c.avgViews/x.c.followers});
-  var erV=avg(function(x){return x.eng/x.c.avgViews}); var eng=views*erV; var cpv=views?fee/views:null;
-  var basis=given?'the views you entered':peers.length?peers.length+' '+tier+' creator'+(peers.length>1?'s':'')+' in your shortlist':'all creators in your shortlist (no '+tier+' creators yet)';
-  var call2='';
-  if(ok(cpv)&&ok(R.med)){ var d=(cpv-R.med)/R.med*100; var cls=d<=0?'good':d<=40?'warn':'bad';
-    call2='<p class="small"><span class="chip '+cls+'" style="margin-right:6px">'+(d<=0?'Cheaper than shortlist':d<=40?'Slightly expensive':'Expensive')+'</span>'+
-      (Math.abs(d)<1?'Same cost per view as your shortlist median.':'About '+Math.abs(d).toFixed(0)+'% '+(d<0?'cheaper':'costlier')+' per view than your shortlist median of '+rs(R.med,2)+'.')+'</p>'; }
-  out.innerHTML='<div class="est-row"><div><span class="k">Tier</span><span class="v">'+tier+'</span></div><div><span class="k">Expected views</span><span class="v">'+short(views)+'</span></div>'+
-    '<div><span class="k">Expected CPV</span><span class="v">'+rs(cpv,2)+'</span></div><div><span class="k">Expected CPE</span><span class="v">'+(eng?rs(fee/eng,2):'—')+'</span></div></div>'+call2+
-    '<p class="small muted">Based on '+esc(basis)+'. A starting point for planning, not a promise.</p>';
-}
-['est-fee','est-fol','est-views'].forEach(function(id){ $(id).addEventListener('input',renderEstimator); });
-
-/* ---------------- manual creator + paste ---------------- */
-$('manual-form').addEventListener('submit',function(e){
-  e.preventDefault(); var btn=$('mf-btn');
-  var c={name:$('mf-name').value, category:$('mf-category').value, language:$('mf-language').value, platform:$('mf-platform').value, followers:$('mf-fol').value, fee:$('mf-fee').value, views:$('mf-views').value, likes:$('mf-likes').value, comments:$('mf-comments').value};
-  if(!c.name.trim()){ toast('Type the creator’s name or handle.',true); $('mf-name').focus(); return; }
-  if(!num(c.followers)&&!num(c.views)){ toast('Add followers or average views so the creator can be compared.',true); $('mf-fol').focus(); return; }
-  busy(btn,true,'Saving…');
-  call('api_addCreatorManual',c).then(function(s){ current=c.name.trim(); setState(s); $('manual-form').reset(); $('mf-platform').value='YouTube'; toast('Added '+c.name.trim()+' to the shortlist'); })
-  .catch(function(err){toast(err.message,true)}).then(function(){busy(btn,false)});
-});
-function matchPlatform(v,def){ v=String(v||'').trim().toLowerCase(); if(!v) return def;
-  var exact=PLATFORMS.find(function(p){return p.toLowerCase()===v}); if(exact) return exact;
-  if(v.indexOf('story')>=0) return 'Instagram Story'; if(v.indexOf('short')>=0) return 'YouTube Shorts';
-  if(v.indexOf('insta')>=0||v==='ig'||v.indexOf('reel')>=0) return 'Instagram'; if(v.indexOf('you')>=0||v==='yt') return 'YouTube';
-  if(v.indexOf('moj')>=0||v.indexOf('josh')>=0) return 'Moj / Josh'; return 'Other'; }
-function pasteRows(txt){ return String(txt||'').split(/\r?\n/).filter(function(l){return l.trim()}).map(function(l){ return l.indexOf('\t')>=0?l.split('\t'):l.split(','); }); }
-function isHeader(cells){ return /^(creator|name|handle|instagram)/i.test(String(cells[0]||'').trim()); }
-$('paste-creators-btn').addEventListener('click',function(){ var b=this;
-  var rows=pasteRows($('paste-creators').value).filter(function(c){return !/^(category|name|creator)$/i.test(String(c[0]||'').trim())&&!/^name$/i.test(String(c[2]||'').trim())}).map(function(cells){
-    var o={}; TEAM_KEYS.forEach(function(k,i){ o[k]=cells[i]!=null?String(cells[i]).trim():''; });
-    var ln=String(o.link||''); o.platform=/instagram\.com/i.test(ln)?'Instagram':(!o.link&&o.ytLink?'YouTube':''); return o; }).filter(function(r){return r.name||/instagram\.com/i.test(r.link)});
-  if(!rows.length){ $('paste-creators-msg').textContent='No rows found. Copy the rows from your sheet, starting at the Category column.'; return; }
-  busy(b,true,'Adding…');
-  call('api_bulkCreators',rows).then(function(r){ setState(r.state); $('paste-creators').value=''; $('paste-creators-msg').textContent='Added '+r.added+' creator'+(r.added===1?'':'s')+'.'+(S.live?' Press Refresh all from Instagram to fetch live numbers.':''); })
-  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-$('paste-posts-btn').addEventListener('click',function(){ var b=this;
-  var rows=pasteRows($('paste-posts').value).filter(function(c){return !isHeader(c)}).map(function(c){
-    return {handle:String(c[0]||'').trim(), platform:matchPlatform(c[1],shortcode(c[2])?'Instagram':'Other'), link:String(c[2]||'').trim(), fee:c[3], views:c[4], likes:c[5], comments:c[6]}; }).filter(function(r){return r.handle});
-  if(!rows.length){ $('paste-posts-msg').textContent='No rows found. Paste cells copied from your sheet.'; return; }
-  busy(b,true,'Adding…');
-  call('api_bulkPosts',rows).then(function(r){ setState(r.state); $('paste-posts').value=''; $('paste-posts-msg').textContent='Added '+r.added+' post'+(r.added===1?'':'s')+'.'+(S.live?' Press Refresh to fetch Instagram numbers.':''); })
-  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-
-/* ---------------- CSV ---------------- */
-function q(v){ v=v==null?'':String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
-function fx(v,d){ return ok(v)?v.toFixed(d):''; }
-function creatorsCSV(only){ var R=creatorRows();
-  var head=TEAM_COLS.map(function(c){return q(c[1])}).concat(['Platform','Tier','Average Likes','Verdict','Why','Competitor mentions','Recent brand collabs','Quality reasons','Organic ER%','Sponsored ER%','Sponsored vs organic','Likely boosted posts','Best format','Content mix']).join(',');
-  var rows=R.list; if(only&&only.length) rows=rows.filter(function(x){return only.indexOf(x.c.handle)>=0});
-  return [head].concat(rows.map(function(x){ var c=x.c;
-    return TEAM_COLS.map(function(col){ var k=col[0];
-      if(k==='name') return q(c.handle); if(k==='er') return fx(x.er,2); if(k==='engagement') return x.eng?Math.round(x.eng):''; if(k==='cpv'||k==='cpe') return fx(x[k],2);
-      var v=c[k]; return q(v==null?'':v); }).concat([q(c.platform||'Instagram'),x.tier,c.likes||'',q(x.v.label),q(x.v.why),q(c.competitors||''),q(c.collabs||''),q(c.qualityWhy||''),c.organicEr||'',c.sponsoredEr||'',q(c.sponsoredLift||''),q(c.boosted||''),q(c.bestFormat||''),q(c.contentMix||'')]).join(','); })).join('\n'); }
-function postsCSV(){ var P=postRows();
-  return [['Creator','Platform','Post','Fee','Views','Likes','Comments','ER views %','CPV','CPE','CPM','Verdict'].join(',')].concat(P.list.map(function(x){ var p=x.p;
-    return [q(pdn(p)),q(p.platform||'Instagram'),q(p.link||p.id),p.fee||'',p.views||'',p.likes||'',p.comments||'',fx(x.erV,2),fx(x.cpv,3),fx(x.cpe,2),fx(x.cpm,0),q(x.v.label)].join(','); })).join('\n'); }
-function copyText(text,btn,label){
-  var done=function(){ var o=btn.textContent; btn.textContent='Copied'; setTimeout(function(){btn.textContent=o},1600); toast(label+' copied. Paste it into any sheet.'); };
-  var fb=function(){ showView('summary'); var ta=$('copy-fallback'); ta.hidden=false; ta.value=text; ta.focus(); ta.select(); toast('Select all and copy the text in the box'); };
-  try{ navigator.clipboard.writeText(text).then(done,fb); }catch(e){ fb(); } }
-$('csv-creators').addEventListener('click',function(){ var n=selNames(); copyText(creatorsCSV(n),this,n.length?'Selected creators':'Shortlist'); });
-$('csv-posts').addEventListener('click',function(){ copyText(postsCSV(),this,'Campaign posts'); });
-
-/* ---------------- upload a creator sheet ---------------- */
-var HEAD_ALIAS={
-  category:['category','niche','genre','vertical'], language:['language','languages','lang'],
-  name:['name','creator','creatorname','creators','influencer','influencername','influencers','fullname','displayname','account'],
-  handle:['handle','handles','instagramhandle','ighandle','username','usernames','instagram','instagramid','igid','instahandle','instagramusername','iguser','igusername','insta','instaid'],
-  link:['link','profilelink','instagramlink','iglink','url','profileurl','instagramurl','instaprofile','instagramprofile','instalink','profile'],
-  followers:['followers','followercount','igfollowers','instagramfollowers','followerscount'], ytLink:['ytlink','youtube','youtubelink','ytchannel','youtubechannel','yt'],
-  views:['averageviews','avgviews','views','avgreelviews','averagereelviews'],
-  reach:['averagereach','avgreach','reach'], comments:['averagecomments','avgcomments','comments'],
-  sentiment:['sentimentscomments','sentimentcomments','sentiments','sentiment'], engagement:['engagement','avgengagement','averageengagement'],
-  deliverables:['deliverables','deliverable'], adRights:['1monthadrights','adrights','monthadrights','onemonthadrights'],
-  fee:['fee','fees','cost','price','commercials','commercial','quote','rate','fees₹'], platform:['platform'], likes:['averagelikes','avglikes','likes']
-};
-function hnorm(h){ return String(h||'').toLowerCase().replace(/[^a-z0-9₹]/g,''); }
-function headKey(h){ var n=hnorm(h); if(!n) return null; if(n.indexOf('collabreel')===0||n==='collab'||n==='collabprice') return 'collab';
-  if(['er','erpercent','engagementrate','cpv','cpe'].indexOf(n)>=0) return 'skip';
-  for(var k in HEAD_ALIAS){ if(HEAD_ALIAS[k].indexOf(n)>=0||HEAD_ALIAS[k].indexOf(n.replace(/₹/g,''))>=0) return k; } return null; }
-function looksHandle(v){ return /^@?[a-z0-9._]{2,30}$/i.test(String(v||'').trim()); }
-function csvParse(text){ var rows=[],row=[],cur='',q=false,sep=text.indexOf('\t')>=0&&text.split('\n')[0].indexOf('\t')>=0?'\t':',';
-  for(var i=0;i<text.length;i++){ var ch=text[i];
-    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=ch; }
-    else if(ch==='"') q=true; else if(ch===sep){ row.push(cur); cur=''; } else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&text[i+1]==='\n') i++; row.push(cur); rows.push(row); row=[]; cur=''; } else cur+=ch; }
-  if(cur!==''||row.length){ row.push(cur); rows.push(row); } return rows; }
-function readUpload(file){
-  return new Promise(function(res,rej){
-    var isCsv=/\.(csv|tsv|txt)$/i.test(file.name); var fr=new FileReader();
-    fr.onerror=function(){ rej(new Error('Could not read that file.')); };
-    fr.onload=function(){ try{
-      if(isCsv){ res(csvParse(String(fr.result))); return; }
-      if(!window.XLSX){ rej(new Error('Excel reader did not load. Save the file as CSV and upload that instead.')); return; }
-      var wb=XLSX.read(new Uint8Array(fr.result),{type:'array'}); var ws=wb.Sheets[wb.SheetNames[0]];
-      res(XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}));
-    }catch(e){ rej(new Error('Could not read that file. Check it is an Excel or CSV file.')); } };
-    if(isCsv) fr.readAsText(file); else fr.readAsArrayBuffer(file);
-  });
-}
-function rowsToCreators(rows){
-  rows=(rows||[]).map(function(r){ return (r||[]).map(function(v){ return String(v==null?'':v).trim(); }); }).filter(function(r){ return r.some(function(v){return v}); });
-  if(!rows.length) return {list:[],mapped:[]};
-  var best=-1,bestScore=0,bestMap=null;
-  for(var i=0;i<Math.min(rows.length,6);i++){ var map={},score=0; rows[i].forEach(function(h,j){ var k=headKey(h); if(k&&k!=='skip'&&map[k]==null){ map[k]=j; score+=(k==='name'||k==='link')?2:1; } else if(k==='skip') score+=0.5; });
-    if(score>bestScore){ bestScore=score; best=i; bestMap=map; } }
-  var map, body;
-  var headerless=false;
-  if(best>=0&&bestScore>=2){ map=bestMap; body=rows.slice(best+1); } else { map={name:0}; body=rows; headerless=true; }
-  if(map.name==null&&map.link==null&&map.handle==null) map.name=0;
-  var list=body.map(function(r){ var o={}; Object.keys(map).forEach(function(k){ o[k]=r[map[k]]||''; });
-    var nm=o.name||'', hd=o.handle||''; delete o.handle;
-    if(/instagram\.com\//i.test(nm)&&!o.link){ o.link=nm; }
-    if(/instagram\.com\//i.test(hd)&&!o.link){ o.link=hd; }
-    // Where the Instagram handle comes from, most reliable first: a profile link, the handle column,
-    // then the name only if it clearly is a handle (has @ . _ or digits) or the file is just a list.
-    var h='';
-    if(/instagram\.com\//i.test(o.link||'')) h=cleanHandle(o.link);
-    else if(hd&&looksHandle(hd.replace(/\s+/g,''))) h=cleanHandle(hd.replace(/\s+/g,''));
-    else if(looksHandle(nm)&&(headerless||/[@._0-9]/.test(nm))) h=cleanHandle(nm);
-    if(/instagram\.com\//i.test(nm)) nm=h;
-    o.ig=h; o.name=h||nm; if(h){ o.platform=o.platform||'Instagram'; o.link=o.link||('https://www.instagram.com/'+h+'/'); }
-    o.display=(nm&&nm!==h)?nm:'';
-    return o; }).filter(function(o){ return o.name; });
-  var seen={}; list=list.filter(function(o){ var k=o.name.toLowerCase(); if(seen[k]) return false; seen[k]=1; return true; });
-  return {list:list, mapped:Object.keys(map)};
-}
-var UP=null;
-function showUploadPreview(file,parsed){
-  var ig=parsed.list.filter(function(o){return o.ig}), other=parsed.list.length-ig.length;
-  UP=parsed; var box=$('up-preview'); box.hidden=false; $('up-result').hidden=true;
-  var labels=parsed.mapped.map(function(k){ var c=TEAM_COLS.find(function(t){return t[0]===k}); return c?c[1]:(k==='platform'?'Platform':k==='likes'?'Average Likes':k==='handle'?'Handle':k); });
-  box.innerHTML='<div class="est-out"><div class="est-row">'+
-    '<div><span class="k">File</span><span class="v" style="font-size:16px;overflow-wrap:anywhere">'+esc(file.name)+'</span></div>'+
-    '<div><span class="k">Creators found</span><span class="v">'+parsed.list.length+'</span></div>'+
-    '<div><span class="k">With Instagram handle</span><span class="v">'+ig.length+'</span></div>'+
-    '<div><span class="k">Display name only</span><span class="v">'+other+'</span></div></div>'+
-    '<p class="small muted">Columns recognised: '+esc(labels.join(', ')||'none, so the first column is read as creator names')+'.</p>'+
-    (ig.length>150?'<p class="small"><span class="chip warn">Large file</span> Instagram allows about 200 lookups an hour. If it stops partway, upload again later and it continues with the creators still empty.</p>':'')+
-    '<div class="tbl-wrap"><table><thead><tr><th>Creator</th><th>Instagram</th><th>Will do</th></tr></thead><tbody>'+
-    parsed.list.slice(0,8).map(function(o){ return '<tr><td>'+esc(o.display||o.name)+'</td><td>'+(o.ig?'@'+esc(o.ig):'<span class="muted">—</span>')+'</td><td>'+(o.ig?'<span class="chip good">Fetch and fill blanks</span>':'<span class="chip warn">Add only, needs a handle</span>')+'</td></tr>'; }).join('')+
-    (parsed.list.length>8?'<tr><td colspan="3" class="muted">and '+(parsed.list.length-8)+' more</td></tr>':'')+
-    '</tbody></table></div>'+
-    '<div class="btns"><button class="btn primary" id="up-go">Add '+parsed.list.length+' creators and fetch data</button><button class="btn" id="up-cancel">Cancel</button></div></div>';
-  $('up-go').onclick=runUpload; $('up-cancel').onclick=function(){ UP=null; box.hidden=true; $('up-file').value=''; };
-}
-function runUpload(){
-  if(!UP) return; var list=UP.list; var btn=$('up-go'); busy(btn,true,'Adding…'); $('up-cancel').disabled=true;
-  var rows=list.map(function(o){ var c={}; Object.keys(o).forEach(function(k){ if(k!=='ig'&&k!=='display') c[k]=o[k]; }); return c; });
-  call('api_bulkCreators',rows).then(function(r){
-    setState(r.state);
-    var have={}; (S.creators||[]).forEach(function(c){ have[c.handle.toLowerCase()]=c; });
-    var todo=list.filter(function(o){ if(!o.ig) return false; var c=have[o.ig]; return !c||!c.followers||!c.views||!c.competitors||!c.category||!c.language||!c.reach; }).map(function(o){return o.ig});
-    var skipped=list.filter(function(o){return o.ig}).length-todo.length;
-    $('up-preview').hidden=true; var pr=$('up-progress'); pr.hidden=false;
-    var done=0, results=[], size=10;
-    function step(){
-      $('up-prog-l').textContent=todo.length?'Fetching from Instagram… '+done+' of '+todo.length:'Nothing new to fetch';
-      $('up-prog-r').textContent=todo.length?Math.round(done/todo.length*100)+'%':''; $('up-fill').style.width=(todo.length?done/todo.length*100:100)+'%';
-      if(done>=todo.length) return finish();
-      var chunk=todo.slice(done,done+size);
-      call('api_fillCreators',chunk).then(function(r){ results=results.concat(r.results||[]); done+=chunk.length; step(); })
-      .catch(function(e){ results=results.concat(chunk.map(function(n){return {name:n,ok:false,msg:e.message}})); done+=chunk.length;
-        if(/token|rate limit/i.test(e.message)){ done=todo.length; } step(); });
-    }
-    function finish(){
-      call('api_getState').then(function(s){ setState(s); });
-      pr.hidden=true; var okN=results.filter(function(x){return x.ok}).length, bad=results.filter(function(x){return !x.ok});
-      var noHandle=list.filter(function(o){return !o.ig});
-      var box=$('up-result'); box.hidden=false;
-      box.innerHTML='<div class="est-out"><div class="est-row"><div><span class="k">Filled from Instagram</span><span class="v">'+okN+'</span></div>'+
-        (skipped?'<div><span class="k">Already complete</span><span class="v">'+skipped+'</span></div>':'')+
-        '<div><span class="k">Could not fetch</span><span class="v">'+bad.length+'</span></div><div><span class="k">Need a handle</span><span class="v">'+noHandle.length+'</span></div></div>'+
-        (bad.length?'<p class="small"><strong>Could not fetch:</strong> '+bad.slice(0,12).map(function(x){return esc(x.name)+' ('+esc(x.msg)+')'}).join('; ')+(bad.length>12?'…':'')+'</p>':'')+
-        (noHandle.length?'<p class="small"><strong>Add their Instagram handle:</strong> '+noHandle.slice(0,15).map(function(o){return esc(o.display||o.name)}).join(', ')+(noHandle.length>15?'…':'')+'</p>':'')+
-        '<p class="small muted">All creators are now in the table below. Tick the ones you want and share them with your manager.</p></div>';
-      $('up-file').value=''; UP=null; toast('Upload finished: '+okN+' filled from Instagram');
-    }
-    step();
-  }).catch(function(e){ toast(e.message,true); busy(btn,false); $('up-cancel').disabled=false; });
-}
-$('up-file').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f) return;
-  readUpload(f).then(function(rows){ var p=rowsToCreators(rows); if(!p.list.length){ toast('No creators found in that file.',true); return; } showUploadPreview(f,p); })
-  .catch(function(e){ toast(e.message,true); }); });
-(function(){ var d=$('drop');
-  ['dragenter','dragover'].forEach(function(ev){ d.addEventListener(ev,function(e){ e.preventDefault(); d.classList.add('over'); }); });
-  ['dragleave','drop'].forEach(function(ev){ d.addEventListener(ev,function(e){ e.preventDefault(); d.classList.remove('over'); }); });
-  d.addEventListener('drop',function(e){ var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(!f) return;
-    readUpload(f).then(function(rows){ var p=rowsToCreators(rows); if(!p.list.length){ toast('No creators found in that file.',true); return; } showUploadPreview(f,p); })
-    .catch(function(err){ toast(err.message,true); }); });
-})();
-
-/* ---------------- select + share ---------------- */
-var SEL={};
-function selNames(){ return Object.keys(SEL).filter(function(k){return SEL[k]}); }
-function updateSelCount(){ var n=selNames().length; $('sel-count').textContent=n+' selected'; $('sel-count').className='chip '+(n?'good':'neutral'); }
-$('sh-btn').addEventListener('click',function(){ var b=this; var names=selNames();
-  if(!names.length){ toast('Tick at least one creator in the table first.',true); return; }
-  var email=$('sh-email').value.trim();
-  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('That email address does not look right.',true); $('sh-email').focus(); return; }
-  if(!S.live){ var R=creatorRows(); var picked=R.list.filter(function(x){return SEL[x.c.handle]});
-    $('sh-result').hidden=false; $('sh-result').innerHTML='<span class="chip warn">Demo</span> In the team version this creates a Google Sheet with these '+picked.length+' creators'+(email?' and shares it with '+esc(email):'')+'. Here, the selected rows were copied as CSV instead.';
-    copyText(creatorsCSV(names),b,'Selected creators'); return; }
-  busy(b,true,'Creating sheet…');
-  call('api_exportShortlist',names,$('sh-title').value,email,$('sh-access').value).then(function(r){
-    $('sh-result').hidden=false;
-    $('sh-result').innerHTML='<span class="chip good">Done</span> <strong>'+esc(r.name)+'</strong> with '+r.count+' creators'+(r.shared?', shared with '+esc(r.shared):'')+'. <a class="lnk" href="'+esc(r.url)+'" target="_blank" rel="noopener">Open the new sheet ↗</a>';
-    toast('Google Sheet created'); })
-  .catch(function(e){ toast(e.message,true); }).then(function(){ busy(b,false); }); });
-
-/* ---------------- competitor list ---------------- */
-var compDirty=false;
-$('comp-list').addEventListener('input',function(){ compDirty=true; });
-function fillComp(){ if(!compDirty) $('comp-list').value=(S.settings&&S.settings.competitors)||DEFAULT_COMP; }
-$('comp-save').addEventListener('click',function(){ var b=this; busy(b,true,'Saving…');
-  call('api_saveSettings',{competitors:$('comp-list').value}).then(function(s){ compDirty=false; setState(s); $('comp-msg').textContent='Saved. Press Refresh all from Instagram to check creators again.'; })
-  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false)}); });
-
-/* ---------------- boot ---------------- */
-$('cat-list').innerHTML=CATEGORIES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
-$('lang-list').innerHTML=LANGUAGES.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
-$('mf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='YouTube'?' selected':'')+'>'+p+'</option>'}).join('');
-$('pf-platform').innerHTML=PLATFORMS.map(function(p){return '<option'+(p==='Instagram'?' selected':'')+'>'+p+'</option>'}).join('');
-
-$('bench-body').innerHTML=TIERS.map(function(t){return '<tr><td>'+t+'</td><td>'+TIER_RANGE[t]+'</td><td class="n">≥ '+BENCH[t][0]+'%</td><td class="n">≥ '+BENCH[t][1]+'%</td></tr>'}).join('');
-document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click',function(){ showView(b.dataset.view); }); });
-$('demo-reset').addEventListener('click',function(){ var b=this; armOnce(b,'Click again to reset',function(){ DS=demoSeed(); demoSave(); current=null; settingsDirty=false; setState(clone(DS)); toast('Sample data restored'); }); });
-$('clear-creators').addEventListener('click',function(){ var b=this, n=(S.creators||[]).length; if(!n) return;
-  armOnce(b,'Click again to remove all '+n,function(){ busy(b,true,'Removing…');
-    call('api_clearCreators').then(function(s){ SEL={}; current=null; setState(s); toast('Removed all '+n+' creators'); }).catch(function(e){ toast(e.message,true); }).then(function(){ busy(b,false); }); }); });
-$('team-reload').addEventListener('click',loadTeam);
-$('load-retry').addEventListener('click',function(){ var b=this; busy(b,true,'Loading…'); loadState(1).then(function(){ busy(b,false); }); });
-var h=(location.hash||'').replace('#',''); if(['lookup','shortlist','campaign','summary'].indexOf(h)>=0) showView(h);
-if(!LIVE&&!REMOTE){ demoLoad(); current='demo.skin.pune'; }
-renderAll();
-document.addEventListener('visibilitychange',function(){
-  if(!REMOTE||document.hidden||!$('login').hidden) return; var t=''; try{ t=localStorage.getItem(TOK_KEY)||''; }catch(e){}
-  if(t&&jwtExp(t)<Date.now()+120000){ var em=''; try{ em=localStorage.getItem('cd-email')||''; }catch(e){} if(em){ try{ sessionStorage.setItem('cd-silent-at',String(Date.now())); }catch(e){} signIn(true); } }
-});
-var lr=REMOTE?readLoginReturn():'';
-if(lr==='ok') showView(view);
-if(REMOTE&&!getTok()){
-  var hadEmail=''; try{ hadEmail=localStorage.getItem('cd-email')||''; }catch(e){}
-  var tried=''; try{ tried=sessionStorage.getItem('cd-silent')||''; }catch(e){}
-  if(hadEmail&&!tried&&!lr){ try{ sessionStorage.setItem('cd-silent','1'); }catch(e){} signIn(true); } // signs straight back in if Google still remembers you
-  else showLogin(lr&&lr!=='ok'?lr:'');
-} else { try{ sessionStorage.removeItem('cd-silent'); }catch(e){}
-  var fr=REMOTE?readFacebookReturn():null;
-  if(fr&&fr.error){ toast(fr.error,true); loadState(); }
-  else if(fr&&fr.code){ toast('Connecting your Instagram…');
-    call('api_connectInstagram',fr.code,LOGIN_URI).then(function(g){ toast('Instagram connected: @'+(g.username||'')); }).catch(function(e){ toast(e.message,true); }).then(function(){ loadState(); }); }
-  else loadState(); }
-})();
-</script>
-
+<datalist id="cat-list"></datalist><datalist id="lang-list"></datalist><datalist id="handles"></datalist>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/preview.js"></script>
+<script src="js/app.js"></script>
+<script src="js/work.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>
