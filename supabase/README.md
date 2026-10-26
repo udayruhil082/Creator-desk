@@ -14,6 +14,12 @@ supabase/
   config.toml                          function and Google sign-in settings
 ```
 
+## Live project
+- Supabase project `my-creator-desk` (ref `appdoslighvkqifmlyds`, Mumbai), organization "My Creator Desk"
+- API: `https://appdoslighvkqifmlyds.supabase.co/functions/v1/api`
+- Webhook: `https://appdoslighvkqifmlyds.supabase.co/functions/v1/razorpay-webhook`
+- Google sign-in callback: `https://appdoslighvkqifmlyds.supabase.co/auth/v1/callback`
+
 ## How it fits together
 
 ```
