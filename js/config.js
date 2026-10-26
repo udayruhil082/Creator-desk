@@ -8,8 +8,9 @@
  * browser only, and nothing is sent anywhere. Add ?preview to the address to force Preview mode later on.
  */
 window.CD_CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://appdoslighvkqifmlyds.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_Lr54DehenSxAOKfamXqkJw_-4o0jcWx',
+  SITE_URL: 'https://mycreatordesk.co.in/',   // sign-in and Instagram always return here (www redirects to it)
   FB_APP_ID: '1113383891047813',
   FB_CONFIG_ID: '',              // optional: a Facebook Login for Business configuration id
   RAZORPAY_SCRIPT: 'https://checkout.razorpay.com/v1/checkout.js',

@@ -5,7 +5,7 @@
 /* ================= helpers ================= */
 var CFG = window.CD_CONFIG || {};
 var PREVIEW = !CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY || /[?&]preview\b/.test(location.search);
-var SITE_URL = location.origin + '/';
+var SITE_URL = PREVIEW ? location.origin + '/' : (CFG.SITE_URL || 'https://mycreatordesk.co.in/');
 function $(id){ return document.getElementById(id); }
 function qsa(sel, el){ return Array.prototype.slice.call((el||document).querySelectorAll(sel)); }
 function ok(v){ return v != null && v !== '' && isFinite(v); }
@@ -107,7 +107,7 @@ function api(action, params){
   return supa().auth.getSession().then(function(r){
     var s = r.data && r.data.session; if (!s) throw apiError('Please sign in.', 'AUTH');
     return fetch(CFG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1/api', {
-      method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.access_token, 'apikey': CFG.SUPABASE_ANON_KEY},
+      method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.access_token},
       body: JSON.stringify(Object.assign({action: action}, params))
     }).catch(function(){ throw apiError('Could not reach My Creator Desk. Check your internet and try again.', 'NETWORK'); });
   }).then(function(res){
