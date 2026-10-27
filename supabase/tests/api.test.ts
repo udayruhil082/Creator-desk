@@ -132,7 +132,7 @@ T("company signs up, pays with Razorpay, and waits for approval", async () => {
   cb = (await must(outsider, "company.create", { name: "Brand B" })).companyId;
   const me = await must(owner, "me");
   assertEquals(me.companies[0].status, "pending_payment");
-  assertEquals(me.plans.length, 3);
+  assertEquals(me.plans.length, 2);
   // members-only actions are blocked before approval
   assertEquals((await api(owner, "creators.lookup", { companyId: ca, handles: ["abc"] })).error.code, "INACTIVE");
   // enterprise cannot be bought online

@@ -6,6 +6,16 @@ import { checkConnection, exchangeLoginCode, HOURLY_CAP } from "../_shared/graph
 import * as rzp from "../_shared/razorpay.ts";
 import { type Ctx, requireCompany } from "./context.ts";
 
+// Billing periods: same features, only the length changes.
+const CYCLES = ["monthly", "quarterly", "half_yearly", "yearly"] as const;
+type Cycle = typeof CYCLES[number];
+const CYCLE_LABEL: Record<Cycle, string> = { monthly: "monthly", quarterly: "quarterly", half_yearly: "half-yearly", yearly: "yearly" };
+function cycleOf(v: unknown): Cycle | null { return (CYCLES as readonly string[]).includes(String(v)) ? v as Cycle : null; }
+function planPrice(plan: Record<string, any>, c: Cycle): number | null {
+  return { monthly: plan.price_monthly_paise, quarterly: plan.price_quarterly_paise,
+           half_yearly: plan.price_half_yearly_paise, yearly: plan.price_yearly_paise }[c] ?? null;
+}
+
 const role = (v: unknown) => (v === "admin" ? "admin" : "member");
 
 export const accountActions = {
@@ -13,7 +23,7 @@ export const accountActions = {
   async "me"(ctx: Ctx) {
     return await asUser(ctx.claims, async (tx) => {
       const [c] = await tx`select public.my_context() as c`;
-      const plans = await tx`select * from public.plans order by sort`;
+      const plans = await tx`select * from public.plans where is_public order by sort`;
       return { ...c.c, plans };
     });
   },
@@ -118,12 +128,12 @@ export const accountActions = {
   // ---------- billing ----------
   async "billing.order"(ctx: Ctx) {
     const { companyId } = await requireCompany(ctx, { admin: true, active: false });
-    const cycle = ctx.body.cycle === "yearly" ? "yearly" : "monthly";
+    const cycle = cycleOf(ctx.body.cycle) ?? "monthly";
     const planId = str(ctx.body.planId, 40);
     const [plan] = await asUser(ctx.claims, (tx) => tx`select * from public.plans where id = ${planId}`);
     if (!plan) throw new ApiError(400, "PLAN", "Choose a plan.");
     if (!plan.self_checkout) throw new ApiError(400, "PLAN", "This plan is set up with our team. Please contact us.");
-    const amount = cycle === "yearly" ? plan.price_yearly_paise : plan.price_monthly_paise;
+    const amount = planPrice(plan, cycle);
     if (!amount) throw new ApiError(400, "PLAN", "This plan has no price for that billing cycle.");
     const [co] = await asServer((tx) => tx`select c.name, c.status, p.email, p.full_name from public.companies c
                                            join public.profiles p on p.id = ${ctx.claims.sub} where c.id = ${companyId}`);
@@ -148,7 +158,7 @@ export const accountActions = {
                               values (${companyId}, ${plan.id}, ${cycle}, ${amount}, ${String(order.id)}, ${ctx.claims.sub})`);
     return {
       keyId: rzp.keyId(), orderId: order.id, amount, currency: "INR", name: "My Creator Desk",
-      description: `${plan.name} plan (${cycle})`, prefill: { email: co.email, name: co.full_name ?? "" }, companyName: co.name,
+      description: `${plan.name} plan (${CYCLE_LABEL[cycle]})`, prefill: { email: co.email, name: co.full_name ?? "" }, companyName: co.name,
     };
   },
 
@@ -253,7 +263,7 @@ export const accountActions = {
     const b = ctx.body;
     const int = (v: unknown) => (v === undefined || v === null || v === "" ? null : Math.max(0, Math.round(Number(v))));
     await asUser(ctx.claims, (tx) => tx`select public.approve_company(${uuid(b.companyId)}, ${str(b.planId, 40) || null},
-      ${b.cycle === "yearly" ? "yearly" : b.cycle === "monthly" ? "monthly" : null}, ${int(b.seatLimit)}, ${int(b.igLimit)})`);
+      ${cycleOf(b.cycle)}, ${int(b.seatLimit)}, ${int(b.igLimit)})`);
     return { approved: true };
   },
   async "platform.status"(ctx: Ctx) {

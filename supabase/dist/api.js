@@ -1,7 +1,7 @@
-// supabase/functions/_shared/auth.ts
+// functions/_shared/auth.ts
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.9.6";
 
-// supabase/functions/_shared/http.ts
+// functions/_shared/http.ts
 var ApiError = class extends Error {
   status;
   code;
@@ -101,7 +101,7 @@ function numOrNull(v) {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-// supabase/functions/_shared/auth.ts
+// functions/_shared/auth.ts
 var jwks = null;
 async function verifyRequest(req) {
   const h = req.headers.get("authorization") ?? "";
@@ -139,7 +139,7 @@ async function verifyRequest(req) {
   };
 }
 
-// supabase/functions/_shared/db.ts
+// functions/_shared/db.ts
 import postgres from "npm:postgres@3.4.5";
 var sql = null;
 function db() {
@@ -163,7 +163,7 @@ function asServer(fn) {
   return db().begin(fn);
 }
 
-// supabase/functions/_shared/crypto.ts
+// functions/_shared/crypto.ts
 var enc = new TextEncoder();
 var dec = new TextDecoder();
 function b64(bytes) {
@@ -222,7 +222,7 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
-// supabase/functions/_shared/graph.ts
+// functions/_shared/graph.ts
 var API_VERSION = "v26.0";
 var GRAPH = `https://graph.facebook.com/${API_VERSION}`;
 var HOURLY_CAP = 150;
@@ -336,7 +336,7 @@ async function checkConnection(igUserId, token) {
   };
 }
 
-// supabase/functions/_shared/razorpay.ts
+// functions/_shared/razorpay.ts
 var API = "https://api.razorpay.com/v1";
 function auth() {
   return "Basic " + btoa(`${env("RAZORPAY_KEY_ID")}:${env("RAZORPAY_KEY_SECRET")}`);
@@ -391,7 +391,7 @@ function configured() {
   return !!Deno.env.get("RAZORPAY_KEY_ID") && !!Deno.env.get("RAZORPAY_KEY_SECRET");
 }
 
-// supabase/functions/api/context.ts
+// functions/api/context.ts
 async function access(claims, companyId) {
   const [r] = await asUser(claims, (tx) => tx`
     select public.is_company_member(${companyId}) as member,
@@ -417,14 +417,37 @@ async function requireCompany(ctx, opts = {}) {
   };
 }
 
-// supabase/functions/api/account.ts
+// functions/api/account.ts
+var CYCLES = [
+  "monthly",
+  "quarterly",
+  "half_yearly",
+  "yearly"
+];
+var CYCLE_LABEL = {
+  monthly: "monthly",
+  quarterly: "quarterly",
+  half_yearly: "half-yearly",
+  yearly: "yearly"
+};
+function cycleOf(v) {
+  return CYCLES.includes(String(v)) ? v : null;
+}
+function planPrice(plan, c) {
+  return {
+    monthly: plan.price_monthly_paise,
+    quarterly: plan.price_quarterly_paise,
+    half_yearly: plan.price_half_yearly_paise,
+    yearly: plan.price_yearly_paise
+  }[c] ?? null;
+}
 var role = (v) => v === "admin" ? "admin" : "member";
 var accountActions = {
   // ---------- who am I ----------
   async "me"(ctx) {
     return await asUser(ctx.claims, async (tx) => {
       const [c] = await tx`select public.my_context() as c`;
-      const plans = await tx`select * from public.plans order by sort`;
+      const plans = await tx`select * from public.plans where is_public order by sort`;
       return {
         ...c.c,
         plans
@@ -570,12 +593,12 @@ var accountActions = {
       admin: true,
       active: false
     });
-    const cycle = ctx.body.cycle === "yearly" ? "yearly" : "monthly";
+    const cycle = cycleOf(ctx.body.cycle) ?? "monthly";
     const planId = str(ctx.body.planId, 40);
     const [plan] = await asUser(ctx.claims, (tx) => tx`select * from public.plans where id = ${planId}`);
     if (!plan) throw new ApiError(400, "PLAN", "Choose a plan.");
     if (!plan.self_checkout) throw new ApiError(400, "PLAN", "This plan is set up with our team. Please contact us.");
-    const amount = cycle === "yearly" ? plan.price_yearly_paise : plan.price_monthly_paise;
+    const amount = planPrice(plan, cycle);
     if (!amount) throw new ApiError(400, "PLAN", "This plan has no price for that billing cycle.");
     const [co] = await asServer((tx) => tx`select c.name, c.status, p.email, p.full_name from public.companies c
                                            join public.profiles p on p.id = ${ctx.claims.sub} where c.id = ${companyId}`);
@@ -608,7 +631,7 @@ var accountActions = {
       amount,
       currency: "INR",
       name: "My Creator Desk",
-      description: `${plan.name} plan (${cycle})`,
+      description: `${plan.name} plan (${CYCLE_LABEL[cycle]})`,
       prefill: {
         email: co.email,
         name: co.full_name ?? ""
@@ -749,7 +772,7 @@ var accountActions = {
     const b = ctx.body;
     const int = (v) => v === void 0 || v === null || v === "" ? null : Math.max(0, Math.round(Number(v)));
     await asUser(ctx.claims, (tx) => tx`select public.approve_company(${uuid(b.companyId)}, ${str(b.planId, 40) || null},
-      ${b.cycle === "yearly" ? "yearly" : b.cycle === "monthly" ? "monthly" : null}, ${int(b.seatLimit)}, ${int(b.igLimit)})`);
+      ${cycleOf(b.cycle)}, ${int(b.seatLimit)}, ${int(b.igLimit)})`);
     return {
       approved: true
     };
@@ -776,7 +799,7 @@ var accountActions = {
   }
 };
 
-// supabase/functions/_shared/analysis.ts
+// functions/_shared/analysis.ts
 var POSTS_TO_READ = 12;
 var POSTS_FOR_BRANDS = 25;
 var POSTS_TO_SEARCH = 50;
@@ -1829,7 +1852,7 @@ function matchPost_(media, code) {
   return null;
 }
 
-// supabase/functions/api/lookups.ts
+// functions/api/lookups.ts
 var CACHE_HOURS = 6;
 function resetTimeText() {
   const next = new Date((Math.floor(Date.now() / 36e5) + 1) * 36e5);
@@ -1977,7 +2000,7 @@ async function logUsage(companyId, userId, results) {
   await asServer((tx) => tx`insert into public.lookup_usage ${tx(rows)}`);
 }
 
-// supabase/functions/api/work.ts
+// functions/api/work.ts
 var PLATFORMS = [
   "Instagram",
   "Instagram Story",
@@ -2411,7 +2434,7 @@ var workActions = {
   }
 };
 
-// supabase/functions/api/handler.ts
+// functions/api/handler.ts
 var ACTIONS = {
   ...accountActions,
   ...workActions
@@ -2448,5 +2471,5 @@ async function handle(req) {
   }
 }
 
-// supabase/functions/api/index.ts
+// functions/api/index.ts
 Deno.serve(handle);

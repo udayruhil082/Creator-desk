@@ -1,7 +1,7 @@
-// _shared/db.ts
+// functions/_shared/db.ts
 import postgres from "npm:postgres@3.4.5";
 
-// _shared/http.ts
+// functions/_shared/http.ts
 var ApiError = class extends Error {
   status;
   code;
@@ -18,7 +18,7 @@ function env(name, fallback) {
   return v;
 }
 
-// _shared/db.ts
+// functions/_shared/db.ts
 var sql = null;
 function db() {
   sql ??= postgres(env("SUPABASE_DB_URL"), {
@@ -34,7 +34,7 @@ function asServer(fn) {
   return db().begin(fn);
 }
 
-// _shared/crypto.ts
+// functions/_shared/crypto.ts
 var enc = new TextEncoder();
 var dec = new TextDecoder();
 async function hmacHex(secret, message) {
@@ -54,13 +54,13 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
-// _shared/razorpay.ts
+// functions/_shared/razorpay.ts
 async function webhookSignatureOk(rawBody, signature) {
   const expected = await hmacHex(env("RAZORPAY_WEBHOOK_SECRET"), rawBody);
   return safeEqual(expected, String(signature || ""));
 }
 
-// razorpay-webhook/handler.ts
+// functions/razorpay-webhook/handler.ts
 var res = (status, body) => new Response(JSON.stringify(body), {
   status,
   headers: {
@@ -136,5 +136,5 @@ async function handleWebhook(req) {
   }
 }
 
-// razorpay-webhook/index.ts
+// functions/razorpay-webhook/index.ts
 Deno.serve(handleWebhook);

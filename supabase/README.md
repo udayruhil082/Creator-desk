@@ -64,11 +64,14 @@ Postgres (Supabase) ── Row Level Security on every table
 - Expired or suspended companies become read-only (data stays, work stops).
 
 ## Plans (edit in the `plans` table)
-| Plan | Monthly | Yearly | Instagram accounts | Team members |
-|---|---|---|---|---|
-| Starter | ₹4,999 | ₹49,990 | 1 | 5 |
-| Growth | ₹9,999 | ₹99,990 | 3 | 15 |
-| Enterprise | contact us | | set when approving | set when approving |
+Every plan has every feature; only the billing period changes.
+
+| Plan | Monthly | Quarterly | Half-yearly | Yearly | Instagram accounts | Team members |
+|---|---|---|---|---|---|---|
+| Starter | ₹4,999 | ₹13,999 | ₹26,999 | ₹49,990 | 1 | 5 |
+| Growth | ₹9,999 | ₹27,999 | ₹53,999 | ₹99,990 | 3 | 15 |
+
+(Enterprise was removed on 28 Oct 2026. The platform owner can still raise limits for one company when approving.)
 
 Flow: sign up → create company → choose plan → pay (Razorpay) → **you approve** → the company admin
 connects Instagram and invites the team. Renewals of an active plan extend the period automatically;
@@ -129,8 +132,8 @@ Error codes include `AUTH`, `FORBIDDEN`, `INACTIVE` (plan not active), `SEAT_LIM
 ## Tests
 
 Needs Postgres and Deno locally. `tests/run.sh` creates a scratch database, applies the real migration and runs:
-- `rls.test.ts`: 14 security tests (company separation, roles, seats, Instagram limit, budget, payments, suspension, usage).
-- `api.test.ts`: 11 end-to-end tests of the API and webhook with Instagram and Razorpay faked.
+- `rls.test.ts`: 15 security tests (company separation, roles, seats, Instagram limit, budget, payments, suspension, usage).
+- `api.test.ts`: 12 end-to-end tests of the API and webhook with Instagram and Razorpay faked.
 
 ```
 PGHOST=/var/tmp PGPORT=55432 supabase/tests/run.sh

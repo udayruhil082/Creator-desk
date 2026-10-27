@@ -104,7 +104,7 @@ Deno.test({ name: "company B can never see or touch company A", sanitizeOps: fal
   const del = await as(B, (tx) => tx`delete from public.creators where company_id = ${ca} returning id`);
   assertEquals(del.length, 0);
   const anon = await as(null, (tx) => tx`select * from public.plans`);
-  assertEquals(anon.length, 3);
+  assertEquals(anon.length, 2);
   await rejects(as(null, (tx) => tx`select * from public.companies`), "permission denied");
 }});
 
@@ -219,6 +219,21 @@ Deno.test({ name: "expired or suspended companies become read-only", sanitizeOps
   await rejects(as(A2, (tx) => tx`insert into public.creators (company_id, owner_id, name) values (${ca}, ${A2.id}, 'while.suspended')`), "row-level security");
   await rejects(as(A, (tx) => tx`select public.invite_member(${ca}, 'y@example.com')`), "INACTIVE");
   await as(P, (tx) => tx`select public.set_company_status(${ca}, 'active')`);
+}});
+
+Deno.test({ name: "quarterly and half-yearly periods; Enterprise not offered", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const plans = await as(A, (tx) => tx`select id, price_quarterly_paise, price_half_yearly_paise from public.plans where is_public order by sort`);
+  assertEquals(plans.map((p) => p.id), ["starter", "growth"]);
+  assertEquals([plans[0].price_quarterly_paise, plans[0].price_half_yearly_paise], [1399900, 2699900]);
+  const [b0] = await sql`select current_period_end as e from public.companies where id = ${cb}`;
+  await as(P, (tx) => tx`select public.approve_company(${cb}, 'growth', 'half_yearly')`);
+  const [b1] = await sql`select current_period_end as e, billing_cycle from public.companies where id = ${cb}`;
+  assertEquals(b1.billing_cycle, "half_yearly");
+  const days = (new Date(b1.e).getTime() - new Date(b0.e).getTime()) / 864e5;
+  assert(days > 180 && days < 185);
+  await as(P, (tx) => tx`select public.approve_company(${cb}, 'growth', 'quarterly')`);
+  await rejects(as(P, (tx) => tx`select public.approve_company(${cb}, 'growth', 'weekly')`), "billing period");
+  await rejects(as(A, (tx) => tx`select public.cycle_interval('yearly')`), "permission denied");
 }});
 
 Deno.test({ name: "usage dashboard is for company admins only", sanitizeOps: false, sanitizeResources: false, fn: async () => {

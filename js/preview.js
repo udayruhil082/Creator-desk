@@ -227,7 +227,7 @@ var Preview = (function(){
       if (!p.self_checkout) fail('This plan is set up with our team. Please contact us.', 'PLAN');
       if (x.c.status === 'pending_approval') fail('Payment received. Your plan is waiting for approval.', 'ALREADY_PAID');
       if (x.c.status === 'suspended') fail('This company is suspended. Please contact us.', 'SUSPENDED');
-      var cyc = b.cycle === 'yearly' ? 'yearly' : 'monthly', amt = cyc === 'yearly' ? p.price_yearly_paise : p.price_monthly_paise;
+      var cyc = cycleInfo(b.cycle).id, amt = cyclePrice(p, cyc);
       var oid = 'order_pv' + Date.now().toString(36);
       db.payments.push({id: uid(), company_id: x.c.id, plan_id: p.id, billing_cycle: cyc, amount_paise: amt, currency: 'INR', razorpay_order_id: oid, razorpay_payment_id: null, status: 'created', created_by: me(), created_at: now(), paid_at: null});
       var pr = prof(); return {keyId: 'rzp_test_preview', orderId: oid, amount: amt, currency: 'INR', name: 'My Creator Desk', description: p.name + ' plan (' + cyc + ')', prefill: {email: pr.email, name: pr.full_name}, companyName: x.c.name}; },
@@ -236,7 +236,7 @@ var Preview = (function(){
       if (pay.status === 'paid') return {result: 'already_paid', companyId: pay.company_id};
       pay.status = 'paid'; pay.razorpay_payment_id = b.paymentId; pay.paid_at = now();
       var c = company(pay.company_id);
-      if (c.status === 'active' && c.plan_id === pay.plan_id) { c.billing_cycle = pay.billing_cycle; var base = Math.max(Date.now(), new Date(c.current_period_end || Date.now()).getTime()); var e = new Date(base); if (pay.billing_cycle === 'yearly') e.setFullYear(e.getFullYear() + 1); else e.setMonth(e.getMonth() + 1); c.current_period_end = e.toISOString(); audit(c.id, 'billing.renewed', {amount_paise: pay.amount_paise}); return {result: 'renewed', companyId: c.id}; }
+      if (c.status === 'active' && c.plan_id === pay.plan_id) { c.billing_cycle = pay.billing_cycle; var base = Math.max(Date.now(), new Date(c.current_period_end || Date.now()).getTime()); var e = new Date(base); e.setMonth(e.getMonth() + cycleInfo(pay.billing_cycle).months); c.current_period_end = e.toISOString(); audit(c.id, 'billing.renewed', {amount_paise: pay.amount_paise}); return {result: 'renewed', companyId: c.id}; }
       c.plan_id = pay.plan_id; c.billing_cycle = pay.billing_cycle; if (c.status === 'pending_payment' || c.status === 'cancelled') c.status = 'pending_approval';
       audit(c.id, 'billing.paid', {plan: pay.plan_id, amount_paise: pay.amount_paise}); return {result: 'awaiting_approval', companyId: c.id}; },
     'billing.history': function(b){ var x = need(b, {admin: true, active: false}); return {payments: db.payments.filter(function(p){ return p.company_id === x.c.id; }).slice().sort(function(a, b2){ return b2.created_at.localeCompare(a.created_at); })}; },
@@ -324,8 +324,8 @@ var Preview = (function(){
         .sort(function(a, b2){ var o = function(s){ return s === 'pending_approval' ? 0 : s === 'active' ? 1 : 2; }; return o(a.status) - o(b2.status) || b2.created_at.localeCompare(a.created_at); })}; },
     'platform.approve': function(b){ if (!isPlatform()) fail('platform owners only.', 'FORBIDDEN'); var c = company(b.companyId); if (!c) fail('company not found.', 'NOT_FOUND');
       var p = db.plans.find(function(y){ return y.id === (b.planId || c.plan_id); }); if (!p) fail('choose a plan for this company.', 'PLAN');
-      var cyc = b.cycle || c.billing_cycle || 'monthly'; var int = function(v){ return v === '' || v == null ? null : Math.max(0, Math.round(+v)); };
-      var base = Math.max(Date.now(), new Date(c.current_period_end || Date.now()).getTime()); var e = new Date(base); if (cyc === 'yearly') e.setFullYear(e.getFullYear() + 1); else e.setMonth(e.getMonth() + 1);
+      var cyc = cycleInfo(b.cycle || c.billing_cycle).id; var int = function(v){ return v === '' || v == null ? null : Math.max(0, Math.round(+v)); };
+      var base = Math.max(Date.now(), new Date(c.current_period_end || Date.now()).getTime()); var e = new Date(base); e.setMonth(e.getMonth() + cycleInfo(cyc).months);
       Object.assign(c, {plan_id: p.id, billing_cycle: cyc, status: 'active', seat_limit: int(b.seatLimit) || p.seat_limit, ig_account_limit: int(b.igLimit) != null ? int(b.igLimit) : p.ig_account_limit, current_period_end: e.toISOString(), approved_at: now(), approved_by: me(), status_note: null});
       audit(c.id, 'platform.approved', {plan: p.id, cycle: cyc, seats: c.seat_limit, ig: c.ig_account_limit}); return {approved: true}; },
     'platform.status': function(b){ if (!isPlatform()) fail('platform owners only.', 'FORBIDDEN'); var c = company(b.companyId); if (!c) fail('company not found.', 'NOT_FOUND');

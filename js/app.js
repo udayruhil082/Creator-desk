@@ -139,10 +139,19 @@ function coState(c){ // what the screens need to know about a company's plan
   return 'active';
 }
 var DEFAULT_PLANS = [
-  {id: 'starter', name: 'Starter', description: '1 Instagram account, up to 5 team members', price_monthly_paise: 499900, price_yearly_paise: 4999000, ig_account_limit: 1, seat_limit: 5, self_checkout: true, sort: 1},
-  {id: 'growth', name: 'Growth', description: '3 Instagram accounts, up to 15 team members', price_monthly_paise: 999900, price_yearly_paise: 9999000, ig_account_limit: 3, seat_limit: 15, self_checkout: true, sort: 2},
-  {id: 'enterprise', name: 'Enterprise', description: 'Custom accounts, members and support', price_monthly_paise: null, price_yearly_paise: null, ig_account_limit: 10, seat_limit: 50, self_checkout: false, sort: 3}
+  {id: 'starter', name: 'Starter', description: '1 Instagram account, up to 5 team members', price_monthly_paise: 499900, price_quarterly_paise: 1399900, price_half_yearly_paise: 2699900, price_yearly_paise: 4999000, ig_account_limit: 1, seat_limit: 5, self_checkout: true, sort: 1},
+  {id: 'growth', name: 'Growth', description: '3 Instagram accounts, up to 15 team members', price_monthly_paise: 999900, price_quarterly_paise: 2799900, price_half_yearly_paise: 5399900, price_yearly_paise: 9999000, ig_account_limit: 3, seat_limit: 15, self_checkout: true, sort: 2}
 ];
+// Billing periods: every plan has every feature, only the length changes.
+var CYCLES = [
+  {id: 'monthly', label: 'Monthly', months: 1, per: 'a month', span: 'one month', adj: 'Monthly'},
+  {id: 'quarterly', label: 'Quarterly', months: 3, per: 'every 3 months', span: '3 months', adj: 'Quarterly'},
+  {id: 'half_yearly', label: 'Half-yearly', months: 6, per: 'every 6 months', span: '6 months', adj: 'Half-yearly'},
+  {id: 'yearly', label: 'Yearly', months: 12, per: 'a year', span: 'one year', adj: 'Yearly'}
+];
+function cycleInfo(id){ return CYCLES.find(function(c){ return c.id === id; }) || CYCLES[0]; }
+function cyclePrice(p, id){ return p ? ({monthly: p.price_monthly_paise, quarterly: p.price_quarterly_paise, half_yearly: p.price_half_yearly_paise, yearly: p.price_yearly_paise})[cycleInfo(id).id] || null : null; }
+function cycleSeg(attr, cur){ return '<div class="seg" role="group" aria-label="Billing period">' + CYCLES.map(function(c){ return '<button data-' + attr + '="' + c.id + '" aria-pressed="' + (cur === c.id) + '">' + c.label + '</button>'; }).join('') + '</div>'; }
 
 function loadMe(){
   return api('me').then(function(m){
@@ -246,10 +255,10 @@ function check(){ return icon('check', 16); }
 
 function planCard(p, cycle, opts){
   opts = opts || {};
-  var yearly = cycle === 'yearly';
-  var amt = yearly ? p.price_yearly_paise : p.price_monthly_paise;
-  var monthlyEq = yearly && p.price_yearly_paise ? p.price_yearly_paise / 12 : null;
-  var saving = yearly && p.price_monthly_paise && p.price_yearly_paise ? p.price_monthly_paise * 12 - p.price_yearly_paise : 0;
+  var cy = cycleInfo(cycle), multi = cy.months > 1;
+  var amt = cyclePrice(p, cy.id);
+  var monthlyEq = multi && amt ? amt / cy.months : null;
+  var saving = multi && p.price_monthly_paise && amt ? p.price_monthly_paise * cy.months - amt : 0;
   var feats = p.self_checkout ? [
     p.ig_account_limit + ' Instagram account' + (p.ig_account_limit > 1 ? 's' : '') + ' for lookups',
     'Up to ' + p.seat_limit + ' team members',
@@ -258,8 +267,8 @@ function planCard(p, cycle, opts){
     'Audience quality, sponsored vs organic and competitor checks'
   ] : ['As many Instagram accounts and team members as you need', 'Higher hourly lookup capacity', 'Limits set up with our team for you', 'Priority support'];
   var priceHtml = p.self_checkout && amt
-    ? '<div class="price"><b>' + paise(amt) + '</b><span>' + (yearly ? 'a year' : 'a month') + '</span></div>' +
-      '<span class="tiny muted">' + (yearly ? 'Works out to ' + paise(monthlyEq) + ' a month' + (saving ? ' · <span class="save">you save ' + paise(saving) + '</span>' : '') : 'Billed every month') + '</span>'
+    ? '<div class="price"><b>' + paise(amt) + '</b><span>' + cy.per + '</span></div>' +
+      '<span class="tiny muted">' + (multi ? 'Works out to ' + paise(monthlyEq) + ' a month' + (saving ? ' · <span class="save">you save ' + paise(saving) + '</span>' : '') : 'Billed every month') + '</span>'
     : '<div class="price"><b>Let’s talk</b></div><span class="tiny muted">Priced for your team size</span>';
   var btn = opts.button || (p.self_checkout
     ? '<button class="btn ' + (p.id === 'growth' ? 'primary' : '') + ' lg" data-signin>Start with ' + esc(p.name) + '</button>'
@@ -324,7 +333,7 @@ function renderLanding(anchor){
 
   '<section class="band gut" id="pricing" style="padding-top:24px"><div class="wrap">' +
     '<div class="spread"><div class="stack"><h2>Simple plans, priced per company.</h2><p class="intro muted" style="margin-top:4px">Every plan has every feature. You choose how many Instagram accounts and team members you need.</p></div>' +
-    '<div class="seg" role="group" aria-label="Billing period"><button data-cycle="monthly" aria-pressed="' + (landCycle === 'monthly') + '">Monthly</button><button data-cycle="yearly" aria-pressed="' + (landCycle === 'yearly') + '">Yearly, 2 months free</button></div></div>' +
+    cycleSeg('cycle', landCycle) + '</div>' +
     '<div class="pricing" id="price-cards">' + plans().map(function(p){ return planCard(p, landCycle); }).join('') + '</div>' +
     '<p class="small muted" style="margin-top:18px">Prices are in Indian rupees. Payments go through Razorpay; your company is switched on once we approve the payment.</p>' +
   '</div></section>' +
@@ -433,16 +442,16 @@ function renderPlan(){
   if (!planSel || !list.find(function(p){ return p.id === planSel && p.self_checkout; })) planSel = (renew && c.plan_id && list.find(function(p){ return p.id === c.plan_id && p.self_checkout; })) ? c.plan_id : 'growth';
   if (renew && c.billing_cycle && !renderPlan.touched) planCycle = c.billing_cycle;
   var p = list.find(function(x){ return x.id === planSel; }) || list[0];
-  var amt = planCycle === 'yearly' ? p.price_yearly_paise : p.price_monthly_paise;
+  var amt = cyclePrice(p, planCycle);
   var change = renew && c.plan_id && c.plan_id !== p.id;
   var head = renew
     ? '<div class="spread"><div class="stack"><h1>' + (change ? 'Change your plan' : 'Renew your plan') + '</h1><p class="muted">' + esc(c.name) + ' is on ' + esc(planName(c.plan_id)) + (c.current_period_end ? ', paid until ' + niceDay(c.current_period_end) : '') + '.</p></div><a class="btn" href="#/billing">Back to billing</a></div>'
     : steps(1) + '<div class="stack"><h1>Choose a plan for ' + esc(c.name) + '</h1><p class="muted">Every plan has every feature. Pick by how many Instagram accounts and people you need. You can change later.</p></div>';
   setupPage(head +
-    '<div class="row"><div class="seg" role="group" aria-label="Billing period"><button data-cyc="monthly" aria-pressed="' + (planCycle === 'monthly') + '">Monthly</button><button data-cyc="yearly" aria-pressed="' + (planCycle === 'yearly') + '">Yearly, 2 months free</button></div></div>' +
+    '<div class="row">' + cycleSeg('cyc', planCycle) + '</div>' +
     '<div class="pricing" role="radiogroup" aria-label="Plans" style="margin-top:0">' + list.map(function(x){
       return planCard(x, planCycle, {picker: true, selected: x.id === planSel, button: x.self_checkout ? '<span class="btn ' + (x.id === planSel ? 'gold' : '') + '">' + (x.id === planSel ? icon('check', 16) + 'Selected' : 'Choose ' + esc(x.name)) + '</span>' : '<a class="btn" href="mailto:' + esc(CFG.SUPPORT_EMAIL || '') + '?subject=' + encodeURIComponent('Enterprise plan for ' + c.name) + '">Contact us</a>'}); }).join('') + '</div>' +
-    '<div class="panel" style="gap:14px"><div class="spread" style="align-items:center"><div class="stack" style="gap:2px"><span class="small muted">You pay now</span><span style="font-family:var(--f-display);font-size:30px;font-weight:700" class="num">' + paise(amt) + '</span><span class="small muted">' + esc(p.name) + ', ' + (planCycle === 'yearly' ? 'one year' : 'one month') + '</span></div>' +
+    '<div class="panel" style="gap:14px"><div class="spread" style="align-items:center"><div class="stack" style="gap:2px"><span class="small muted">You pay now</span><span style="font-family:var(--f-display);font-size:30px;font-weight:700" class="num">' + paise(amt) + '</span><span class="small muted">' + esc(p.name) + ', ' + cycleInfo(planCycle).span + '</span></div>' +
     '<button class="btn primary lg" id="pay-btn">' + icon('card', 18) + 'Pay ' + paise(amt) + ' securely</button></div>' +
     '<p class="small muted">' + (change ? 'A plan change is switched on after we approve it, usually within one working day. Your current limits stay until then.' : renew && s === 'active' ? 'Renewing the same plan extends your paid period straight away.' : 'UPI, cards and netbanking through Razorpay. After payment we approve your company, usually within one working day.') + '</p></div>',
     'xwide');
@@ -498,7 +507,7 @@ function renderPending(){
     '<div class="row" style="gap:18px;align-items:center"><div class="pulse">' + icon('clock', 30) + '</div><div class="stack grow"><h1>' + (offline ? 'Plan request received.' : 'Payment received.') + '</h1><p class="muted">' + (offline ? 'We’ll contact you by email to complete payment by UPI or bank transfer, then switch ' + esc(c.name) + ' on.' : 'We’re checking ' + esc(c.name) + ' and will switch your desk on soon, usually within one working day.') + '</p></div></div>' +
     '<ul class="checklist">' +
       '<li class="done"><span class="ck">' + icon('check', 14) + '</span><div><b>Company created</b><div class="small muted">' + esc(c.name) + '</div></div></li>' +
-      '<li class="done"><span class="ck">' + icon('check', 14) + '</span><div><b>' + esc(planName(c.plan_id)) + (offline ? ' plan requested' : ' plan paid') + '</b><div class="small muted">' + (c.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly') + ' billing</div></div></li>' +
+      '<li class="done"><span class="ck">' + icon('check', 14) + '</span><div><b>' + esc(planName(c.plan_id)) + (offline ? ' plan requested' : ' plan paid') + '</b><div class="small muted">' + cycleInfo(c.billing_cycle).adj + ' billing</div></div></li>' +
       '<li class="now"><span class="ck">3</span><div><b>Approval</b><div class="small muted">This page updates by itself when you’re approved.</div></div></li>' +
       '<li><span class="ck">4</span><div><b>Connect your Instagram account</b><div class="small muted">A Business or Creator account linked to a Facebook Page.</div></div></li>' +
       '<li><span class="ck">5</span><div><b>Invite your team</b><div class="small muted">Up to ' + c.seat_limit + ' people on your plan.</div></div></li>' +
