@@ -1,6 +1,13 @@
 [build]
   publish = "."
 
+# Some Indian ISPs block *.supabase.co. Send all backend calls through our own domain instead.
+[[redirects]]
+  from = "/sb/*"
+  to = "https://appdoslighvkqifmlyds.supabase.co/:splat"
+  status = 200
+  force = true
+
 # Backend source lives in this repo but is never served by the website.
 [[redirects]]
   from = "/supabase/*"

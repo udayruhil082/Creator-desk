@@ -9,6 +9,8 @@
  */
 window.CD_CONFIG = {
   SUPABASE_URL: 'https://appdoslighvkqifmlyds.supabase.co',
+  // On the live site, backend calls go through mycreatordesk.co.in/sb/ (see netlify.toml) because some ISPs block supabase.co.
+  SUPABASE_PROXY: /(^|\.)mycreatordesk\.co\.in$/.test(location.hostname) ? location.origin + '/sb' : '',
   SUPABASE_ANON_KEY: 'sb_publishable_Lr54DehenSxAOKfamXqkJw_-4o0jcWx',
   SITE_URL: 'https://mycreatordesk.co.in/',   // sign-in and Instagram always return here (www redirects to it)
   FB_APP_ID: '1113383891047813',

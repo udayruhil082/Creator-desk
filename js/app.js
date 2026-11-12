@@ -5,6 +5,7 @@
 /* ================= helpers ================= */
 var CFG = window.CD_CONFIG || {};
 var PREVIEW = !CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY || /[?&]preview\b/.test(location.search);
+var API_BASE = (CFG.SUPABASE_PROXY || CFG.SUPABASE_URL || '').replace(/\/$/, '');
 var SITE_URL = PREVIEW ? location.origin + '/' : (CFG.SITE_URL || 'https://mycreatordesk.co.in/');
 function $(id){ return document.getElementById(id); }
 function qsa(sel, el){ return Array.prototype.slice.call((el||document).querySelectorAll(sel)); }
@@ -96,7 +97,7 @@ var sb = null;
 function supa(){
   if (!sb) {
     if (!window.supabase || !window.supabase.createClient) throw new Error('Sign-in could not load. Check your internet and refresh the page.');
-    sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {auth: {flowType: 'implicit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
+    sb = window.supabase.createClient(API_BASE, CFG.SUPABASE_ANON_KEY, {auth: {storageKey: 'sb-appdoslighvkqifmlyds-auth-token', flowType: 'implicit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
   }
   return sb;
 }
@@ -106,7 +107,7 @@ function api(action, params){
   if (PREVIEW) return Preview.call(action, params);
   return supa().auth.getSession().then(function(r){
     var s = r.data && r.data.session; if (!s) throw apiError('Please sign in.', 'AUTH');
-    return fetch(CFG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1/api', {
+    return fetch(API_BASE + '/functions/v1/api', {
       method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.access_token},
       body: JSON.stringify(Object.assign({action: action}, params))
     }).catch(function(){ throw apiError('Could not reach My Creator Desk. Check your internet and try again.', 'NETWORK'); });
@@ -653,7 +654,10 @@ function boot(){
   }
   var client;
   try { client = supa(); } catch (e) { ST.ready = true; $('root').innerHTML = '<div class="center" style="min-height:100vh"><div class="card"><h2>The page could not start</h2><p class="muted">' + esc(e.message) + '</p></div></div>'; return; }
+  var started = false;
+  var stuck = setTimeout(function(){ if (started) return; started = true; ST.ready = true; ST.signinMsg = 'We could not reach our server. Check your internet, or try mobile data or another Wi-Fi, then refresh.'; route(); }, 10000);
   client.auth.getSession().then(function(r){
+    if (started) return; started = true; clearTimeout(stuck);
     var s = r.data && r.data.session;
     if (r.error) ST.signinMsg = r.error.message;
     var h = location.hash || '';
