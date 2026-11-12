@@ -614,7 +614,7 @@ function connectInstagram(igUserId){
   sstore('cd-fb', JSON.stringify({state: st, companyId: c.id, igUserId: igUserId || ''}));
   if (PREVIEW) { location.href = location.pathname + '?' + (/[?&]preview\b/.test(location.search) ? 'preview&' : '') + 'code=preview-' + st + '&state=' + st + '#/instagram'; return; }
   var q = {client_id: CFG.FB_APP_ID, redirect_uri: SITE_URL, state: st, response_type: 'code'};
-  if (CFG.FB_CONFIG_ID) q.config_id = CFG.FB_CONFIG_ID; else q.scope = 'instagram_basic,pages_show_list,pages_read_engagement,business_management';
+  if (CFG.FB_CONFIG_ID) q.config_id = CFG.FB_CONFIG_ID; else q.scope = 'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management,ads_read';
   location.href = 'https://www.facebook.com/v26.0/dialog/oauth?' + Object.keys(q).map(function(k){ return k + '=' + encodeURIComponent(q[k]); }).join('&');
 }
 // Facebook sends people back to the home page with ?code=…&state=…; read it before anything else and clean the address.
