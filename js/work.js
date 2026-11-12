@@ -822,7 +822,7 @@ function reportHTML(){
   var P = postRows(), R = creatorRows(), s = W.settings || {}, user = (ST.user && (ST.user.name || ST.user.email)) || '', posts = P.list, cr = R.list, company = (co() || {}).name || '';
   var today = new Date().toLocaleDateString('en-IN', {day: 'numeric', month: 'long', year: 'numeric'});
   var dates = s.start && s.end ? new Date(s.start).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) + ' – ' + new Date(s.end).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) : '';
-  var A = '#0D6A65', GOLD = '#E3A21A', INK = '#15211F', MU = '#586966', LN = '#D5DFDC', SK = '#EEF3F1';
+  var A = '#17766B', GOLD = '#E9A23B', INK = '#3B2A20', MU = '#6E5546', LN = '#E2D6C5', SK = '#F3EDE4';
   var th = 'style="text-align:left;padding:6px 7px;font-size:9.5px;color:#fff;background:' + A + ';font-weight:600"', thn = 'style="text-align:right;padding:6px 7px;font-size:9.5px;color:#fff;background:' + A + ';font-weight:600"';
   var td = function(v, n, b){ return '<td style="padding:5px 7px;font-size:9.5px;border-bottom:1px solid ' + LN + ';' + (n ? 'text-align:right;' : '') + (b ? 'font-weight:700;' : '') + '">' + v + '</td>'; };
   var h2 = function(t, sub){ return '<div class="avoid" style="margin:22px 0 8px"><div style="font-size:15px;font-weight:700;color:' + INK + '">' + t + '</div>' + (sub ? '<div style="font-size:9.5px;color:' + MU + '">' + sub + '</div>' : '') + '</div>'; };

@@ -100,7 +100,7 @@
     var doc = '<div class="mv doc"><i style="--w:60%"></i><i style="--w:95%"></i><i style="--w:85%"></i><i style="--w:70%"></i></div>';
     var ppl = '<div class="mv ppl"><b style="background:#17766B">UR</b><b style="background:#E9A23B;color:#2A1C14">VJ</b><b style="background:#7A5C4A">AK</b><b style="background:#3B2A20">+5</b></div>';
     return '<section class="sec" id="features"><div class="lwrap">' +
-      '<div class="hd rv"><span class="eyebrow"><i></i>Features</span><h2>Everything your team checks before booking a creator, in one place.</h2><p class="llede">Every number comes from Instagram through your brand’s own connected account. No scraping, no guesswork.</p></div>' +
+      '<div class="hd rv" data-par="-30"><span class="eyebrow"><i></i>Features</span><h2>Everything your team checks before booking a creator, in one place.</h2><p class="llede">Every number comes from Instagram through your brand’s own connected account. No scraping, no guesswork.</p></div>' +
       '<div class="bento">' +
         f('big', I.search, 'Creator lookup', 'Followers, average views, likes, comments and engagement rate, worked out from the creator’s last 12 posts.', bars) +
         f('', I.gauge, 'Audience quality score', 'A score out of 100 that spots weak, bought or inactive engagement.', ring) +
@@ -227,9 +227,58 @@
     }
     later(run, 400);
   }
+  function choreograph(){ // give every block its own entrance
+    function set(sel, cls, step){ qsa(sel).forEach(function(el, i){ el.classList.add('rv'); if (cls) el.classList.add(cls); if (step) el.style.transitionDelay = (i * step) + 'ms'; }); }
+    set('.lp .bento .f', 'rv-s', 0); qsa('.lp .bento .f').forEach(function(el, i){ el.style.transitionDelay = ((i % 4) * 90) + 'ms'; });
+    set('.lp .pains .pain', 'rv-up', 120);
+    set('.lp .nums > div', 'rv-s', 110);
+    set('.lp .faq .q', 'rv-up', 70);
+    qsa('.lp .plans .pl').forEach(function(el, i){ el.classList.add(i ? 'rv-r' : 'rv-l'); el.style.transitionDelay = '0ms'; });
+    qsa('.lp .fd .fo').forEach(function(el, i){ el.classList.add(i ? 'rv-r' : 'rv-l'); });
+    qsa('.lp .trust > div:first-child').forEach(function(el){ el.classList.add('rv-l'); });
+    qsa('.lp .shield').forEach(function(el){ el.classList.add('rv-z'); });
+    qsa('.lp .ans').forEach(function(el){ el.classList.add('rv-s'); });
+    qsa('.lp .st').forEach(function(el, i){ el.classList.add('rv-l'); el.style.transitionDelay = (200 + i * 220) + 'ms'; });
+    // split section headings into words that rise one by one
+    qsa('.lp main h2').forEach(function(h){
+      if (h.dataset.split) return; h.dataset.split = 1;
+      h.innerHTML = h.textContent.split(' ').map(function(w, i){ return '<span class="sw"><span style="transition-delay:' + (i * 45) + 'ms">' + w + '</span></span>'; }).join(' ');
+      h.classList.add('rvh');
+    });
+    // dark bands open like a curtain
+    qsa('.lp .sec.dark').forEach(function(el){ el.classList.add('rv-wipe'); });
+    qsa('.lp .eyebrow').forEach(function(el){ el.classList.add('rv-ey'); });
+  }
   function reveal(){
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); qsa('[data-cnt]', e.target).forEach(function(el){ if (!el.closest('#lp-res')) count(el, 1400); }); io.unobserve(e.target); } }); }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
-    qsa('.lp .rv, #lp-steps').forEach(function(el){ io.observe(el); });
+    qsa('.lp .rv, #lp-steps, .lp .rvh, .lp .rv-wipe, .lp .rv-ey').forEach(function(el){ io.observe(el); });
+  }
+  var rafOn = false;
+  function onScrollFx(){ // progress bar + parallax, one rAF per frame
+    if (rafOn) return; rafOn = true;
+    requestAnimationFrame(function(){
+      rafOn = false;
+      var y = window.scrollY, H = document.documentElement.scrollHeight - innerHeight;
+      var bar = $('lp-prog'); if (bar) bar.style.transform = 'scaleX(' + (H > 0 ? y / H : 0) + ')';
+      if (reduce) return;
+      var demo = $('lp-demo'); if (demo) demo.style.transform = 'translateY(' + (y * -0.12) + 'px) rotate(' + (y * 0.006) + 'deg)';
+      qsa('.lp .hero h1').forEach(function(h){ h.style.transform = 'translateY(' + (y * 0.08) + 'px)'; h.style.opacity = Math.max(0, 1 - y / 700); });
+      qsa('.lp [data-par]').forEach(function(el){ var r = el.getBoundingClientRect(), c = (r.top + r.height / 2 - innerHeight / 2) / innerHeight; el.style.transform = 'translateY(' + (c * parseFloat(el.dataset.par)) + 'px)'; });
+      qsa('.lp .shield .core').forEach(function(el){ var r = el.getBoundingClientRect(); el.style.transform = 'rotate(' + ((r.top - innerHeight / 2) * -0.04) + 'deg) scale(' + (1 + Math.max(0, 1 - Math.abs(r.top - innerHeight / 2) / innerHeight) * 0.12) + ')'; });
+      qsa('.lp .cta .glow').forEach(function(el){ var r = el.parentElement.getBoundingClientRect(); var k = 1 - Math.min(1, Math.abs(r.top) / innerHeight); el.style.transform = 'translate(-50%,-50%) scale(' + (0.6 + k * 0.7) + ')'; });
+      var mq = qsa('.lp .mq .trk')[0]; if (mq) mq.style.marginLeft = (-y * 0.25) + 'px';
+    });
+  }
+  function tilt(){ // 3D tilt on cards under a mouse
+    if (reduce || !matchMedia('(pointer:fine)').matches) return;
+    qsa('.lp .f, .lp .pl, .lp .fo, .lp .pain, .lp .demo .lcard').forEach(function(el){
+      el.addEventListener('mousemove', function(e){ var r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, yy = (e.clientY - r.top) / r.height - .5; el.style.transform = 'perspective(900px) rotateX(' + (-yy * 7) + 'deg) rotateY(' + (x * 9) + 'deg) translateY(-6px)'; el.style.setProperty('--mx', (x + .5) * 100 + '%'); el.style.setProperty('--my', (yy + .5) * 100 + '%'); el.classList.add('tilt'); });
+      el.addEventListener('mouseleave', function(){ el.style.transform = ''; el.classList.remove('tilt'); });
+    });
+    qsa('.lp .b.p').forEach(function(b){ // magnetic buttons
+      b.addEventListener('mousemove', function(e){ var r = b.getBoundingClientRect(); b.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * .18) + 'px,' + ((e.clientY - r.top - r.height / 2) * .25) + 'px) scale(1.03)'; });
+      b.addEventListener('mouseleave', function(){ b.style.transform = ''; });
+    });
   }
   function scrollTo(id){ var t = $(id); if (!t) return; var y = t.getBoundingClientRect().top + window.scrollY - 72; window.scrollTo({top: y, behavior: reduce ? 'auto' : 'smooth'}); }
   function bind(){
@@ -237,7 +286,7 @@
     qsa('.lp [data-to]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); var id = a.dataset.to; scrollTo(id); if (id === 'features' || id === 'pricing') history.replaceState(null, '', '#/' + id); $('lp-nav').classList.remove('open'); }; });
     var nav = $('lp-nav'), bg = $('lp-burger');
     bg.onclick = function(){ var o = nav.classList.toggle('open'); bg.setAttribute('aria-expanded', o); };
-    var onS = function(){ nav.classList.toggle('on', window.scrollY > 10); }; window.onscroll = onS; onS();
+    var onS = function(){ nav.classList.toggle('on', window.scrollY > 10); onScrollFx(); }; window.onscroll = onS; onS();
     qsa('.lp [data-cycle]').forEach(function(b){ b.onclick = function(){
       cycle = b.dataset.cycle; var idx = CYCLES.findIndex(function(c){ return c.id === cycle; });
       qsa('.lp [data-cycle]').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
@@ -251,9 +300,9 @@
     clearTimers();
     document.title = 'My Creator Desk — Check Instagram creators before you pay';
     var root = $('root');
-    root.innerHTML = '<div class="lp">' + (PREVIEW ? '<div class="pv"><strong>Preview mode.</strong> Sample data kept in this browser only.</div>' : '') +
+    root.innerHTML = '<div class="lp"><div class="lp-prog" id="lp-prog"></div>' + (PREVIEW ? '<div class="pv"><strong>Preview mode.</strong> Sample data kept in this browser only.</div>' : '') +
       nav() + '<main>' + hero() + marquee() + problem() + features() + how() + numbers() + pricing() + trust() + founders() + faq() + finalCta() + '</main>' + foot() + '</div>';
-    bind(); reveal(); heroLoop();
+    choreograph(); bind(); reveal(); heroLoop(); tilt(); onScrollFx();
     if (anchor) setTimeout(function(){ scrollTo(anchor); }, 60);
   }};
 })();

@@ -89,7 +89,7 @@ var ICONS = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'
 };
 function icon(n, s){ s = s || 18; return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
-var LOGO = '<svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0D6A65"/><path d="M9 22V10h6.5a4.5 4.5 0 0 1 0 9H12" fill="none" stroke="#F2B93B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var LOGO = '<svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#17766B"/><path d="M9 22V10h6.5a4.5 4.5 0 0 1 0 9H12" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var GLOGO = '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>';
 
 /* ================= API ================= */
@@ -415,7 +415,7 @@ function startPayment(btn, c, p, cycle){
       return new Promise(function(res, rej){
         var rz = new window.Razorpay({
           key: o.keyId, amount: o.amount, currency: o.currency, order_id: o.orderId, name: o.name, description: o.description,
-          prefill: o.prefill, notes: {company: o.companyName}, theme: {color: '#0D6A65'},
+          prefill: o.prefill, notes: {company: o.companyName}, theme: {color: '#17766B'},
           handler: function(resp){ res(resp); },
           modal: {ondismiss: function(){ rej(apiError('Payment was not completed. You can try again whenever you are ready.', 'DISMISSED')); }}
         });

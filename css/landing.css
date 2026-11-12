@@ -309,3 +309,59 @@
 
 /* preview-mode banner spacing fix */
 .lp .pv{background:var(--amber-soft);color:var(--walnut);text-align:center;padding:10px 20px;font-size:14px;border-bottom:1px solid rgba(59,42,32,.1)}
+
+/* ===================== motion v2 ===================== */
+/* scroll progress */
+.lp .lp-prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;background:linear-gradient(90deg,var(--teal),var(--amber));transform:scaleX(0);transform-origin:left;pointer-events:none}
+/* entrance variants (base .rv = fade + rise) */
+.lp .rv.rv-l{transform:translateX(-70px) rotate(-1.5deg)}
+.lp .rv.rv-r{transform:translateX(70px) rotate(1.5deg)}
+.lp .rv.rv-s{transform:scale(.86) translateY(30px)}
+.lp .rv.rv-up{transform:translateY(60px)}
+.lp .rv.rv-z{transform:scale(.6) rotate(-12deg)}
+.lp .rv.rv-l,.lp .rv.rv-r,.lp .rv.rv-s,.lp .rv.rv-up,.lp .rv.rv-z{transition:opacity .85s var(--ease),transform .9s cubic-bezier(.16,1,.3,1),box-shadow .35s var(--ease),filter .85s var(--ease);filter:blur(6px)}
+.lp .rv.in.rv-l,.lp .rv.in.rv-r,.lp .rv.in.rv-s,.lp .rv.in.rv-up,.lp .rv.in.rv-z{transform:none;filter:none}
+/* headings: words rise from a mask */
+.lp .rvh .sw{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.08em;margin-bottom:-.08em}
+.lp .rvh .sw>span{display:inline-block;transform:translateY(105%) rotate(4deg);transition:transform .8s cubic-bezier(.16,1,.3,1)}
+.lp .rvh.in .sw>span{transform:none}
+/* eyebrow line draws in */
+.lp .rv-ey i{transform:scaleX(0);transform-origin:left;transition:transform .7s .15s var(--ease)}
+.lp .rv-ey.in i{transform:scaleX(1)}
+/* dark bands open like a curtain */
+.lp .rv-wipe{clip-path:inset(8% 5% 8% 5% round 40px);transition:clip-path 1.1s cubic-bezier(.16,1,.3,1)}
+.lp .rv-wipe.in{clip-path:inset(0 0 0 0 round 0)}
+/* tilt glare */
+.lp .f,.lp .pl,.lp .fo,.lp .pain{transform-style:preserve-3d;will-change:transform}
+.lp .tilt{transition:transform .12s linear,box-shadow .3s!important}
+.lp .tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.35),transparent 55%);mix-blend-mode:soft-light}
+.lp .pl,.lp .fo,.lp .pain{position:relative}
+/* magnetic buttons + shine sweep */
+.lp .b.p{position:relative;overflow:hidden}
+.lp .b.p::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:lpShine 3.6s 1.5s ease-in-out infinite}
+@keyframes lpShine{0%,70%{left:-60%}100%{left:130%}}
+.lp .b{will-change:transform}
+/* hero extras */
+.lp .hero h1{will-change:transform,opacity}
+.lp .demo{will-change:transform;transition:transform .1s linear}
+.lp .hero::before,.lp .hero::after{content:"";position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;pointer-events:none;z-index:-1;animation:lpBlob 14s ease-in-out infinite}
+.lp .hero{position:relative}
+.lp .hero::before{width:420px;height:420px;background:#E6D8C4;top:-120px;right:-80px}
+.lp .hero::after{width:320px;height:320px;background:rgba(23,118,107,.18);bottom:-80px;left:-100px;animation-delay:-7s}
+@keyframes lpBlob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,30px) scale(1.1)}66%{transform:translate(-30px,20px) scale(.95)}}
+/* step numbers pop as the line reaches them */
+.lp .st.in .n{animation:lpPop .6s cubic-bezier(.34,1.56,.64,1) both;animation-delay:inherit}
+@keyframes lpPop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+/* features: icon wiggle on hover */
+.lp .f:hover .lic{animation:lpWig .6s ease}
+@keyframes lpWig{25%{transform:rotate(-12deg) scale(1.1)}50%{transform:rotate(10deg)}75%{transform:rotate(-4deg)}}
+/* faq answer slide */
+.lp .q .a p{transform:translateY(-6px);opacity:0;transition:transform .4s var(--ease),opacity .4s}
+.lp .q.open .a p{transform:none;opacity:1}
+/* founders avatar spin-in */
+.lp .fo.in .lav{animation:lpSpinIn .9s cubic-bezier(.34,1.56,.64,1) both .2s}
+@keyframes lpSpinIn{from{transform:rotate(-180deg) scale(0)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .lp .rv,.lp .rvh .sw>span,.lp .rv-wipe,.lp .rv-ey i{transform:none!important;clip-path:none!important;filter:none!important;opacity:1!important}
+  .lp .lp-prog{display:none}
+}
