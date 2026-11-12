@@ -281,68 +281,8 @@ function planCard(p, cycle, opts){
     '<ul>' + feats.map(function(f){ return '<li>' + check() + '<span>' + f + '</span></li>'; }).join('') + '</ul>' + btn + '</article>';
 }
 
-var landCycle = 'monthly';
-function renderLanding(anchor){
-  document.title = 'My Creator Desk · Check Instagram creators before you pay';
-  var root = $('root');
-  root.innerHTML = '<div class="pub">' + previewBar() + pubNav() +
-  '<main>' +
-  '<section class="hero gut"><div class="wrap">' +
-    '<div>' +
-      '<h1>Know what a creator is worth before you pay.</h1>' +
-      '<p class="lede">Look up any Instagram creator and see their real engagement, audience quality, competitor collabs and cost per view. Then track every campaign post and send your manager a clean PDF report.</p>' +
-      '<div class="btns"><button class="btn primary lg" data-signin>' + (ST.user ? 'Open your desk' : 'Sign in with Google') + '</button><a class="btn lg ghost" href="#/pricing" data-scroll="pricing">See pricing</a></div>' +
-      '<p class="fine">Built for brand and agency teams in India. Plans from ₹4,999 a month.</p>' +
-    '</div>' +
-    '<div class="slip-wrap" aria-label="Example: a creator checked in My Creator Desk">' +
-      '<div class="slip">' +
-        '<div class="slip-top"><div class="who"><span class="av"><i></i></span><div><div class="h">@glow.with.anaya</div><div class="tiny muted">Skincare creator, Pune, Hindi and English</div></div></div><span class="verdict">Good value</span></div>' +
-        '<div class="slip-nums"><div><span>Followers</span><b>64K</b></div><div><span>Engagement rate</span><b>6.66%</b></div><div><span>Avg Reel views</span><b>72K</b></div></div>' +
-        '<div class="slip-cpv"><div class="tiny muted">Cost per view at the quoted ₹28,000</div>' +
-          '<div class="ln"><span>This creator</span><span class="tr"><i style="width:35%;background:var(--good)"></i></span><span>₹0.39</span></div>' +
-          '<div class="ln"><span>Your shortlist</span><span class="tr"><i style="width:55%;background:var(--gold)"></i></span><span>₹0.61</span></div>' +
-          '<div class="ln"><span>Costliest</span><span class="tr"><i style="width:100%;background:var(--faint)"></i></span><span>₹1.10</span></div></div>' +
-        '<div class="slip-foot"><span class="chip good">Audience quality 82/100</span><span class="chip neutral">No competitor collabs</span><span class="chip teal">Reels get 1.8x the engagement</span></div>' +
-      '</div>' +
-      '<div class="stamp">36% cheaper per view<small>than your shortlist median</small></div>' +
-    '</div>' +
-  '</div></section>' +
+function renderLanding(anchor){ return window.LP.render(anchor); }
 
-  '<section class="band desk gut" id="features"><div class="wrap">' +
-    '<h2>Everything your team checks before booking a creator, in one place.</h2>' +
-    '<p class="intro muted">No more screenshots of insights, copy-pasted follower counts or guessing whether a quote is fair. Every number comes from Instagram through your own connected account.</p>' +
-    '<div class="feat">' +
-      feat('search', 'Look up any handle', 'Followers, average views, likes and comments from the creator’s last 12 posts, with engagement rate checked against their size.') +
-      feat('shield', 'Spot fake followers', 'An audience quality score out of 100 worked out from organic posts only, so paid promotion is never counted as fake.') +
-      feat('swap', 'Sponsored vs organic', 'See how a creator’s brand posts do against their normal ones, and which sponsored posts look boosted.') +
-      feat('flag', 'Competitor check', 'The last 25 captions are scanned for your competitor brands, their handles and hashtags, plus #ad and paid partnership tags.') +
-      feat('upload', 'Bring your own sheet', 'Upload any Excel or CSV list of creators. Handles are looked up and only the empty cells are filled.') +
-      feat('file', 'Track and report', 'Paste campaign post links to get views, CPV, CPE and budget burn, then download a manager-ready PDF.') +
-    '</div>' +
-  '</div></section>' +
-
-  '<section class="band gut"><div class="wrap">' +
-    '<h2>Up and running in a day.</h2>' +
-    '<ol class="steps">' +
-      '<li><strong>Sign in with Google</strong><span>No passwords to manage.</span></li>' +
-      '<li><strong>Create your company</strong><span>Name, and GSTIN if you want it on invoices.</span></li>' +
-      '<li><strong>Pick a plan and pay</strong><span>UPI, cards or netbanking through Razorpay.</span></li>' +
-      '<li><strong>We approve your desk</strong><span>Usually within one working day.</span></li>' +
-      '<li><strong>Connect Instagram, invite your team</strong><span>Everyone gets their own shortlist and campaigns.</span></li>' +
-    '</ol>' +
-  '</div></section>' +
-
-  '<section class="band gut" id="pricing" style="padding-top:24px"><div class="wrap">' +
-    '<div class="spread"><div class="stack"><h2>Simple plans, priced per company.</h2><p class="intro muted" style="margin-top:4px">Every plan has every feature. You choose how many Instagram accounts and team members you need.</p></div>' +
-    cycleSeg('cycle', landCycle) + '</div>' +
-    '<div class="pricing" id="price-cards">' + plans().map(function(p){ return planCard(p, landCycle); }).join('') + '</div>' +
-    '<p class="small muted" style="margin-top:18px">Prices are in Indian rupees. Payments go through Razorpay; your company is switched on once we approve the payment.</p>' +
-  '</div></section>' +
-  '</main>' + pubFoot() + '</div>';
-  bindPub();
-  qsa('[data-cycle]').forEach(function(b){ b.onclick = function(){ landCycle = b.dataset.cycle; qsa('[data-cycle]').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); $('price-cards').innerHTML = plans().map(function(p){ return planCard(p, landCycle); }).join(''); bindPub(); }; });
-  if (anchor) setTimeout(function(){ var t = $(anchor); if (t) t.scrollIntoView(); }, 30);
-}
 function feat(ic, t, d){ return '<div><div class="ic">' + icon(ic, 18) + '</div><h3>' + t + '</h3><p>' + d + '</p></div>'; }
 
 function renderSignin(){
